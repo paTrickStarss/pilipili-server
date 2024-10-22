@@ -6,10 +6,40 @@ spring:
 
   cloud:
     nacos:
-      server-addr: alya.ecs:18848
+      server-addr: ${nacos.serverAddr}
       config:
         file-extension: yml
+        namespace: 98ca1cd6-9e4a-4065-a070-dcd368090f91
         shared-configs:
-          - data-id: common-config.yml
+          - data-id: dataSource-dev.yml
             group: DEFAULT_GROUP
             refresh: true
+          - data-id: common-dev.yml
+            refresh: true
+      discovery:
+        namespace: 98ca1cd6-9e4a-4065-a070-dcd368090f91
+      username: ${nacos.username}
+      password: ${nacos.password}
+
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:80"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "DELETE"
+              - "PUT"
+              - "OPTIONS"
+            allowedHeaders: "*"
+            allowCredentials: true  # allow cookie
+            maxAge: 360000
+
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**

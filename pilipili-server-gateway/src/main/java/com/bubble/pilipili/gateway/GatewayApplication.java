@@ -1,4 +1,4 @@
-package com.bubble.pilipili.server.gateway;
+package com.bubble.pilipili.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
