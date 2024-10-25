@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: video-service
+  profiles:
+    active: dev
+
+  cloud:
+    nacos:
+      server-addr: ${nacos.serverAddr}
+      config:
+        file-extension: yml
+        namespace: 98ca1cd6-9e4a-4065-a070-dcd368090f91
+        shared-configs:
+          - data-id: dataSource-dev.yml
+            group: DEFAULT_GROUP
+            refresh: true
+          - data-id: common-dev.yml
+            refresh: true
+      discovery:
+        namespace: 98ca1cd6-9e4a-4065-a070-dcd368090f91
+      username: ${nacos.username}
+      password: ${nacos.password}

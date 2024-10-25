@@ -17,9 +17,29 @@
       <option name="url" value="https://maven.aliyun.com/repository/public/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="publicRepoAliyun" />
+      <option name="name" value="publicRepoAliyun" />
+      <option name="url" value="https://maven.aliyun.com/repository/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="privateRepoReleases" />
+      <option name="name" value="privateRepoReleases" />
+      <option name="url" value="http://maven.hsit.com.cn/nexus/repository/releases/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="centralRepoAliyun" />
+      <option name="name" value="centralRepoAliyun" />
+      <option name="url" value="https://maven.aliyun.com/repository/central" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Maven Central repository" />
       <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="privateRepo-fkmis-gy" />
+      <option name="name" value="privateRepo-fkmis-gy" />
+      <option name="url" value="http://maven.hsit.com.cn/nexus/repository/fkmis-gy/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jboss.community" />
@@ -30,6 +50,16 @@
       <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://maven.aliyun.com/repository/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="publicRepoHuaweicloud" />
+      <option name="name" value="publicRepoHuaweicloud" />
+      <option name="url" value="https://mirrors.huaweicloud.com/repository/maven/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="privateRepoAliyun" />
+      <option name="name" value="privateRepoAliyun" />
+      <option name="url" value="http://maven.hsit.com.cn/nexus/repository/aliyun/" />
     </remote-repository>
   </component>
 </project>
