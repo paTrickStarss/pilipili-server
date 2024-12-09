@@ -9,6 +9,11 @@ public class AuthConstant {
     public static final String AUTHORITY_PREFIX = "ROLE_";
     public static final String AUTHORITY_SUFFIX = "_AUTH";
     public static final String AUTHORITY_DELIMITER = ",";
-    public static final String AUTHORITY_CLAIM_NAME = "Bubble";
+    public static final String AUTHORITY_CLAIM_NAME = "authorities";
+
+    public static final String UNAUTHORIZED_MSG = "Unauthorized";
+    public static final String FORBIDDEN_MSG = "You do not have permission to access this resource.";
+
+    public static final String JWT_PAYLOAD_HEADER = "JWT-Payload";
 
 }

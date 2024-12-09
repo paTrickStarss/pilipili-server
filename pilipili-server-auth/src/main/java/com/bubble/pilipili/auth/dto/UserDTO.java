@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -25,6 +26,9 @@ public class UserDTO implements UserDetails, Serializable {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (authorities == null) {
+            authorities = new HashSet<>();
+        }
         return authorities;
     }
 

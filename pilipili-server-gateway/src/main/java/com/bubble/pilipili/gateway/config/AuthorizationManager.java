@@ -2,6 +2,7 @@ package com.bubble.pilipili.gateway.config;
 
 import com.bubble.pilipili.common.constant.RedisKey;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -31,19 +32,29 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
     public Mono<AuthorizationDecision> check(Mono<Authentication> authentication, AuthorizationContext context) {
         URI uri = context.getExchange().getRequest().getURI();
         List<String> authorities =
-                ((List<String>) redisTemplate.opsForHash().get(RedisKey.RESOURCE_ROLES_MAP.name(), uri.getPath()));
-        log.info("path: {}, authorities: {}", uri.getPath(), authorities);
+                ((List<String>) redisTemplate.opsForHash().get(RedisKey.RESOURCE_ROLES_MAP.name(), getPathPrefix(uri)));
+        log.debug("path: {}, authorities: {}", uri.getPath(), authorities);
         if (authorities == null) {
             return Mono.just(new AuthorizationDecision(false));
         }
-
         return authentication
                 .filter(Authentication::isAuthenticated)
+                .doOnNext(auth -> {
+                    log.debug("filter: {}", auth);
+                })
                 .flatMapIterable(Authentication::getAuthorities)
                 .map(GrantedAuthority::getAuthority)
                 .any(authorities::contains)
                 .map(AuthorizationDecision::new)
                 .defaultIfEmpty(new AuthorizationDecision(false));
+    }
+
+    private String getPathPrefix(URI uri) {
+        String path = uri.getPath();
+        if (path.startsWith("/") && path.contains("/api")) {
+            return path.substring(0, path.lastIndexOf('/'));
+        }
+        return path;
     }
 }
 

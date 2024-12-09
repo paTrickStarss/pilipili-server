@@ -9,12 +9,18 @@ server:
       min-spare: 10
 
 resource:
-  maps:
-    - path: /
+  role-map:
+    - id: 0
+      name: ROLE_USER
+    - id: 1
+      name: ROLE_ADMIN
+
+  path-role-map:
+    - path: /api/user
       role:
-        - ADMIN
-        - TEST
-    - path: /auth/rsa/publicKey
+        - ROLE_ADMIN
+        - ROLE_USER
+        - ROLE_TEST
+    - path: /api/video
       role:
-        - ADMIN
-        - USER
+        - ROLE_ADMIN

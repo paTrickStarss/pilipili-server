@@ -22,21 +22,21 @@ spring:
       password: ${nacos.password}
 
     gateway:
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        cors-configurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:80"
-            allowedMethods:
-              - "GET"
-              - "POST"
-              - "DELETE"
-              - "PUT"
-              - "OPTIONS"
-            allowedHeaders: "*"
-            allowCredentials: true  # allow cookie
-            maxAge: 360000
+#      globalcors:
+#        add-to-simple-url-handler-mapping: true
+#        cors-configurations:
+#          '[/**]':
+#            allowedOrigins:
+#              - "http://localhost:80"
+#            allowedMethods:
+#              - "GET"
+#              - "POST"
+#              - "DELETE"
+#              - "PUT"
+#              - "OPTIONS"
+#            allowedHeaders: "*"
+#            allowCredentials: true  # allow cookie
+#            maxAge: 360000
 
       routes:
         - id: auth

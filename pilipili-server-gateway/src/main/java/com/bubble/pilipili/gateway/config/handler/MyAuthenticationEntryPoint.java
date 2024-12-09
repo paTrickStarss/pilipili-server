@@ -1,5 +1,6 @@
 package com.bubble.pilipili.gateway.config.handler;
 
+import com.bubble.pilipili.common.constant.AuthConstant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.core.util.Json;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class MyAuthenticationEntryPoint implements ServerAuthenticationEntryPoin
 
         Map<String, Object> body = new HashMap<>();
         body.put("status", HttpStatus.UNAUTHORIZED.value());
-        body.put("message", ex.getMessage());
+        body.put("message", AuthConstant.UNAUTHORIZED_MSG);
         body.put("times", new Date());
         body.put("path", exchange.getRequest().getPath().value());
 

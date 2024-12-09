@@ -1,6 +1,7 @@
 package com.bubble.pilipili.auth.config;
 
 import com.bubble.pilipili.auth.entity.ResourceMap;
+import com.bubble.pilipili.auth.entity.RoleMap;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,13 @@ public class ResourceConfigProperties {
      */
     @NotNull
     @Valid
-    private List<ResourceMap> maps = new ArrayList<>();
+    private List<ResourceMap> pathRoleMap = new ArrayList<>();
+
+    /**
+     * 角色列表
+     */
+    @NotNull
+    @Valid
+    private List<RoleMap> roleMap = new ArrayList<>();
 
 }

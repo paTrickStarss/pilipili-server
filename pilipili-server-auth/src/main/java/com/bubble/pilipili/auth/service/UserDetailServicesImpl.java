@@ -1,8 +1,13 @@
 package com.bubble.pilipili.auth.service;
 
+import com.bubble.pilipili.auth.config.ResourceConfigProperties;
 import com.bubble.pilipili.auth.dto.UserDTO;
+import com.bubble.pilipili.auth.entity.RoleMap;
 import com.bubble.pilipili.auth.entity.UserAuth;
 import com.bubble.pilipili.auth.mapper.UserAuthMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,11 +15,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static net.sf.jsqlparser.util.validation.metadata.NamedObject.role;
 
 /**
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
+@Slf4j
 @Service
 public class UserDetailServicesImpl implements UserDetailsService {
 
@@ -23,6 +33,9 @@ public class UserDetailServicesImpl implements UserDetailsService {
 
     @Resource
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Resource
+    private ResourceConfigProperties resourceConfigProperties;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -34,11 +47,27 @@ public class UserDetailServicesImpl implements UserDetailsService {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername(userAuth.getUsername().toString());
 
-        // test
+        // test  目前数据库查出的密码字段是明文，需要手动加密一下  后续存入数据库的密码字段是密文，则不需要执行这一步
         userAuth.setPassword(bCryptPasswordEncoder.encode(userAuth.getPassword()));
 
         userDTO.setPassword(userAuth.getPassword());
 
+        String roleNum = userAuth.getRole();
+        String roleName = "";
+        List<RoleMap> roleMap = resourceConfigProperties.getRoleMap();
+        List<RoleMap> result = roleMap.stream().filter(role -> role.getId().equals(roleNum)).collect(Collectors.toList());
+//        for (RoleMap map : roleMap) {
+//            if (map.getId().equals(roleNum)) {
+//                roleName = map.getName();
+//            }
+//        }
+        if (!result.isEmpty()) {
+            roleName = result.get(0).getName();
+        }
+        Set<SimpleGrantedAuthority> authorities = (Set<SimpleGrantedAuthority>) userDTO.getAuthorities();
+        authorities.add(new SimpleGrantedAuthority(roleName));
+
+        log.debug("userDTO: {}", userDTO);
         return userDTO;
     }
 }

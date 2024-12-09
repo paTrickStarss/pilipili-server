@@ -1,5 +1,6 @@
 package com.bubble.pilipili.gateway.filter;
 
+import com.bubble.pilipili.common.constant.AuthConstant;
 import com.nimbusds.jose.JWSObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -33,9 +34,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             String token = authorization.replace("Bearer ", "");
             JWSObject jwsObject = JWSObject.parse(token);
             String userStr = jwsObject.getPayload().toString();
-            log.info("AuthGlobalFilter.filter() user: {}", userStr);
+            log.debug("AuthGlobalFilter.filter() user: {}", userStr);
 
-            request.mutate().header("user", userStr).build();
+            request.mutate().header(AuthConstant.JWT_PAYLOAD_HEADER, userStr).build();
             exchange = exchange.mutate().request(request).build();
 
         } catch (ParseException e) {

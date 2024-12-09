@@ -52,7 +52,7 @@ public class ResourceServerConfig {
         ignoreUrlList.add("/auth/oauth/token");
         ignoreUrlList.add("/auth/oauth/authorize");
         ignoreUrlList.add("/auth/oauth/revoke");
-        ignoreUrlList.add("/auth/");
+        ignoreUrlList.add("/auth/rsa/publicKey");
 //        ignoreUrlList.add("/api/user/test");
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }
@@ -67,10 +67,10 @@ public class ResourceServerConfig {
                 // 鉴权管理器
                 .anyExchange().access(authorizationManager)
                 .and().exceptionHandling()
-                // 处理权限不足请求 403
-                .accessDeniedHandler(myAccessDeniedHandler)
                 // 处理认证失败请求 401
                 .authenticationEntryPoint(myAuthenticationEntryPoint)
+                // 处理权限不足请求 403
+                .accessDeniedHandler(myAccessDeniedHandler)
                 .and().csrf().disable();
 
         return http.build();

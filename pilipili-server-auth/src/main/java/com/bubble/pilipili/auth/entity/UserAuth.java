@@ -22,4 +22,7 @@ public class UserAuth {
 
     @TableField("password")
     private String password;
+
+    @TableField("role")
+    private String role;
 }

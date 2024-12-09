@@ -26,7 +26,7 @@ public class ResourceServiceImpl {
     @PostConstruct
     public void init() {
         Map<String, List<String>> resourceRolesMap = new TreeMap<>();
-        List<ResourceMap> maps = resourceConfigProperties.getMaps();
+        List<ResourceMap> maps = resourceConfigProperties.getPathRoleMap();
         for (ResourceMap map : maps) {
             resourceRolesMap.put(map.getPath(), map.getRole());
         }
