@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2024/10/23
  */
 @RestController
-@RequestMapping("/video")
+@RequestMapping("/api/video")
 public class VideoController {
 
 

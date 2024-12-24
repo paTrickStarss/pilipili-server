@@ -8,12 +8,13 @@ server:
       max: 400
       min-spare: 10
 
+# 角色资源访问权限映射
 resource:
   role-map:
     - id: 0
-      name: ROLE_USER
+      name: USER
     - id: 1
-      name: ROLE_ADMIN
+      name: ADMIN
 
   path-role-map:
     - path: /api/user

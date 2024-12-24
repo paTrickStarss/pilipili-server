@@ -49,11 +49,13 @@ public class ResourceServerConfig {
     @PostConstruct
     public void init(){
         ignoreUrlList.add("/static");
-        ignoreUrlList.add("/auth/oauth/token");
-        ignoreUrlList.add("/auth/oauth/authorize");
-        ignoreUrlList.add("/auth/oauth/revoke");
+        ignoreUrlList.add("/auth/oauth/**");
         ignoreUrlList.add("/auth/rsa/publicKey");
-//        ignoreUrlList.add("/api/user/test");
+        ignoreUrlList.add("/doc.html");
+        ignoreUrlList.add("/webjars/**");
+        ignoreUrlList.add("/favicon.ico");
+        ignoreUrlList.add("/v3/api-docs/**");
+        ignoreUrlList.add("/doc/*/v3/api-docs/**");
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }
 

@@ -20,14 +20,15 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
     private UserInfoMapper userInfoMapper;
 
     @Override
-    public Integer saveUserInfo(UserInfo userInfo) {
-
-        return userInfoMapper.insert(userInfo);
+    public Boolean saveUserInfo(UserInfo userInfo) {
+        int rows = userInfoMapper.insert(userInfo);
+        return rows == 1;
     }
 
     @Override
-    public Integer updateUserInfo(UserInfo userInfo) {
-        return 0;
+    public Boolean updateUserInfo(UserInfo userInfo) {
+        int rows = userInfoMapper.updateById(userInfo);
+        return rows == 1;
     }
 
     @Override

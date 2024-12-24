@@ -50,6 +50,11 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/user/**
+
+        - id: user-service-doc
+          uri: lb://user-service
+          predicates:
+            - Path=/doc/user/**
           filters:
             - StripPrefix=1
 
@@ -57,6 +62,11 @@ spring:
           uri: lb://video-service
           predicates:
             - Path=/api/video/**
+
+        - id: video-service-doc
+          uri: lb://video-service
+          predicates:
+            - Path=/doc/video/**
           filters:
             - StripPrefix=1
 

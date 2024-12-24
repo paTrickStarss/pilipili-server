@@ -8,9 +8,9 @@ import com.bubble.pilipili.user.pojo.req.UpdateUserInfoRequest;
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
-public class UserInfoConverter {
+public class UserInfoConverter extends BaseConverter{
 
-    public static UserInfo fromSaveRequest(SaveUserInfoRequest saveUserInfoRequest) {
+    public UserInfo fromSaveRequest(SaveUserInfoRequest saveUserInfoRequest) {
         UserInfo userInfo = new UserInfo();
         userInfo.setNickname(saveUserInfoRequest.getNickname());
         userInfo.setPassword(saveUserInfoRequest.getPassword());
@@ -21,7 +21,7 @@ public class UserInfoConverter {
         return userInfo;
     }
 
-    public static UserInfo fromUpdateRequest(UpdateUserInfoRequest updateUserInfoRequest) {
+    public UserInfo fromUpdateRequest(UpdateUserInfoRequest updateUserInfoRequest) {
         UserInfo userInfo = new UserInfo();
         userInfo.setUid(updateUserInfoRequest.getUid());
         userInfo.setUuid(updateUserInfoRequest.getUuid());

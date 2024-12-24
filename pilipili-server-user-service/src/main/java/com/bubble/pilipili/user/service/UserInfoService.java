@@ -12,7 +12,6 @@ import java.util.List;
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
-@Transactional
 public interface UserInfoService {
 
     /**
@@ -24,10 +23,10 @@ public interface UserInfoService {
 
     /**
      * 更新用户信息
-     * @param updateUserInfoRequest
+     * @param saveUserInfoRequest
      * @return
      */
-    Integer updateUserInfo(UpdateUserInfoRequest updateUserInfoRequest);
+    SaveUserInfoDTO updateUserInfo(SaveUserInfoRequest saveUserInfoRequest);
 
     /**
      * 根据UID查询用户信息
@@ -41,4 +40,18 @@ public interface UserInfoService {
      * @return
      */
     List<QueryUserInfoDTO> listUserInfo();
+
+    /**
+     * 注销用户
+     * @param saveUserInfoRequest
+     * @return
+     */
+    SaveUserInfoDTO invalidateUser(SaveUserInfoRequest saveUserInfoRequest);
+
+    /**
+     * 封禁用户
+     * @param saveUserInfoRequest
+     * @return
+     */
+    SaveUserInfoDTO blockUser(SaveUserInfoRequest saveUserInfoRequest);
 }

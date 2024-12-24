@@ -11,9 +11,9 @@ import java.util.List;
 
 public interface UserInfoRepository {
 
-    Integer saveUserInfo(UserInfo userInfo);
+    Boolean saveUserInfo(UserInfo userInfo);
 
-    Integer updateUserInfo(UserInfo userInfo);
+    Boolean updateUserInfo(UserInfo userInfo);
 
     UserInfo findUserInfoByUid(Integer uid);
 

@@ -1,8 +1,5 @@
-package com.bubble.pilipili.user.pojo.entity;
+package com.bubble.pilipili.user.pojo.param;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,20 +7,17 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 /**
- * 用户信息表
  * @author liweixin@hcrc1.wecom.work
- * @date 2024/10/23
+ * @date 2024/12/24
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("user_info")
-public class UserInfo {
+public class SaveUserInfoParam {
 
     /**
      * 用户ID
      */
-    @TableId(type = IdType.AUTO)
     private Integer uid;
     /**
      * UUID
