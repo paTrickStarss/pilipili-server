@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.auth.service;
 
 import com.bubble.pilipili.auth.config.ResourceConfigProperties;

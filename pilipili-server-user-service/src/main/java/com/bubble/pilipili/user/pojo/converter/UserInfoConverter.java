@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.user.pojo.converter;
 
 import com.bubble.pilipili.user.pojo.entity.UserInfo;

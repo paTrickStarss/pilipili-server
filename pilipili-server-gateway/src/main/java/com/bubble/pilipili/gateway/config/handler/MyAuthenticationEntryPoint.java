@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.gateway.config.handler;
 
 import com.bubble.pilipili.common.constant.AuthConstant;

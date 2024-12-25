@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.user.pojo.converter;
 
 import lombok.extern.slf4j.Slf4j;

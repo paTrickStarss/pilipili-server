@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.auth.service;
 
 import com.bubble.pilipili.auth.config.ResourceConfigProperties;
@@ -6,7 +10,6 @@ import com.bubble.pilipili.auth.entity.RoleMap;
 import com.bubble.pilipili.auth.entity.UserAuth;
 import com.bubble.pilipili.auth.mapper.UserAuthMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,8 +20,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static net.sf.jsqlparser.util.validation.metadata.NamedObject.role;
 
 /**
  * @author liweixin@hcrc1.wecom.work

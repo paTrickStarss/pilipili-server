@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;

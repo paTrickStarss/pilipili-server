@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.auth.config;
 
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;

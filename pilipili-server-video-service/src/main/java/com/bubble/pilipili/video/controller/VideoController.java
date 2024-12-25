@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.video.controller;
 
 import com.bubble.pilipili.common.http.SimpleResponse;

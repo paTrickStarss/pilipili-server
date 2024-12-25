@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.auth.controller;
 
 import com.nimbusds.jose.jwk.JWKSet;

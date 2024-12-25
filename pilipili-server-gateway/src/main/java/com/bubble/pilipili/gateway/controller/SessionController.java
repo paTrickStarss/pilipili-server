@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.gateway.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.user.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;

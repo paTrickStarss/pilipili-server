@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024. Bubble
+ */
+
 package com.bubble.pilipili.gateway.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
