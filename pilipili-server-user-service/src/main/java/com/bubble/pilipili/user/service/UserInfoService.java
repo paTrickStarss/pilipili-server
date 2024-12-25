@@ -7,8 +7,6 @@ package com.bubble.pilipili.user.service;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoRequest;
-import com.bubble.pilipili.user.pojo.req.UpdateUserInfoRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,7 +35,7 @@ public interface UserInfoService {
      * @param uid
      * @return
      */
-    QueryUserInfoDTO getUserInfoByUid(Integer uid);
+    QueryUserInfoDTO getUserInfoByUid(String uid);
 
     /**
      * 查询所有用户信息
@@ -45,17 +43,4 @@ public interface UserInfoService {
      */
     List<QueryUserInfoDTO> listUserInfo();
 
-    /**
-     * 注销用户
-     * @param saveUserInfoRequest
-     * @return
-     */
-    SaveUserInfoDTO invalidateUser(SaveUserInfoRequest saveUserInfoRequest);
-
-    /**
-     * 封禁用户
-     * @param saveUserInfoRequest
-     * @return
-     */
-    SaveUserInfoDTO blockUser(SaveUserInfoRequest saveUserInfoRequest);
 }

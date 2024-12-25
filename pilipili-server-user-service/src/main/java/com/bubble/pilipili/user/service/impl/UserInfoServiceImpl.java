@@ -77,8 +77,9 @@ public class UserInfoServiceImpl implements UserInfoService {
      * @return
      */
     @Override
-    public QueryUserInfoDTO getUserInfoByUid(Integer uid) {
-        return null;
+    public QueryUserInfoDTO getUserInfoByUid(String uid) {
+        UserInfo userInfo = userInfoRepository.findUserInfoByUid(Integer.parseInt(uid));
+        return UserInfoConverter.getInstance().copyFieldValue(userInfo, QueryUserInfoDTO.class);
     }
 
     /**
@@ -98,25 +99,4 @@ public class UserInfoServiceImpl implements UserInfoService {
         return queryUserInfoDTOList;
     }
 
-    /**
-     * 注销用户
-     *
-     * @param saveUserInfoRequest
-     * @return
-     */
-    @Override
-    public SaveUserInfoDTO invalidateUser(SaveUserInfoRequest saveUserInfoRequest) {
-        return null;
-    }
-
-    /**
-     * 封禁用户
-     *
-     * @param saveUserInfoRequest
-     * @return
-     */
-    @Override
-    public SaveUserInfoDTO blockUser(SaveUserInfoRequest saveUserInfoRequest) {
-        return null;
-    }
 }

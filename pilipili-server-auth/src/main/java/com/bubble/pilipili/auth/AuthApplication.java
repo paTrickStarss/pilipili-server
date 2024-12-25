@@ -7,6 +7,7 @@ package com.bubble.pilipili.auth;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -14,6 +15,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
+@EnableFeignClients(basePackages = {"com.bubble.pilipili.auth.controller"})
 public class AuthApplication {
 
     public static void main(String[] args) {

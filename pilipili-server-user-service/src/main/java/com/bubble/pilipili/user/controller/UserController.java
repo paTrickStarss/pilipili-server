@@ -51,12 +51,27 @@ public class UserController {
         return SimpleResponse.success(result);
     }
 
+    /**
+     * 更新用户信息
+     * @param request
+     * @return
+     */
     @PostMapping("/update")
     public SimpleResponse<SaveUserInfoDTO> update(@Valid @RequestBody SaveUserInfoRequest request) {
         SaveUserInfoDTO result = userInfoService.updateUserInfo(request);
         return SimpleResponse.success(result);
     }
 
+    @PostMapping("/getUser")
+    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @RequestBody String uid) {
+        QueryUserInfoDTO userInfoDTO = userInfoService.getUserInfoByUid(uid);
+        return SimpleResponse.success(userInfoDTO);
+    }
+
+    /**
+     * 查询所有用户
+     * @return
+     */
     @GetMapping("/listUser")
     public SimpleResponse<List<QueryUserInfoDTO>> listUser() {
         List<QueryUserInfoDTO> queryUserInfoDTOS = userInfoService.listUserInfo();

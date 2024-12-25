@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.gateway.filter;
 
+import com.alibaba.fastjson2.JSON;
 import com.bubble.pilipili.common.constant.AuthConstant;
 import com.nimbusds.jose.JWSObject;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
+import java.util.Map;
 
 /**
  * 认证全局过滤器
@@ -38,6 +40,10 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             String token = authorization.replace("Bearer ", "");
             JWSObject jwsObject = JWSObject.parse(token);
             String userStr = jwsObject.getPayload().toString();
+            Map payloadMap = JSON.parseObject(userStr, Map.class);
+            String jti = (String) payloadMap.get("jti");
+            log.debug("username: {}", payloadMap.get("username"));
+            log.debug("jti: {}", jti);
             log.debug("AuthGlobalFilter.filter() user: {}", userStr);
 
             request.mutate().header(AuthConstant.JWT_PAYLOAD_HEADER, userStr).build();

@@ -55,6 +55,7 @@ public class ResourceServerConfig {
         ignoreUrlList.add("/static");
         ignoreUrlList.add("/auth/oauth/**");
         ignoreUrlList.add("/auth/rsa/publicKey");
+        ignoreUrlList.add("/auth/session/**");
         ignoreUrlList.add("/doc.html");
         ignoreUrlList.add("/webjars/**");
         ignoreUrlList.add("/favicon.ico");

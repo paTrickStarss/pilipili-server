@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 值类转化器基类
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/24
  */
