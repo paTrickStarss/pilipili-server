@@ -11,6 +11,7 @@ package com.bubble.pilipili.common.constant;
 public enum RedisKey {
 
     RESOURCE_ROLES_MAP("RESOURCE_ROLES_MAP"),
+    USER_TOKEN_MAP("USER_TOKEN_MAP"),
 
     ;
 

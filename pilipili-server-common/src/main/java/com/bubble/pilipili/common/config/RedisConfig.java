@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Bubble
  */
 
-package com.bubble.pilipili.gateway.config;
+package com.bubble.pilipili.common.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -11,7 +11,9 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -41,15 +43,29 @@ public class RedisConfig {
     private long maxWaitMillis;
 
     @Bean
-    public JedisPool redisPoolFactory() {
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxIdle(maxIdle);
-        config.setMaxWaitMillis(maxWaitMillis);
-        return new JedisPool(config, host, port, timeout);
+    public JedisPoolConfig jedisPoolConfig() {
+        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        jedisPoolConfig.setMaxIdle(maxIdle);
+        jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
+        return jedisPoolConfig;
     }
 
+    /**
+     * Jedis连接池，使用<code>jedisPool.getResource()</code>来获取Jedis客户端
+     * @return
+     */
+    @Bean
+    public JedisPool jedisPool(JedisPoolConfig jedisPoolConfig) {
+        return new JedisPool(jedisPoolConfig, host, port, timeout);
+    }
 
     @Bean
+    public RedisConnectionFactory redisConnectionFactory(JedisPoolConfig jedisPoolConfig) {
+        return new JedisConnectionFactory(jedisPoolConfig);
+    }
+
+    @Bean
+    @Primary
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);

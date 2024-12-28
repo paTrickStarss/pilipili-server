@@ -8,7 +8,6 @@ import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.gateway.config.handler.MyAccessDeniedHandler;
 import com.bubble.pilipili.gateway.config.handler.MyAuthenticationEntryPoint;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.core.convert.converter.Converter;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +52,17 @@ public class ResourceServerConfig {
     @PostConstruct
     public void init(){
         ignoreUrlList.add("/static");
-        ignoreUrlList.add("/auth/oauth/**");
-        ignoreUrlList.add("/auth/rsa/publicKey");
+//        ignoreUrlList.add("/auth/oauth/**");
+//        ignoreUrlList.add("/auth/rsa/publicKey");
         ignoreUrlList.add("/auth/session/**");
+
+        // knife4j
         ignoreUrlList.add("/doc.html");
         ignoreUrlList.add("/webjars/**");
         ignoreUrlList.add("/favicon.ico");
         ignoreUrlList.add("/v3/api-docs/**");
         ignoreUrlList.add("/doc/*/v3/api-docs/**");
+
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }
 

@@ -9,15 +9,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 登录返回数据
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/25
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginDTO {
+public class OAuthTokenDTO {
 
+    private String access_token;
+    private String refresh_token;
+    private String token_type;
+    private Long expires_in;
+    private String scope;
+    private String jti;
     private String username;
-    private String accessToken;
+
+    private String error;
+    private String error_description;
 }

@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.auth.config;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,12 +24,13 @@ import java.util.List;
  * @date 2024/10/23
  */
 @Slf4j
+@AllArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     // 白名单URL
-    private final List<String> ignoreUrlList = new ArrayList<>();
+    private final List<String> ignoreUrlList;
 
     @PostConstruct
     public void init(){
@@ -42,9 +43,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
-                // 开放访问白名单
+                // 开放访问白名单  默认只允许GET请求  POST请求若没有CSRF令牌则会被CSRF拦截
                 .antMatchers(ignoreUrlList.toArray(new String[0])).permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
+                // CSRF白名单
+                .and().csrf().ignoringAntMatchers(ignoreUrlList.toArray(new String[0]));
     }
 
     @Bean

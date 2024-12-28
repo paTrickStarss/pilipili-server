@@ -5,17 +5,16 @@
 package com.bubble.pilipili.auth.controller;
 
 import com.bubble.pilipili.auth.pojo.dto.LoginDTO;
-import com.bubble.pilipili.auth.pojo.dto.OauthTokenDTO;
+import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
 import com.bubble.pilipili.auth.pojo.req.LoginReq;
-import com.bubble.pilipili.auth.pojo.req.OauthTokenReq;
-import com.bubble.pilipili.auth.util.OauthUtil;
+import com.bubble.pilipili.auth.util.OAuthUtil;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.util.StringUtil;
+import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -23,12 +22,13 @@ import javax.validation.Valid;
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/25
  */
+@Slf4j
 @RestController
 @RequestMapping("/session")
 public class SessionController {
 
     @Autowired
-    private OauthFeignAPI oauthFeignAPI;
+    private OAuthFeignAPI oAuthFeignAPI;
 
     @PostMapping("/login")
     public SimpleResponse<LoginDTO> login(@Valid @RequestBody LoginReq req) {
@@ -38,13 +38,21 @@ public class SessionController {
             return SimpleResponse.failed("请传入用户名和密码！");
         }
 
-        OauthTokenReq oauthTokenReq = OauthUtil.getInstance().createOauthTokenReq(username, password);
-        OauthTokenDTO oauthTokenDTO = oauthFeignAPI.fetchToken(oauthTokenReq);
-        if (StringUtil.isEmpty(oauthTokenDTO.getError())) {
-            return SimpleResponse.success(new LoginDTO(
-                    Boolean.TRUE, oauthTokenDTO.getUsername(), oauthTokenDTO.getAccess_token()));
-        } else {
-            return SimpleResponse.failed(oauthTokenDTO.getError_description());
+        MultiValueMap<String, String> params = OAuthUtil.getInstance().getOauthTokenReqParams(username, password);
+        MultiValueMap<String, String> header = OAuthUtil.getInstance().getOauthTokenReqHeaders();
+        try {
+            OAuthTokenDTO oAuthTokenDTO = oAuthFeignAPI.fetchToken(params, header);
+
+            // TODO: 更新用户token有效状态
+
+
+            return SimpleResponse.success(new LoginDTO(oAuthTokenDTO.getUsername(), oAuthTokenDTO.getAccess_token()));
+        } catch (FeignException e) {
+            log.warn("Token获取异常: {}", e.getMessage());
+            if (e.getMessage().contains("invalid_grant")) {
+                return SimpleResponse.failed("用户名或密码错误");
+            }
+            return SimpleResponse.error("服务端异常");
         }
     }
 }

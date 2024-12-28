@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OauthTokenReq {
+public class OAuthTokenReq {
 
     private String grant_type;
     private String client_id;

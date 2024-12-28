@@ -33,4 +33,7 @@ public class SimpleResponse<T> implements Serializable {
     public static <T> SimpleResponse<T> failed(String message) {
         return new SimpleResponse<>(HttpStatus.BAD_REQUEST.value(), message, null);
     }
+    public static <T> SimpleResponse<T> error(String message) {
+        return new SimpleResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), message, null);
+    }
 }
