@@ -6,7 +6,6 @@ package com.bubble.pilipili.gateway.config;
 
 import com.bubble.pilipili.common.constant.RedisKey;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -36,7 +35,7 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
     public Mono<AuthorizationDecision> check(Mono<Authentication> authentication, AuthorizationContext context) {
         URI uri = context.getExchange().getRequest().getURI();
         List<String> authorities =
-                ((List<String>) redisTemplate.opsForHash().get(RedisKey.RESOURCE_ROLES_MAP.name(), getPathPrefix(uri)));
+                ((List<String>) redisTemplate.opsForHash().get(RedisKey.RESOURCE_ROLES_MAP.getKey(), getPathPrefix(uri)));
         log.debug("path: {}, authorities: {}", uri.getPath(), authorities);
         if (authorities == null) {
             return Mono.just(new AuthorizationDecision(false));

@@ -35,7 +35,7 @@ public class ResourceServiceImpl {
             resourceRolesMap.put(map.getPath(), map.getRole());
         }
 
-        redisTemplate.delete(RedisKey.RESOURCE_ROLES_MAP.name());
-        redisTemplate.opsForHash().putAll(RedisKey.RESOURCE_ROLES_MAP.name(), resourceRolesMap);
+        redisTemplate.delete(RedisKey.RESOURCE_ROLES_MAP.getKey());
+        redisTemplate.opsForHash().putAll(RedisKey.RESOURCE_ROLES_MAP.getKey(), resourceRolesMap);
     }
 }

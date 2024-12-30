@@ -4,12 +4,14 @@
 
 package com.bubble.pilipili.auth.controller;
 
+import com.bubble.pilipili.auth.config.SessionManager;
 import com.bubble.pilipili.auth.pojo.dto.LoginDTO;
 import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
 import com.bubble.pilipili.auth.pojo.req.LoginReq;
 import com.bubble.pilipili.auth.util.OAuthUtil;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.util.StringUtil;
+import com.nimbusds.jose.JWSObject;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.text.ParseException;
+import java.util.Map;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -29,6 +33,9 @@ public class SessionController {
 
     @Autowired
     private OAuthFeignAPI oAuthFeignAPI;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     @PostMapping("/login")
     public SimpleResponse<LoginDTO> login(@Valid @RequestBody LoginReq req) {
@@ -44,7 +51,10 @@ public class SessionController {
             OAuthTokenDTO oAuthTokenDTO = oAuthFeignAPI.fetchToken(params, header);
 
             // TODO: 更新用户token有效状态
-
+            JWSObject jwsObject = JWSObject.parse(oAuthTokenDTO.getAccess_token());
+            Map<String, Object> jsonObject = jwsObject.getPayload().toJSONObject();
+            String jti = jsonObject.get("jti").toString();
+            sessionManager.saveToken(oAuthTokenDTO.getUsername(), jti, oAuthTokenDTO.getExpires_in());
 
             return SimpleResponse.success(new LoginDTO(oAuthTokenDTO.getUsername(), oAuthTokenDTO.getAccess_token()));
         } catch (FeignException e) {
@@ -53,6 +63,8 @@ public class SessionController {
                 return SimpleResponse.failed("用户名或密码错误");
             }
             return SimpleResponse.error("服务端异常");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 }

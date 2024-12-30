@@ -4,8 +4,8 @@
 
 package com.bubble.pilipili.gateway.filter;
 
-import com.alibaba.fastjson2.JSON;
 import com.bubble.pilipili.common.constant.AuthConstant;
+import com.bubble.pilipili.gateway.config.SessionManager;
 import com.nimbusds.jose.JWSObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +13,16 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -33,6 +38,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    private SessionManager sessionManager;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -45,10 +53,21 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             String token = authorization.replace("Bearer ", "");
             JWSObject jwsObject = JWSObject.parse(token);
             String userStr = jwsObject.getPayload().toString();
-            Map payloadMap = JSON.parseObject(userStr, Map.class);
+//            Map payloadMap = JSON.parseObject(userStr, Map.class);
+            Map<String, Object> payloadMap = jwsObject.getPayload().toJSONObject();
             String jti = (String) payloadMap.get("jti");
-            log.debug("username: {}", payloadMap.get("username"));
-            log.debug("jti: {}", jti);
+            String username = (String) payloadMap.get("username");
+
+            boolean valid = sessionManager.checkToken(username, jti);
+            if (!valid) {
+                ServerHttpResponse response = exchange.getResponse();
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                DataBufferFactory dataBufferFactory = response.bufferFactory();
+                DataBuffer dataBuffer = dataBufferFactory.wrap("Token无效！".getBytes(StandardCharsets.UTF_8));
+                return response.writeWith(Mono.just(dataBuffer)).then(Mono.empty());
+//                return response.setComplete();
+            }
+
             log.debug("AuthGlobalFilter.filter() user: {}", userStr);
 
             request.mutate().header(AuthConstant.JWT_PAYLOAD_HEADER, userStr).build();

@@ -11,16 +11,16 @@ import java.util.Map;
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/25
  */
-public class SessionManager {
+public class MemorySessionManager {
 
     private static class lazyHolder {
-        private static final SessionManager INSTANCE = new SessionManager();
+        private static final MemorySessionManager INSTANCE = new MemorySessionManager();
     }
-    public static SessionManager getInstance() {
+    public static MemorySessionManager getInstance() {
         return lazyHolder.INSTANCE;
     }
 
-    private SessionManager() {}
+    private MemorySessionManager() {}
 
     private final Map<String, String> sessions = new HashMap<>();
 
