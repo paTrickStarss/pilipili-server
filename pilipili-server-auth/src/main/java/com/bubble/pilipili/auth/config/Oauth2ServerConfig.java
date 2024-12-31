@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.auth.config;
 
+import com.bubble.pilipili.auth.util.OAuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,18 +49,18 @@ public class Oauth2ServerConfig extends AuthorizationServerConfigurerAdapter {
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient("client")
-                .secret(passwordEncoder.encode("bubble233"))
-                .scopes("all")
-                .authorizedGrantTypes("authorization_code", "password", "refresh_token")
-                // accessToken 有效期 1小时
-                .accessTokenValiditySeconds(3600)
-                // refreshToken 有效期 1天
-                .refreshTokenValiditySeconds(86400);
+                .withClient(OAuthUtil.OAUTH_CLIENT_ID)
+                .secret(passwordEncoder.encode(OAuthUtil.OAUTH_CLIENT_SECRET))
+                .scopes(OAuthUtil.OAUTH_SCOPES)
+                .authorizedGrantTypes(OAuthUtil.OAUTH_AUTHORIZED_GRANT_TYPES)
+                // accessToken 有效期
+                .accessTokenValiditySeconds(OAuthUtil.OAUTH_ACCESS_TOKEN_EXPIRES)
+                // refreshToken 有效期
+                .refreshTokenValiditySeconds(OAuthUtil.OAUTH_REFRESH_TOKEN_EXPIRES);
     }
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
         List<TokenEnhancer> delegates = new ArrayList<>();
         delegates.add(jwtTokenEnhancer);
@@ -72,7 +73,7 @@ public class Oauth2ServerConfig extends AuthorizationServerConfigurerAdapter {
     }
 
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+    public void configure(AuthorizationServerSecurityConfigurer security) {
         security.allowFormAuthenticationForClients();
     }
 
@@ -86,8 +87,8 @@ public class Oauth2ServerConfig extends AuthorizationServerConfigurerAdapter {
 
     @Bean
     public KeyPair keyPair() {
-        return new KeyStoreKeyFactory(new ClassPathResource("jwt.jks"), "bubble233".toCharArray())
-                .getKeyPair("jwt", "bubble233".toCharArray());
+        return new KeyStoreKeyFactory(new ClassPathResource(OAuthUtil.FILE_NAME_JWT_JKS), OAuthUtil.OAUTH_CLIENT_SECRET.toCharArray())
+                .getKeyPair(OAuthUtil.FILE_NAME_JWT_JKS, OAuthUtil.OAUTH_CLIENT_SECRET.toCharArray());
     }
 
 }

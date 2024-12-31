@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import java.io.Serializable;
 
 /**
+ * 响应体通用数据类型
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
@@ -28,6 +29,9 @@ public class SimpleResponse<T> implements Serializable {
 
     public static <T> SimpleResponse<T> success(T data) {
         return new SimpleResponse<>(HttpStatus.OK.value(), "", data);
+    }
+    public static <T> SimpleResponse<T> success(String msg) {
+        return new SimpleResponse<>(HttpStatus.OK.value(), msg, null);
     }
 
     public static <T> SimpleResponse<T> failed(String message) {

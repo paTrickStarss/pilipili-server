@@ -11,7 +11,6 @@ import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoRequest;
 import com.bubble.pilipili.user.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -41,12 +40,12 @@ public class UserController {
 
     /**
      * 注册用户
-     * @param request
+     * @param saveUserInfoRequest
      * @return
      */
     @PostMapping("/register")
-    public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody SaveUserInfoRequest request) {
-        SaveUserInfoDTO result = userInfoService.saveUserInfo(request);
+    public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody SaveUserInfoRequest saveUserInfoRequest) {
+        SaveUserInfoDTO result = userInfoService.saveUserInfo(saveUserInfoRequest);
 
         return SimpleResponse.success(result);
     }

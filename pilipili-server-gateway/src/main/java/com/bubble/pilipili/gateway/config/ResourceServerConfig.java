@@ -55,6 +55,7 @@ public class ResourceServerConfig {
 //        ignoreUrlList.add("/auth/oauth/**");
 //        ignoreUrlList.add("/auth/rsa/publicKey");
         ignoreUrlList.add("/auth/session/**");
+        ignoreUrlList.add("/api/user/register");
 
         // knife4j
         ignoreUrlList.add("/doc.html");

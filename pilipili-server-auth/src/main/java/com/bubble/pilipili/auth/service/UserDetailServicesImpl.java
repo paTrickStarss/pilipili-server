@@ -14,7 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,8 +32,8 @@ public class UserDetailServicesImpl implements UserDetailsService {
     @Resource
     private UserAuthMapper userAuthMapper;
 
-    @Resource
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+//    @Resource
+//    private PasswordEncoder bCryptPasswordEncoder;
 
     @Resource
     private ResourceConfigProperties resourceConfigProperties;
@@ -49,19 +49,16 @@ public class UserDetailServicesImpl implements UserDetailsService {
         userDTO.setUsername(userAuth.getUsername().toString());
 
         // test  目前数据库查出的密码字段是明文，需要手动加密一下  后续存入数据库的密码字段是密文，则不需要执行这一步
-        userAuth.setPassword(bCryptPasswordEncoder.encode(userAuth.getPassword()));
+//        userAuth.setPassword(bCryptPasswordEncoder.encode(userAuth.getPassword()));
 
         userDTO.setPassword(userAuth.getPassword());
 
         String roleNum = userAuth.getRole();
         String roleName = "";
         List<RoleMap> roleMap = resourceConfigProperties.getRoleMap();
-        List<RoleMap> result = roleMap.stream().filter(role -> role.getId().equals(roleNum)).collect(Collectors.toList());
-//        for (RoleMap map : roleMap) {
-//            if (map.getId().equals(roleNum)) {
-//                roleName = map.getName();
-//            }
-//        }
+        List<RoleMap> result = roleMap.stream()
+                .filter(role -> role.getId().equals(roleNum))
+                .collect(Collectors.toList());
         if (!result.isEmpty()) {
             roleName = result.get(0).getName();
         }

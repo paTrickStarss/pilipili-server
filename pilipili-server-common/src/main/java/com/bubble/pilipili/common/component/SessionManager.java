@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Bubble
  */
 
-package com.bubble.pilipili.auth.config;
+package com.bubble.pilipili.common.component;
 
 import com.bubble.pilipili.common.constant.RedisKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import java.time.Duration;
 
 /**
  * @author liweixin@hcrc1.wecom.work
- * @date 2024/12/30
+ * @date 2024/12/31
  */
 @Component
 public class SessionManager {
@@ -47,8 +47,8 @@ public class SessionManager {
      * 删除Token
      * @param username
      */
-    public void removeToken(String username) {
-        redisTemplate.delete(getKey(username));
+    public Boolean removeToken(String username) {
+        return redisTemplate.delete(getKey(username));
 //        redisTemplate.opsForHash().delete(RedisKey.USER_TOKEN_MAP.name(), username);
     }
 

@@ -12,8 +12,10 @@ import com.bubble.pilipili.user.pojo.req.SaveUserInfoRequest;
 import com.bubble.pilipili.user.repository.UserInfoRepository;
 import com.bubble.pilipili.user.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -31,6 +33,9 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Resource
     private UserInfoRepository userInfoRepository;
 
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
     /**
      * 保存用户信息
      *
@@ -44,13 +49,21 @@ public class UserInfoServiceImpl implements UserInfoService {
         UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoRequest, UserInfo.class);
         log.debug("copyFieldValue cost: {} ms", System.currentTimeMillis() - l1);
 
-        Boolean saveSuccess = userInfoRepository.saveUserInfo(userInfo);
+        Boolean saveSuccess = Boolean.FALSE;
         SaveUserInfoDTO dto = new SaveUserInfoDTO();
-        if (saveSuccess) {
-            dto.setSuccess(Boolean.TRUE);
-            dto.setUid(userInfo.getUid());
-        } else {
-            dto.setSuccess(Boolean.FALSE);
+        try {
+            // 加密password字段
+            String encodedPassword = passwordEncoder.encode(userInfo.getPassword());
+            userInfo.setPassword(encodedPassword);
+
+            saveSuccess = userInfoRepository.saveUserInfo(userInfo);
+
+        } catch (Exception e) {
+            log.error("saveUserInfo error, {}", e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        } finally {
+            dto.setSuccess(saveSuccess);
+            dto.setUid(saveSuccess? userInfo.getUid() : null);
         }
 
         return dto;

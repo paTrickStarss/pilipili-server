@@ -4,8 +4,9 @@
 
 package com.bubble.pilipili.gateway.filter;
 
+import com.alibaba.fastjson2.JSON;
 import com.bubble.pilipili.common.constant.AuthConstant;
-import com.bubble.pilipili.gateway.config.SessionManager;
+import com.bubble.pilipili.common.component.SessionManager;
 import com.nimbusds.jose.JWSObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +16,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,9 +33,6 @@ import java.util.Map;
 @Slf4j
 @Configuration
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private SessionManager sessionManager;
@@ -60,10 +56,13 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
             boolean valid = sessionManager.checkToken(username, jti);
             if (!valid) {
+                log.debug("Token无效！ username: {}, jti: {}", username, jti);
                 ServerHttpResponse response = exchange.getResponse();
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 DataBufferFactory dataBufferFactory = response.bufferFactory();
-                DataBuffer dataBuffer = dataBufferFactory.wrap("Token无效！".getBytes(StandardCharsets.UTF_8));
+                Map<String, Object> body = new HashMap<>();
+                body.put("msg", "Token无效！");
+                DataBuffer dataBuffer = dataBufferFactory.wrap(JSON.toJSONBytes(body));
                 return response.writeWith(Mono.just(dataBuffer)).then(Mono.empty());
 //                return response.setComplete();
             }
@@ -73,9 +72,11 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             request.mutate().header(AuthConstant.JWT_PAYLOAD_HEADER, userStr).build();
             exchange = exchange.mutate().request(request).build();
 
-        } catch (ParseException e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("Token解析异常！{}", e.getMessage());
+            ServerHttpResponse response = exchange.getResponse();
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            return response.setComplete();
         }
 
 

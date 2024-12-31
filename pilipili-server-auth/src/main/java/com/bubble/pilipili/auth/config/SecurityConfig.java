@@ -35,7 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @PostConstruct
     public void init(){
         ignoreUrlList.add("/rsa/publicKey");
-        ignoreUrlList.add("/session/login");
+        ignoreUrlList.add("/session/**");
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }
 
@@ -54,10 +54,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

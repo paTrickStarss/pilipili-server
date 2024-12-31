@@ -22,9 +22,39 @@ public class OAuthUtil {
         return lazyHolder.INSTANCE;
     }
 
+    /**
+     * JWT密钥对文件名
+     */
+    public static final String FILE_NAME_JWT_JKS = "jwt.jks";
+    /**
+     * scopes
+     */
+    public static final String[] OAUTH_SCOPES = new String[]{"all"};
+    /**
+     * AuthorizeGrantTypes
+     */
+    public static final String[] OAUTH_AUTHORIZED_GRANT_TYPES =
+            new String[]{"authorization_code", "password", "refresh_token"};
+    /**
+     * OAuth鉴权类型
+     */
     public static final String OAUTH_GRANT_TYPE = "password";
+    /**
+     * client_id
+     */
     public static final String OAUTH_CLIENT_ID = "client";
+    /**
+     * client_secret
+     */
     public static final String OAUTH_CLIENT_SECRET = "bubble233";
+    /**
+     * accessToken 有效期 1小时
+     */
+    public static final int OAUTH_ACCESS_TOKEN_EXPIRES = 3600;
+    /**
+     * refreshToken 有效期 1天
+     */
+    public static final int OAUTH_REFRESH_TOKEN_EXPIRES = 86400;
 
     public OAuthTokenReq createOauthTokenReq(String username, String password) {
         OAuthTokenReq oauthTokenReq = new OAuthTokenReq();

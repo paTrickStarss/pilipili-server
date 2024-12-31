@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.auth.controller;
 
-import com.bubble.pilipili.auth.config.SessionManager;
+import com.bubble.pilipili.common.component.SessionManager;
 import com.bubble.pilipili.auth.pojo.dto.LoginDTO;
 import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
 import com.bubble.pilipili.auth.pojo.req.LoginReq;
@@ -23,6 +23,7 @@ import java.text.ParseException;
 import java.util.Map;
 
 /**
+ * 用户会话控制器
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/25
  */
@@ -50,7 +51,7 @@ public class SessionController {
         try {
             OAuthTokenDTO oAuthTokenDTO = oAuthFeignAPI.fetchToken(params, header);
 
-            // TODO: 更新用户token有效状态
+            // 更新用户token有效状态
             JWSObject jwsObject = JWSObject.parse(oAuthTokenDTO.getAccess_token());
             Map<String, Object> jsonObject = jwsObject.getPayload().toJSONObject();
             String jti = jsonObject.get("jti").toString();
@@ -65,6 +66,20 @@ public class SessionController {
             return SimpleResponse.error("服务端异常");
         } catch (ParseException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/logout")
+    public SimpleResponse<Void> logout(@Valid @RequestParam String username) {
+        if (StringUtil.isEmpty(username)) {
+            return SimpleResponse.failed("请传入用户名！");
+        }
+
+        Boolean result = sessionManager.removeToken(username);
+        if (result) {
+            return SimpleResponse.success("登出成功！");
+        } else {
+            return SimpleResponse.failed("用户不存在或已登出！");
         }
     }
 }

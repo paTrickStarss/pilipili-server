@@ -69,11 +69,11 @@ public class RedisConfig {
         jedisPoolConfig.setMinIdle(minIdle);
         jedisPoolConfig.setMaxIdle(maxIdle);
         jedisPoolConfig.setMaxWait(Duration.ofMillis(maxWait));
-//        jedisPoolConfig.setTestOnBorrow(testOnBorrow);
-//        jedisPoolConfig.setTestWhileIdle(testWhileIdle);
-//        jedisPoolConfig.setMinEvictableIdleTime(Duration.ofMillis(minEvictableIdleTimeMills));
-//        jedisPoolConfig.setTimeBetweenEvictionRuns(Duration.ofMillis(timeBetweenEvictionRunsMillis));
-//        jedisPoolConfig.setNumTestsPerEvictionRun(numTestsPerEvictionRun);
+        jedisPoolConfig.setTestOnBorrow(testOnBorrow);
+        jedisPoolConfig.setTestWhileIdle(testWhileIdle);
+        jedisPoolConfig.setMinEvictableIdleTime(Duration.ofMillis(minEvictableIdleTimeMills));
+        jedisPoolConfig.setTimeBetweenEvictionRuns(Duration.ofMillis(timeBetweenEvictionRunsMillis));
+        jedisPoolConfig.setNumTestsPerEvictionRun(numTestsPerEvictionRun);
         return jedisPoolConfig;
     }
 
