@@ -27,6 +27,10 @@ public class OAuthUtil {
      */
     public static final String FILE_NAME_JWT_JKS = "jwt.jks";
     /**
+     * JWT密钥对名称
+     */
+    public static final String JWT_KEY_NAME = "pilipili_jwt_key";
+    /**
      * scopes
      */
     public static final String[] OAUTH_SCOPES = new String[]{"all"};

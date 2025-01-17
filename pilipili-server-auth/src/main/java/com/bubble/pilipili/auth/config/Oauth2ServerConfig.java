@@ -88,7 +88,7 @@ public class Oauth2ServerConfig extends AuthorizationServerConfigurerAdapter {
     @Bean
     public KeyPair keyPair() {
         return new KeyStoreKeyFactory(new ClassPathResource(OAuthUtil.FILE_NAME_JWT_JKS), OAuthUtil.OAUTH_CLIENT_SECRET.toCharArray())
-                .getKeyPair(OAuthUtil.FILE_NAME_JWT_JKS, OAuthUtil.OAUTH_CLIENT_SECRET.toCharArray());
+                .getKeyPair(OAuthUtil.JWT_KEY_NAME, OAuthUtil.OAUTH_CLIENT_SECRET.toCharArray());
     }
 
 }
