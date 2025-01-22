@@ -25,3 +25,5 @@ resource:
     - path: /api/video
       role:
         - ROLE_ADMIN
+        - ROLE_USER
+        - ROLE_TEST

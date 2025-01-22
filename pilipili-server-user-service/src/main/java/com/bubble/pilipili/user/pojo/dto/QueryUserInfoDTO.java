@@ -20,7 +20,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QueryUserInfoDTO implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     /**
      * 用户ID

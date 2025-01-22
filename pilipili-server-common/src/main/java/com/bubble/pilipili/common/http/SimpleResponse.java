@@ -21,8 +21,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class SimpleResponse<T> implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     private int code;
     private String message;
     private T data;

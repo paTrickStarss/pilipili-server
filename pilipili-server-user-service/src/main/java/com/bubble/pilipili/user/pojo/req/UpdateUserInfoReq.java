@@ -8,17 +8,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.io.Serializable;
 
 /**
- * 新增用户信息请求参数
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SaveUserInfoRequest {
+public class UpdateUserInfoReq implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 用户ID
@@ -33,7 +33,7 @@ public class SaveUserInfoRequest {
      */
     private String nickname;
     /**
-     * 密码（加密）
+     * 密码（明文）
      */
     private String password;
     /**
@@ -88,13 +88,4 @@ public class SaveUserInfoRequest {
      * P币（充值代币）
      */
     private Integer pCoin;
-    /**
-     * 创建时间
-     */
-    private Date createDate;
-    /**
-     * 最后一次更新时间
-     */
-    private Date updateDate;
-
 }

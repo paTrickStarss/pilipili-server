@@ -6,7 +6,7 @@ package com.bubble.pilipili.user.service;
 
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
-import com.bubble.pilipili.user.pojo.req.SaveUserInfoRequest;
+import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 
 import java.util.List;
 
@@ -18,17 +18,17 @@ public interface UserInfoService {
 
     /**
      * 保存用户信息
-     * @param saveUserInfoRequest
+     * @param saveUserInfoReq
      * @return
      */
-    SaveUserInfoDTO saveUserInfo(SaveUserInfoRequest saveUserInfoRequest);
+    SaveUserInfoDTO saveUserInfo(SaveUserInfoReq saveUserInfoReq);
 
     /**
      * 更新用户信息
-     * @param saveUserInfoRequest
+     * @param saveUserInfoReq
      * @return
      */
-    SaveUserInfoDTO updateUserInfo(SaveUserInfoRequest saveUserInfoRequest);
+    SaveUserInfoDTO updateUserInfo(SaveUserInfoReq saveUserInfoReq);
 
     /**
      * 根据UID查询用户信息

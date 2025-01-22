@@ -8,12 +8,12 @@ import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
-import com.bubble.pilipili.user.pojo.req.SaveUserInfoRequest;
+import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 import com.bubble.pilipili.user.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.List;
 @RequestMapping("/api/user")
 public class UserController {
 
-    @Resource
+    @Autowired
     private UserInfoService userInfoService;
 
     @GetMapping("/test")
@@ -40,12 +40,12 @@ public class UserController {
 
     /**
      * 注册用户
-     * @param saveUserInfoRequest
+     * @param saveUserInfoReq
      * @return
      */
     @PostMapping("/register")
-    public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody SaveUserInfoRequest saveUserInfoRequest) {
-        SaveUserInfoDTO result = userInfoService.saveUserInfo(saveUserInfoRequest);
+    public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody SaveUserInfoReq saveUserInfoReq) {
+        SaveUserInfoDTO result = userInfoService.saveUserInfo(saveUserInfoReq);
 
         return SimpleResponse.success(result);
     }
@@ -56,13 +56,13 @@ public class UserController {
      * @return
      */
     @PostMapping("/update")
-    public SimpleResponse<SaveUserInfoDTO> update(@Valid @RequestBody SaveUserInfoRequest request) {
+    public SimpleResponse<SaveUserInfoDTO> update(@Valid @RequestBody SaveUserInfoReq request) {
         SaveUserInfoDTO result = userInfoService.updateUserInfo(request);
         return SimpleResponse.success(result);
     }
 
-    @PostMapping("/getUser")
-    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @RequestBody String uid) {
+    @GetMapping("/getUser")
+    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @RequestParam String uid) {
         QueryUserInfoDTO userInfoDTO = userInfoService.getUserInfoByUid(uid);
         return SimpleResponse.success(userInfoDTO);
     }

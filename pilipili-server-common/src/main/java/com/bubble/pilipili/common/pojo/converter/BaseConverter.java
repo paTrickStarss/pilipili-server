@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2024. Bubble
+ * Copyright (c) 2024-2025. Bubble
  */
 
-package com.bubble.pilipili.user.pojo.converter;
+package com.bubble.pilipili.common.pojo.converter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,5 +83,31 @@ public class BaseConverter {
         });
 
         return result;
+    }
+
+    /**
+     * 合并更新的字段值
+     * @param origin 更新前原数据
+     * @param update 待更新数据
+     * @return 合并更新字段后的完整数据
+     * @param <T> 数据类型
+     */
+    public <T> T copyUpdateFieldValue(T origin, T update) {
+        Class<?> clz = origin.getClass();
+        Map<String, Field> fieldMap = getFieldCacheMap(clz);
+        fieldMap.forEach((name, field) -> {
+            try {
+                Method readMethod = new PropertyDescriptor(field.getName(), clz).getReadMethod();
+                Object fieldValue = readMethod.invoke(update);
+                if (fieldValue != null) {
+                    Method writeMethod = new PropertyDescriptor(field.getName(), clz).getWriteMethod();
+                    writeMethod.invoke(origin, fieldValue);
+                }
+            } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return origin;
     }
 }

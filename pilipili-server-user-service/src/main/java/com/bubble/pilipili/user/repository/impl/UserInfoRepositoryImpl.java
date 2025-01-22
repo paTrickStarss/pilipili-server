@@ -4,13 +4,12 @@
 
 package com.bubble.pilipili.user.repository.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bubble.pilipili.user.mapper.UserInfoMapper;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
 import com.bubble.pilipili.user.repository.UserInfoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -20,7 +19,7 @@ import java.util.List;
 @Component("UserInfoRepository")
 public class UserInfoRepositoryImpl implements UserInfoRepository {
 
-    @Resource
+    @Autowired
     private UserInfoMapper userInfoMapper;
 
     @Override
@@ -37,7 +36,8 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
 
     @Override
     public UserInfo findUserInfoByUid(Integer uid) {
-        return userInfoMapper.selectOne(new QueryWrapper<UserInfo>().eq("uid", uid));
+//        return userInfoMapper.selectOne(new QueryWrapper<UserInfo>().eq("uid", uid));
+        return userInfoMapper.selectById(uid);
     }
 
     @Override

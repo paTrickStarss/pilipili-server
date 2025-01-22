@@ -8,16 +8,16 @@ import com.bubble.pilipili.user.pojo.converter.UserInfoConverter;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
-import com.bubble.pilipili.user.pojo.req.SaveUserInfoRequest;
+import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 import com.bubble.pilipili.user.repository.UserInfoRepository;
 import com.bubble.pilipili.user.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,23 +30,23 @@ import java.util.List;
 @Service("UserInfoService")
 public class UserInfoServiceImpl implements UserInfoService {
 
-    @Resource
+    @Autowired
     private UserInfoRepository userInfoRepository;
 
-    @Resource
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     /**
      * 保存用户信息
      *
-     * @param saveUserInfoRequest
+     * @param saveUserInfoReq
      * @return
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SaveUserInfoDTO saveUserInfo(SaveUserInfoRequest saveUserInfoRequest) {
+    public SaveUserInfoDTO saveUserInfo(SaveUserInfoReq saveUserInfoReq) {
         long l1 = System.currentTimeMillis();
-        UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoRequest, UserInfo.class);
+        UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoReq, UserInfo.class);
         log.debug("copyFieldValue cost: {} ms", System.currentTimeMillis() - l1);
 
         Boolean saveSuccess = Boolean.FALSE;
@@ -72,13 +72,13 @@ public class UserInfoServiceImpl implements UserInfoService {
     /**
      * 更新用户信息
      *
-     * @param saveUserInfoRequest
+     * @param saveUserInfoReq
      * @return
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SaveUserInfoDTO updateUserInfo(SaveUserInfoRequest saveUserInfoRequest) {
-        UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoRequest, UserInfo.class);
+    public SaveUserInfoDTO updateUserInfo(SaveUserInfoReq saveUserInfoReq) {
+        UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoReq, UserInfo.class);
         Boolean success = userInfoRepository.updateUserInfo(userInfo);
         return new SaveUserInfoDTO(success? Boolean.TRUE:Boolean.FALSE, null);
     }
