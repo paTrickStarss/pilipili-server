@@ -64,10 +64,10 @@ public class CreateVideoInfoReq {
      * 视频分区子ID
      */
     private Integer secondaryCategoryId;
-    /**
-     * 视频状态：0审核中 1审核通过 2审核不通过 3下架
-     */
-    private Integer status;
+//    /**
+//     * 视频状态：0审核中 1审核通过 2审核不通过 3下架
+//     */
+//    private Integer status;
 //    /**
 //     * 投稿时间
 //     */

@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.video.repository.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.video.mapper.VideoInfoMapper;
@@ -73,7 +73,7 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
     @Override
     public Page<VideoInfo> pageQueryVideoInfoByUid(Integer uid, Long pageNo, Long pageSize) {
         Page<VideoInfo> page = new Page<>(pageNo, pageSize);
-        return videoInfoMapper.selectPage(page, new QueryWrapper<VideoInfo>().eq("uid", uid));
+        return videoInfoMapper.selectPage(page, new LambdaQueryWrapper<VideoInfo>().eq(VideoInfo::getUid, uid));
     }
 
     /**
@@ -85,24 +85,24 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
     @Override
     public Page<VideoInfo> pageQueryVideoInfo(QueryVideoInfoParam param, Long pageNo, Long pageSize) {
         Page<VideoInfo> page = new Page<>(pageNo, pageSize);
-        QueryWrapper<VideoInfo> queryWrapper = getQueryWrapper(param);
+        LambdaQueryWrapper<VideoInfo> queryWrapper = getQueryWrapper(param);
         return videoInfoMapper.selectPage(page, queryWrapper);
     }
 
-    private QueryWrapper<VideoInfo> getQueryWrapper(QueryVideoInfoParam param) {
-        QueryWrapper<VideoInfo> queryWrapper = new QueryWrapper<VideoInfo>();
+    private LambdaQueryWrapper<VideoInfo> getQueryWrapper(QueryVideoInfoParam param) {
+        LambdaQueryWrapper<VideoInfo> queryWrapper = new LambdaQueryWrapper<>();
 
         if (StringUtil.isNotEmpty(param.getTitle())) {
-            queryWrapper.like("title", param.getTitle());
+            queryWrapper.like(VideoInfo::getTitle, param.getTitle());
         }
         if (StringUtil.isNotEmpty(param.getTag())) {
-            queryWrapper.like("tag", param.getTag());
+            queryWrapper.like(VideoInfo::getTag, param.getTag());
         }
         if (StringUtil.isNotEmpty(param.getPublishDateStart())) {
-            queryWrapper.ge("publish_date", param.getPublishDateStart());
+            queryWrapper.ge(VideoInfo::getPublishDate, param.getPublishDateStart());
         }
         if (StringUtil.isNotEmpty(param.getPublishDateEnd())) {
-            queryWrapper.le("publish_date", param.getPublishDateEnd());
+            queryWrapper.le(VideoInfo::getPublishDate, param.getPublishDateEnd());
         }
 
         return queryWrapper;

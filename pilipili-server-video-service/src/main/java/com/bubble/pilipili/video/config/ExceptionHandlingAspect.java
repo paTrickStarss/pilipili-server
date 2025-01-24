@@ -24,7 +24,7 @@ public class ExceptionHandlingAspect {
         try {
             return joinPoint.proceed();
         } catch (Exception e) {
-            log.error("业务层异常: {}", e.getMessage(), e);
+            log.error("Service section Error");
             throw e;
         }
     }

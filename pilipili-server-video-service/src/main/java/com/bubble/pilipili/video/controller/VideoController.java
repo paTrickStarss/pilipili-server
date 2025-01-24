@@ -28,9 +28,15 @@ public class VideoController {
     @Autowired
     private VideoInfoService videoInfoService;
 
+
     @GetMapping("/test")
     public SimpleResponse<String> test() {
         return SimpleResponse.success("Hello World");
+    }
+
+    @GetMapping("/test2")
+    public SimpleResponse<String> test2(@RequestParam String msg) {
+        return SimpleResponse.success("Server Receive: " + msg);
     }
 
     /**

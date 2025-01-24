@@ -52,13 +52,13 @@ public class OAuthUtil {
      */
     public static final String OAUTH_CLIENT_SECRET = "bubble233";
     /**
-     * accessToken 有效期 1小时
+     * accessToken 有效期 1天
      */
-    public static final int OAUTH_ACCESS_TOKEN_EXPIRES = 3600;
+    public static final int OAUTH_ACCESS_TOKEN_EXPIRES = 86400;
     /**
-     * refreshToken 有效期 1天
+     * refreshToken 有效期 7天
      */
-    public static final int OAUTH_REFRESH_TOKEN_EXPIRES = 86400;
+    public static final int OAUTH_REFRESH_TOKEN_EXPIRES = 604800;
 
     public OAuthTokenReq createOauthTokenReq(String username, String password) {
         OAuthTokenReq oauthTokenReq = new OAuthTokenReq();

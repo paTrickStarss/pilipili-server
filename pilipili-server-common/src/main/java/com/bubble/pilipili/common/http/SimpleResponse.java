@@ -19,7 +19,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SimpleResponse<T> implements Serializable {
+public class SimpleResponse<T> implements Response, Serializable {
 
     private int code;
     private String message;
