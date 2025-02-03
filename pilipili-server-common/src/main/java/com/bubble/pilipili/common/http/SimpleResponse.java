@@ -22,7 +22,7 @@ import java.io.Serializable;
 public class SimpleResponse<T> implements Response, Serializable {
 
     private int code;
-    private String message;
+    private String msg;
     private T data;
 
     public static <T> SimpleResponse<T> success(T data) {

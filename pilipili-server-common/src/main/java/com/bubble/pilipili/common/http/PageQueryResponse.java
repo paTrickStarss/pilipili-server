@@ -24,7 +24,7 @@ import java.util.List;
 public class PageQueryResponse<T> implements Response, Serializable {
 
     private int code;
-    private String message;
+    private String msg;
     private Long pageNo;
     private Long pageSize;
     private Long total;

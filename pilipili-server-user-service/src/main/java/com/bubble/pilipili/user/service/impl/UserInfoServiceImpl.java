@@ -20,6 +20,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 用户信息业务类
@@ -45,10 +46,9 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SaveUserInfoDTO saveUserInfo(SaveUserInfoReq saveUserInfoReq) {
-        long l1 = System.currentTimeMillis();
         UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoReq, UserInfo.class);
-        log.debug("copyFieldValue cost: {} ms", System.currentTimeMillis() - l1);
 
+        userInfo.setUuid(UUID.randomUUID().toString());
         Boolean saveSuccess = Boolean.FALSE;
         SaveUserInfoDTO dto = new SaveUserInfoDTO();
         try {

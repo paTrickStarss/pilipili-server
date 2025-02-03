@@ -6,16 +6,21 @@ package com.bubble.pilipili.user.controller;
 
 import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.common.http.SimpleResponse;
+import com.bubble.pilipili.common.util.RSACryptoUtil;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
+import com.bubble.pilipili.user.pojo.req.RegisterReq;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 import com.bubble.pilipili.user.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.security.SignatureException;
 import java.util.List;
 
 /**
@@ -40,11 +45,30 @@ public class UserController {
 
     /**
      * 注册用户
-     * @param saveUserInfoReq
+     * @param registerReq
      * @return
      */
     @PostMapping("/register")
-    public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody SaveUserInfoReq saveUserInfoReq) {
+    public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody RegisterReq registerReq) {
+        String encryptedPwd = registerReq.getPassword();
+        String signature = registerReq.getSignature();
+        String password;
+        try {
+            if (RSACryptoUtil.verify(encryptedPwd, signature)) {
+                password = RSACryptoUtil.decrypt(encryptedPwd);
+            } else {
+                return SimpleResponse.failed("签名验证不通过！");
+            }
+        } catch (SignatureException | IllegalBlockSizeException | BadPaddingException e) {
+            log.error(e.getMessage());
+            return SimpleResponse.failed("参数解密失败！");
+        }
+
+        SaveUserInfoReq saveUserInfoReq = new SaveUserInfoReq();
+        saveUserInfoReq.setPassword(password);
+        saveUserInfoReq.setNickname(registerReq.getNickname());
+        saveUserInfoReq.setEmail(registerReq.getEmail());
+
         SaveUserInfoDTO result = userInfoService.saveUserInfo(saveUserInfoReq);
 
         return SimpleResponse.success(result);

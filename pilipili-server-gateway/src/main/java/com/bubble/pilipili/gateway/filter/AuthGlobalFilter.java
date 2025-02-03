@@ -16,9 +16,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -40,13 +42,30 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+
+        if (request.getPath().toString().contains("/login") || request.getPath().toString().contains("/register")) {
+            return chain.filter(exchange);
+        }
+        // TODO: 请求没带Authorization请求头 会被上级的过滤掉 到不了这里 需要改变鉴权方式（目前是 BearerToken）为 Cookies
+//        MultiValueMap<String, HttpCookie> cookies = request.getCookies();
+//        log.debug("request cookies: {}", cookies);
+//        HttpCookie accessToken = cookies.getFirst("accessToken");
+//        if (accessToken == null) {
+//            ServerHttpResponse response = exchange.getResponse();
+//            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+//            return response.setComplete();
+//        }
+//        String token = accessToken.getValue();
+
         String authorization = request.getHeaders().getFirst("Authorization");
         if (authorization == null || authorization.isEmpty()) {
-            return chain.filter(exchange);  // Reject
+            ServerHttpResponse response = exchange.getResponse();
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            return response.setComplete();
         }
+        String token = authorization.replace("Bearer ", "");
         try {
             // 将token转换为用户信息再放回请求头
-            String token = authorization.replace("Bearer ", "");
             JWSObject jwsObject = JWSObject.parse(token);
             String userStr = jwsObject.getPayload().toString();
 //            Map payloadMap = JSON.parseObject(userStr, Map.class);

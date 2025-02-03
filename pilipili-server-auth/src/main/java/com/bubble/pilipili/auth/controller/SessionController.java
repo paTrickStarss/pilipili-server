@@ -10,6 +10,7 @@ import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
 import com.bubble.pilipili.auth.pojo.req.LoginReq;
 import com.bubble.pilipili.auth.util.OAuthUtil;
 import com.bubble.pilipili.common.http.SimpleResponse;
+import com.bubble.pilipili.common.util.RSACryptoUtil;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.nimbusds.jose.JWSObject;
 import feign.FeignException;
@@ -18,7 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.validation.Valid;
+import java.security.SignatureException;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -41,7 +45,20 @@ public class SessionController {
     @PostMapping("/login")
     public SimpleResponse<LoginDTO> login(@Valid @RequestBody LoginReq req) {
         String username = req.getUsername();
-        String password = req.getPassword();
+        String passwordEncryptedText = req.getPassword();
+        String signature = req.getSignature();
+        String password;
+        try {
+            if (RSACryptoUtil.verify(passwordEncryptedText, signature)) {
+                password = RSACryptoUtil.decrypt(passwordEncryptedText);
+            } else {
+                return SimpleResponse.failed("签名验证不通过！");
+            }
+        } catch (SignatureException | IllegalBlockSizeException | BadPaddingException e) {
+            log.error(e.getMessage());
+            return SimpleResponse.failed("参数解密失败！");
+        }
+
         if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
             return SimpleResponse.failed("请传入用户名和密码！");
         }
@@ -57,7 +74,7 @@ public class SessionController {
             String jti = jsonObject.get("jti").toString();
             sessionManager.saveToken(oAuthTokenDTO.getUsername(), jti, oAuthTokenDTO.getExpires_in());
 
-            return SimpleResponse.success(new LoginDTO(oAuthTokenDTO.getUsername(), oAuthTokenDTO.getAccess_token()));
+            return SimpleResponse.success(new LoginDTO(oAuthTokenDTO.getUsername(), oAuthTokenDTO.getAccess_token(), oAuthTokenDTO.getExpires_in()));
         } catch (FeignException e) {
             log.warn("Token获取异常: {}", e.getMessage());
             if (e.getMessage().contains("invalid_grant")) {

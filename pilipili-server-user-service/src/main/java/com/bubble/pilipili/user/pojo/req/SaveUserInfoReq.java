@@ -8,8 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 /**
  * 新增用户信息请求参数
  * @author liweixin@hcrc1.wecom.work
@@ -88,13 +86,5 @@ public class SaveUserInfoReq {
      * P币（充值代币）
      */
     private Integer pCoin;
-    /**
-     * 创建时间
-     */
-    private Date createDate;
-    /**
-     * 最后一次更新时间
-     */
-    private Date updateDate;
 
 }
