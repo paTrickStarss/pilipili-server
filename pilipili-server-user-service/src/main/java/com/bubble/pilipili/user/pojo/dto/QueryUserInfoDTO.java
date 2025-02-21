@@ -94,4 +94,9 @@ public class QueryUserInfoDTO implements Serializable {
      * 最后一次更新时间
      */
     private Date updateDate;
+
+    /**
+     * 用户等级 0-6 （计算得出）
+     */
+    private Integer level;
 }

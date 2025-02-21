@@ -11,6 +11,7 @@ import com.bubble.pilipili.user.pojo.entity.UserInfo;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 import com.bubble.pilipili.user.repository.UserInfoRepository;
 import com.bubble.pilipili.user.service.UserInfoService;
+import com.bubble.pilipili.user.util.UserInfoUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -92,7 +93,10 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public QueryUserInfoDTO getUserInfoByUid(String uid) {
         UserInfo userInfo = userInfoRepository.findUserInfoByUid(Integer.parseInt(uid));
-        return UserInfoConverter.getInstance().copyFieldValue(userInfo, QueryUserInfoDTO.class);
+        QueryUserInfoDTO dto = UserInfoConverter.getInstance().copyFieldValue(userInfo, QueryUserInfoDTO.class);
+        dto.setLevel(UserInfoUtil.getLevel(dto.getExp()));
+
+        return dto;
     }
 
     /**
