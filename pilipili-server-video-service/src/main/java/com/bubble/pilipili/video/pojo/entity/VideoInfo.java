@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 视频信息实体类
@@ -80,14 +80,14 @@ public class VideoInfo {
     /**
      * 投稿时间
      */
-    private Date uploadDate;
+    private LocalDateTime uploadTime;
     /**
      * 最后一次更新时间
      */
-    private Date updateDate;
+    private LocalDateTime updateTime;
     /**
      * 发布时间（过审时间/定时发布时间）
      */
-    private Date publishDate;
+    private LocalDateTime publishTime;
 
 }

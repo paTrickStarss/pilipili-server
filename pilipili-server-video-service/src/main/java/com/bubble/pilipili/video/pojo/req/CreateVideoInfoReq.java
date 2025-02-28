@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 新增视频信息请求数据
@@ -79,5 +79,5 @@ public class CreateVideoInfoReq {
     /**
      * 发布时间（过审时间/定时发布时间）
      */
-    private Date publishDate;
+    private LocalDateTime publishTime;
 }

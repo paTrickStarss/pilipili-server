@@ -57,6 +57,9 @@ public class SessionController {
         } catch (SignatureException | IllegalBlockSizeException | BadPaddingException e) {
             log.error(e.getMessage());
             return SimpleResponse.failed("参数解密失败！");
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return SimpleResponse.failed("参数解密异常！");
         }
 
         if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {

@@ -4,8 +4,10 @@
     <file url="file://$PROJECT_DIR$/pilipili-server-auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/pilipili-server-common/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/pilipili-server-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/pilipili-server-feign-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/pilipili-server-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/pilipili-server-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/pilipili-server-interact-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/pilipili-server-user-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/pilipili-server-video-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />

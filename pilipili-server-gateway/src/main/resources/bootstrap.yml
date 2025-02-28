@@ -51,6 +51,16 @@ spring:
           predicates:
             - Path=/api/user/**
 
+        - id: video-service
+          uri: lb://video-service
+          predicates:
+            - Path=/api/video/**
+
+        - id: interact-service
+          uri: lb://interact-service
+          predicates:
+            - Path=/api/interact/**
+
         - id: user-service-doc
           uri: lb://user-service
           predicates:
@@ -58,15 +68,17 @@ spring:
           filters:
             - StripPrefix=1
 
-        - id: video-service
-          uri: lb://video-service
-          predicates:
-            - Path=/api/video/**
-
         - id: video-service-doc
           uri: lb://video-service
           predicates:
             - Path=/doc/video/**
+          filters:
+            - StripPrefix=1
+
+        - id: interact-service-doc
+          uri: lb://interact-service
+          predicates:
+            - Path=/doc/interact/**
           filters:
             - StripPrefix=1
 

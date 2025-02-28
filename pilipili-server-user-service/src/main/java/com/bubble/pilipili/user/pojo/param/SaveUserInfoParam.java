@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -90,9 +90,9 @@ public class SaveUserInfoParam {
     /**
      * 创建时间
      */
-    private Date createDate;
+    private LocalDateTime createTime;
     /**
      * 最后一次更新时间
      */
-    private Date updateDate;
+    private LocalDateTime updateTime;
 }

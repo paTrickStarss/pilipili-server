@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 查询用户信息返回参数
@@ -89,11 +89,11 @@ public class QueryUserInfoDTO implements Serializable {
     /**
      * 创建时间
      */
-    private Date createDate;
+    private LocalDateTime createTime;
     /**
      * 最后一次更新时间
      */
-    private Date updateDate;
+    private LocalDateTime updateTime;
 
     /**
      * 用户等级 0-6 （计算得出）

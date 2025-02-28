@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 用户信息表
@@ -96,9 +96,9 @@ public class UserInfo {
     /**
      * 创建时间
      */
-    private Date createDate;
+    private LocalDateTime createTime;
     /**
      * 最后一次更新时间
      */
-    private Date updateDate;
+    private LocalDateTime updateTime;
 }

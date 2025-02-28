@@ -99,10 +99,10 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
             queryWrapper.like(VideoInfo::getTag, param.getTag());
         }
         if (StringUtil.isNotEmpty(param.getPublishDateStart())) {
-            queryWrapper.ge(VideoInfo::getPublishDate, param.getPublishDateStart());
+            queryWrapper.ge(VideoInfo::getPublishTime, param.getPublishDateStart());
         }
         if (StringUtil.isNotEmpty(param.getPublishDateEnd())) {
-            queryWrapper.le(VideoInfo::getPublishDate, param.getPublishDateEnd());
+            queryWrapper.le(VideoInfo::getPublishTime, param.getPublishDateEnd());
         }
 
         return queryWrapper;

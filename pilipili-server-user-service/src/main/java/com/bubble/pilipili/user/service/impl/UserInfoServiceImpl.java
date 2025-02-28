@@ -95,7 +95,6 @@ public class UserInfoServiceImpl implements UserInfoService {
         UserInfo userInfo = userInfoRepository.findUserInfoByUid(Integer.parseInt(uid));
         QueryUserInfoDTO dto = UserInfoConverter.getInstance().copyFieldValue(userInfo, QueryUserInfoDTO.class);
         dto.setLevel(UserInfoUtil.getLevel(dto.getExp()));
-
         return dto;
     }
 
