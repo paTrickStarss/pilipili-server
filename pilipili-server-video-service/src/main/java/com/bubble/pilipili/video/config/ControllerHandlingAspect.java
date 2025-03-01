@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ import java.util.Map;
  */
 @Aspect
 @Slf4j
-@Component
+@Configuration
 public class ControllerHandlingAspect {
 
     private Map<String, String> pathMap;

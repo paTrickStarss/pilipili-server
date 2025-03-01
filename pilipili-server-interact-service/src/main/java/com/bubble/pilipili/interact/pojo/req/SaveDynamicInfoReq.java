@@ -2,32 +2,31 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.pojo.entity;
+package com.bubble.pilipili.interact.pojo.req;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * 动态信息实体类
+ * 保存动态信息请求参数
  * @author Bubble
- * @date 2025.02.28 22:03
+ * @date 2025.03.01 16:15
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("dynamic_info")
-public class DynamicInfo {
+public class SaveDynamicInfoReq implements Serializable {
 
     /**
      * 动态ID
      */
-    @TableId(type = IdType.AUTO)
     private Integer did;
     /**
      * 用户ID
@@ -36,29 +35,29 @@ public class DynamicInfo {
     /**
      * 内容
      */
+    @NotBlank(message = "动态内容不能为空")
     private String content;
     /**
      * 是否为转发动态
      */
+    @Min(0) @Max(1)
     private Integer isRepost;
     /**
      * 引用类型 1视频 2动态
      */
+    @Min(1) @Max(2)
     private Integer relaType;
     /**
      * 引用对象ID
      */
     private Integer relaId;
+
     /**
-     * 创建时间
+     * 附件
      */
-    private LocalDateTime createTime;
+    List<SaveDynamicAttachReq> attachList;
     /**
-     * 更新时间
+     * 删除附件
      */
-    private LocalDateTime updateTime;
-    /**
-     * 删除
-     */
-    private Integer rm;
+    List<SaveDynamicAttachReq> attachRemoveList;
 }

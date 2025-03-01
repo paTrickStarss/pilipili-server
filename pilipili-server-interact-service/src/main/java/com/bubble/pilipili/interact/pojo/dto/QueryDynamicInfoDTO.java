@@ -2,32 +2,29 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.pojo.entity;
+package com.bubble.pilipili.interact.pojo.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * 动态信息实体类
  * @author Bubble
- * @date 2025.02.28 22:03
+ * @date 2025.03.01 16:24
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("dynamic_info")
-public class DynamicInfo {
+public class QueryDynamicInfoDTO implements Serializable {
+
 
     /**
      * 动态ID
      */
-    @TableId(type = IdType.AUTO)
     private Integer did;
     /**
      * 用户ID
@@ -57,8 +54,10 @@ public class DynamicInfo {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+
     /**
-     * 删除
+     * 附件
      */
-    private Integer rm;
+    List<QueryDynamicAttachDTO> attachList;
 }

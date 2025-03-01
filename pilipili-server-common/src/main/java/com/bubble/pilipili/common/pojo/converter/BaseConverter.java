@@ -11,9 +11,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -85,6 +83,34 @@ public class BaseConverter {
         return result;
     }
 
+    public <F, T> List<T> copyFieldValueList(List<F> fromList, Class<T> resultClz) {
+        if (fromList == null) return null;
+
+        List<T> resultList = new ArrayList<>();
+        if (fromList.isEmpty()) return resultList;
+
+        Class<?> fromClz = fromList.get(0).getClass();
+        Map<String, Field> resultFieldMap = getFieldCacheMap(resultClz);
+        Map<String, Field> fromFieldMap = getFieldCacheMap(fromClz);
+
+        fromList.forEach(from -> {
+            T result;
+            try {
+                result = resultClz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                log.error("创建实例异常！{}", e.getMessage());
+                throw new RuntimeException(e);
+            }
+            doWriteFiledValue(
+                    fromFieldMap, resultFieldMap,
+                    fromClz, resultClz, from, result
+            );
+            resultList.add(result);
+        });
+
+        return resultList;
+    }
+
     /**
      * 合并更新的字段值
      * @param origin 更新前原数据
@@ -109,5 +135,38 @@ public class BaseConverter {
         });
 
         return origin;
+    }
+
+
+    private <F, T> void doWriteFiledValue(
+            Map<String, Field> fromFieldMap,
+            Map<String, Field> resultFieldMap,
+            Class<?> fromClz,
+            Class<T> resultClz,
+            F from,
+            T result
+
+    ) {
+        fromFieldMap.forEach((name, fromField) -> {
+            // 包含同名字段
+            if (resultFieldMap.containsKey(name)) {
+                Field curField = resultFieldMap.get(fromField.getName());
+                // 包含同名同类型字段
+                if (curField.getType().equals(fromField.getType())) {
+                    try {
+                        // 赋值
+                        Method writeMethod = new PropertyDescriptor(curField.getName(), resultClz).getWriteMethod();
+                        Method readMethod = new PropertyDescriptor(fromField.getName(), fromClz).getReadMethod();
+                        Object fieldValue = readMethod.invoke(from);
+                        writeMethod.invoke(result, fieldValue);
+
+                    } catch (NullPointerException e) {
+                        log.error("类字段getter/setter方法为空！{}", e.getMessage());
+                    } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
+                        log.error("类字段getter/setter方法调用异常！ {}", e.getMessage());
+                    }
+                }
+            }
+        });
     }
 }

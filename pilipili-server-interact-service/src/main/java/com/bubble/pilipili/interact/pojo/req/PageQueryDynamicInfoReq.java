@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.video.pojo.req;
+package com.bubble.pilipili.interact.pojo.req;
 
 import com.bubble.pilipili.common.http.PageQueryReq;
 import lombok.AllArgsConstructor;
@@ -12,19 +12,14 @@ import lombok.NoArgsConstructor;
 
 /**
  * @author Bubble
- * @date 2025/01/20 18:25
+ * @date 2025.03.01 16:35
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageQueryVideoInfoReq extends PageQueryReq {
+public class PageQueryDynamicInfoReq extends PageQueryReq {
 
     private Integer uid;
 
-    private String keyword;
-    private String title;
-    private String tag;
-    private String publishDateStart;
-    private String publishDateEnd;
 }
