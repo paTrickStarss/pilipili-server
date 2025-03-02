@@ -20,6 +20,7 @@
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+<!--            <pattern>${log.pattern}</pattern>-->
         </encoder>
     </appender>
 
@@ -47,7 +48,7 @@
         <appender-ref ref="fileAppender"/>
     </appender>
 
-    <!--这里可以不写-->
+
     <logger name="com.bubble.pilipili" level="DEBUG"/>
 
     <!-- 日志输出级别 -->

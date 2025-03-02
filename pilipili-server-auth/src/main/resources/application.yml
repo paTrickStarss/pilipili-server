@@ -27,3 +27,8 @@ resource:
         - ROLE_ADMIN
         - ROLE_USER
         - ROLE_TEST
+    - path: /api/interact
+      role:
+        - ROLE_ADMIN
+        - ROLE_USER
+        - ROLE_TEST

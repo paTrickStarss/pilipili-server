@@ -5,6 +5,7 @@
 package com.bubble.pilipili.user.controller;
 
 import com.bubble.pilipili.common.constant.AuthConstant;
+import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.util.RSACryptoUtil;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
@@ -31,7 +32,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/user")
-public class UserController {
+public class UserController implements Controller {
 
     @Autowired
     private UserInfoService userInfoService;

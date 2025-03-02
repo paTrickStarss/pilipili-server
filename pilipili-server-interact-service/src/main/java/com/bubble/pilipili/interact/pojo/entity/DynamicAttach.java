@@ -30,7 +30,7 @@ public class DynamicAttach {
     /**
      * 附件UUID
      */
-    @TableId
+    @TableId(value = "attach_uuid")
     private String attachUUID;
     /**
      * 附件类型 0图片 1视频

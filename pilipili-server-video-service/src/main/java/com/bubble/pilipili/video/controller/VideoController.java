@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.video.controller;
 
+import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.PageQueryResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -23,7 +24,7 @@ import javax.validation.Valid;
  */
 @RestController
 @RequestMapping("/api/video")
-public class VideoController {
+public class VideoController implements Controller {
 
     @Autowired
     private VideoInfoService videoInfoService;

@@ -62,7 +62,7 @@ public class ResourceServerConfig {
         ignoreUrlList.add("/webjars/**");
         ignoreUrlList.add("/favicon.ico");
         ignoreUrlList.add("/v3/api-docs/**");
-        ignoreUrlList.add("/doc/*/v3/api-docs/**");
+        ignoreUrlList.add("/doc/**"); // doc/user/v3/api-docs?group=default
 
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }

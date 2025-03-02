@@ -104,6 +104,9 @@ public class DynamicAttachRepositoryImpl implements DynamicAttachRepository {
      */
     @Override
     public Map<Integer, List<DynamicAttach>>  listDynamicAttachByDidBatch(List<Integer> didList) {
+        if (didList == null || didList.isEmpty()) {
+            return new HashMap<>(0);
+        }
         List<DynamicAttach> attachListUngrouped =
                 dynamicAttachMapper.selectList(
                         new LambdaQueryWrapper<DynamicAttach>().in(DynamicAttach::getDid, didList));

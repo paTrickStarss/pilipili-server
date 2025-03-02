@@ -111,10 +111,12 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
             List<SaveDynamicAttachReq> attachList = saveDynamicInfoReq.getAttachList();
             if (attachList != null && !attachList.isEmpty()) {
                 List<DynamicAttach> dynamicAttachList = attachList.stream()
-                        .map(attach ->
-                                DynamicAttachConverter.getInstance()
-                                        .copyFieldValue(attach, DynamicAttach.class)
-                        )
+                        .map(attach -> {
+                            DynamicAttach dynamicAttach = DynamicAttachConverter.getInstance()
+                                            .copyFieldValue(attach, DynamicAttach.class);
+                            dynamicAttach.setDid(dynamicInfo.getDid());
+                            return dynamicAttach;
+                        })
                         .collect(Collectors.toList());
                 Boolean saveAttach = dynamicAttachRepository.saveDynamicAttachBatch(dynamicAttachList);
                 if (!saveAttach) {
@@ -122,7 +124,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 }
             }
         } catch (Exception e) {
-            log.error("更新动态信息失败:\n{}\n{}", saveDynamicInfoReq, e.getMessage());
+            log.error("更新动态信息失败:\n{}\n{}", e.getMessage(), saveDynamicInfoReq);
             return false;
         }
         return true;
@@ -191,6 +193,6 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         pageDTO.setPageNo(dynamicInfoPage.getCurrent());
         pageDTO.setPageSize(dynamicInfoPage.getSize());
         pageDTO.setData(new ArrayList<>(dynamicInfoDTOMap.values()));
-        return null;
+        return pageDTO;
     }
 }

@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.common.util.quatz;
+package com.bubble.pilipili.common.util.quartz;
 
 /**
  * @author Bubble

@@ -5,7 +5,6 @@
 package com.bubble.pilipili.interact.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.interact.mapper.DynamicInfoMapper;
 import com.bubble.pilipili.interact.pojo.entity.DynamicInfo;
@@ -47,11 +46,7 @@ public class DynamicInfoRepositoryImpl implements DynamicInfoRepository {
      */
     @Override
     public Boolean deleteDynamicInfoByDid(Integer did) {
-        return dynamicInfoMapper.update(
-                new LambdaUpdateWrapper<DynamicInfo>()
-                        .eq(DynamicInfo::getDid, did)
-                        .set(DynamicInfo::getRm, 1)
-        ) == 1;
+        return dynamicInfoMapper.deleteById(did) == 1;
     }
 
     /**

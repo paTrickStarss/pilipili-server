@@ -17,7 +17,9 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 资源鉴权管理器
@@ -42,9 +44,7 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
         }
         return authentication
                 .filter(Authentication::isAuthenticated)
-                .doOnNext(auth -> {
-                    log.debug("filter: {}", auth);
-                })
+                .doOnNext(auth -> log.debug("filter: {}", auth))
                 .flatMapIterable(Authentication::getAuthorities)
                 .map(GrantedAuthority::getAuthority)
                 .any(authorities::contains)
@@ -55,6 +55,12 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
     private String getPathPrefix(URI uri) {
         String path = uri.getPath();
         if (path.startsWith("/") && path.contains("/api")) {
+            String[] split = path.split("/");
+            if (split.length >= 3) {
+                return Arrays.stream(split)
+                        .limit(3)
+                        .collect(Collectors.joining("/"));
+            }
             return path.substring(0, path.lastIndexOf('/'));
         }
         return path;

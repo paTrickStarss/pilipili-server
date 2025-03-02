@@ -4,16 +4,17 @@
 
 package com.bubble.pilipili.common.util;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
+import com.bubble.pilipili.common.http.Response;
+
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * @author Bubble
  * @date 2025/02/03 16:21
  */
-public class TestRSA {
+public class TestMain {
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
 //        RSAUtil.AsymmetricallyKeyPair keyPair = RSAUtil.generateRSAKeyPair();
@@ -32,6 +33,9 @@ public class TestRSA {
 //            throw new RuntimeException(e);
 //        }
 
-        System.out.println(UUID.randomUUID().toString());
+//        System.out.println(UUID.randomUUID().toString());
+
+        List<Class<? extends Response>> clzList = ClassScanner.scanPackage("com.bubble.pilipili.common.http", Response.class);
+        clzList.forEach(clz -> System.out.println(clz.getName()));
     }
 }
