@@ -80,14 +80,14 @@ public class UserController implements Controller {
      * @param request
      * @return
      */
-    @PostMapping("/update")
+    @PatchMapping("/update")
     public SimpleResponse<SaveUserInfoDTO> update(@Valid @RequestBody SaveUserInfoReq request) {
         SaveUserInfoDTO result = userInfoService.updateUserInfo(request);
         return SimpleResponse.success(result);
     }
 
-    @GetMapping("/getUser")
-    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @RequestParam String uid) {
+    @GetMapping("/{uid}")
+    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @PathVariable String uid) {
         QueryUserInfoDTO userInfoDTO = userInfoService.getUserInfoByUid(uid);
         return SimpleResponse.success(userInfoDTO);
     }

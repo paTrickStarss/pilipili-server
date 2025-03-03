@@ -27,7 +27,8 @@ public class LogUtil {
             "\nElapsed Time: {} ms";
 
     public static void apiSuccessLog(Class<?> clz, String apiPath, Object req, Object resp, long elapsedTime) {
-        log.info(successLogTemplate, clz.getCanonicalName(), apiPath, req, resp, elapsedTime);
+        log.debug(successLogTemplate, clz.getCanonicalName(), apiPath, req, resp, elapsedTime);
+
     }
     public static void apiFailedLog(Class<?> clz, String apiPath, Object req, Object msg, long elapsedTime) {
         log.warn(failedLogTemplate, clz.getCanonicalName(), apiPath, req, msg, elapsedTime);

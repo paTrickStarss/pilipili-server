@@ -10,6 +10,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+
 /**
  * @author Bubble
  * @date 2025.03.01 16:35
@@ -20,6 +23,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PageQueryDynamicInfoReq extends PageQueryReq {
 
+    @NotBlank(message = "uid不能为空")
+    @Positive(message = "uid必须大于0")
     private Integer uid;
 
 }

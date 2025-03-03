@@ -7,3 +7,15 @@ server:
     threads:
       max: 400
       min-spare: 10
+
+security-config:
+#  鉴权访问白名单
+  ignore-url-list:
+    - /static/**
+    - /auth/session/**
+    - /api/user/register
+    - /doc.html
+    - /webjars/**
+    - /favicon.ico
+    - /v3/api-docs/**
+    - /doc/**

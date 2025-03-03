@@ -31,6 +31,7 @@ public class SaveDynamicInfoReq implements Serializable {
     /**
      * 用户ID
      */
+    @NotBlank(message = "用户ID不能为空")
     private Integer uid;
     /**
      * 内容
@@ -40,12 +41,14 @@ public class SaveDynamicInfoReq implements Serializable {
     /**
      * 是否为转发动态
      */
-    @Min(0) @Max(1)
+    @Min(value = 0, message = "该字段值为0或1")
+    @Max(value = 1, message = "该字段值为0或1")
     private Integer isRepost;
     /**
      * 引用类型 1视频 2动态
      */
-    @Min(1) @Max(2)
+    @Min(value = 1, message = "该字段值为1或2 其中1视频 2动态")
+    @Max(value = 2, message = "该字段值为1或2 其中1视频 2动态")
     private Integer relaType;
     /**
      * 引用对象ID

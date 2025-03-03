@@ -6,12 +6,14 @@ package com.bubble.pilipili.video;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
 @SpringBootApplication
+@ComponentScan(basePackages = {"com.bubble.pilipili.common", "com.bubble.pilipili.video"})
 public class VideoApplication {
 
     public static void main(String[] args) {

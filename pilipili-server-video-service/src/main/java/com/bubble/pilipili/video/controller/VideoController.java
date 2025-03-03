@@ -29,17 +29,6 @@ public class VideoController implements Controller {
     @Autowired
     private VideoInfoService videoInfoService;
 
-
-    @GetMapping("/test")
-    public SimpleResponse<String> test() {
-        return SimpleResponse.success("Hello World");
-    }
-
-    @GetMapping("/test2")
-    public SimpleResponse<String> test2(@RequestParam String msg) {
-        return SimpleResponse.success("Server Receive: " + msg);
-    }
-
     /**
      * 保存视频信息
      * @param req
@@ -59,7 +48,7 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
-    @PutMapping("/update")
+    @PatchMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req) {
         Boolean b = videoInfoService.updateVideoInfo(req);
         if (b) {
@@ -88,8 +77,8 @@ public class VideoController implements Controller {
      * @param vid
      * @return
      */
-    @GetMapping("/getOne")
-    public SimpleResponse<QueryVideoInfoDTO> getVideoInfo(@Valid @RequestParam Integer vid) {
+    @GetMapping("/{vid}")
+    public SimpleResponse<QueryVideoInfoDTO> getVideoInfo(@Valid @PathVariable Integer vid) {
         QueryVideoInfoDTO queryVideoInfoDTO = videoInfoService.getVideoInfoById(vid);
         return SimpleResponse.success(queryVideoInfoDTO);
     }
@@ -99,8 +88,10 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
-    @PostMapping("/pageQueryByUid")
-    public PageQueryResponse<QueryVideoInfoDTO> pageQueryByUid(@Valid @RequestBody PageQueryVideoInfoReq req) {
+    @GetMapping("/pageQueryByUid")
+    public PageQueryResponse<QueryVideoInfoDTO> pageQueryByUid(
+            @Valid @ModelAttribute PageQueryVideoInfoReq req
+    ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfoByUid(req);
         return PageQueryResponse.success(dto);
     }
@@ -110,8 +101,10 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
-    @PostMapping("/pageQuery")
-    public PageQueryResponse<QueryVideoInfoDTO> pageQuery(@Valid @RequestBody PageQueryVideoInfoReq req) {
+    @GetMapping("/pageQuery")
+    public PageQueryResponse<QueryVideoInfoDTO> pageQuery(
+            @Valid @ModelAttribute PageQueryVideoInfoReq req
+    ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfo(req);
         return PageQueryResponse.success(dto);
     }

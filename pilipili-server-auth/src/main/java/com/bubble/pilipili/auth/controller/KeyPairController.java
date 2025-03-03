@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.auth.controller;
 
+import com.bubble.pilipili.common.http.Controller;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import java.util.Map;
  * @date 2024/10/24
  */
 @RestController
-public class KeyPairController {
+public class KeyPairController implements Controller {
 
     @Autowired
     private KeyPair keyPair;

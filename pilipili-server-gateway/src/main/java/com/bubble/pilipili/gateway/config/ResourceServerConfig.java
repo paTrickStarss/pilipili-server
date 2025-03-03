@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.gateway.config;
 
+import com.bubble.pilipili.common.config.SecurityConfigProperties;
 import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.gateway.config.handler.MyAccessDeniedHandler;
 import com.bubble.pilipili.gateway.config.handler.MyAuthenticationEntryPoint;
@@ -45,25 +46,15 @@ public class ResourceServerConfig {
     @Autowired
     private MyAuthenticationEntryPoint myAuthenticationEntryPoint;
 
+    @Autowired
+    private SecurityConfigProperties properties;
     // 白名单URL
     private final List<String> ignoreUrlList;
 
 
     @PostConstruct
     public void init(){
-        ignoreUrlList.add("/static");
-//        ignoreUrlList.add("/auth/oauth/**");
-//        ignoreUrlList.add("/auth/rsa/publicKey");
-        ignoreUrlList.add("/auth/session/**");
-        ignoreUrlList.add("/api/user/register");
-
-        // knife4j
-        ignoreUrlList.add("/doc.html");
-        ignoreUrlList.add("/webjars/**");
-        ignoreUrlList.add("/favicon.ico");
-        ignoreUrlList.add("/v3/api-docs/**");
-        ignoreUrlList.add("/doc/**"); // doc/user/v3/api-docs?group=default
-
+        ignoreUrlList.addAll(properties.getIgnoreUrlList());
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }
 

@@ -4,11 +4,12 @@
 
 package com.bubble.pilipili.auth.controller;
 
-import com.bubble.pilipili.common.component.SessionManager;
+import com.bubble.pilipili.common.config.SessionManager;
 import com.bubble.pilipili.auth.pojo.dto.LoginDTO;
 import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
 import com.bubble.pilipili.auth.pojo.req.LoginReq;
 import com.bubble.pilipili.auth.util.OAuthUtil;
+import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.util.RSACryptoUtil;
 import com.bubble.pilipili.common.util.StringUtil;
@@ -34,7 +35,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/session")
-public class SessionController {
+public class SessionController implements Controller {
 
     @Autowired
     private OAuthFeignAPI oAuthFeignAPI;

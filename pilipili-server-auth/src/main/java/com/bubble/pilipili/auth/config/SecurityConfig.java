@@ -4,8 +4,10 @@
 
 package com.bubble.pilipili.auth.config;
 
+import com.bubble.pilipili.common.config.SecurityConfigProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +15,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -29,13 +29,15 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    private SecurityConfigProperties properties;
+
     // 白名单URL
     private final List<String> ignoreUrlList;
 
     @PostConstruct
     public void init(){
-        ignoreUrlList.add("/rsa/publicKey");
-        ignoreUrlList.add("/session/**");
+        ignoreUrlList.addAll(properties.getIgnoreUrlList());
         log.info("ignoreUrlList: {}", ignoreUrlList);
     }
 

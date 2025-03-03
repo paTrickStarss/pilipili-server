@@ -137,6 +137,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      */
     @Override
     public Boolean deleteDynamicInfo(Integer did) {
+        Boolean b = dynamicAttachRepository.deleteDynamicAttachByDid(did);
         return dynamicInfoRepository.deleteDynamicInfoByDid(did);
     }
 
@@ -148,6 +149,9 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     @Override
     public QueryDynamicInfoDTO queryDynamicInfoDTO(Integer did) {
         DynamicInfo dynamicInfo = dynamicInfoRepository.queryDynamicInfoByDid(did);
+        if (dynamicInfo == null) {
+            return null;
+        }
         List<DynamicAttach> attachList = dynamicAttachRepository.listDynamicAttachByDid(did);
         QueryDynamicInfoDTO dto =
                 DynamicInfoConverter.getInstance().copyFieldValue(dynamicInfo, QueryDynamicInfoDTO.class);

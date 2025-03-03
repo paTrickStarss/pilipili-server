@@ -8,7 +8,6 @@ import com.bubble.pilipili.auth.entity.ResourceMap;
 import com.bubble.pilipili.auth.entity.RoleMap;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
@@ -20,7 +19,6 @@ import java.util.List;
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/25
  */
-@Component
 @ConfigurationProperties(prefix = "resource", ignoreInvalidFields = true)
 @Validated
 @Data

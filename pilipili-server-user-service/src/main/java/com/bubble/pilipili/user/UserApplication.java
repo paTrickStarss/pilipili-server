@@ -7,6 +7,7 @@ package com.bubble.pilipili.user;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -14,6 +15,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
+@ComponentScan(basePackages = {"com.bubble.pilipili.common", "com.bubble.pilipili.user"})
 public class UserApplication {
 
     public static void main(String[] args) {

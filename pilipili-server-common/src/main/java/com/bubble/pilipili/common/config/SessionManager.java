@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2024. Bubble
+ * Copyright (c) 2024-2025. Bubble
  */
 
-package com.bubble.pilipili.common.component;
+package com.bubble.pilipili.common.config;
 
 import com.bubble.pilipili.common.constant.RedisKey;
 import org.springframework.beans.factory.annotation.Autowired;

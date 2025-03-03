@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * @author Bubble
  * @date 2025/01/21 14:58
  */
-@Component("VideoInfoRepository")
+@Component
 public class VideoInfoRepositoryImpl implements VideoInfoRepository {
 
     @Autowired

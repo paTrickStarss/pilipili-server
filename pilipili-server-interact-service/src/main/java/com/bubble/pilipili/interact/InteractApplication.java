@@ -6,12 +6,14 @@ package com.bubble.pilipili.interact;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * @author Bubble
  * @date 2025.02.28 20:25
  */
 @SpringBootApplication
+@ComponentScan(basePackages = {"com.bubble.pilipili.common", "com.bubble.pilipili.interact"})
 public class InteractApplication {
 
     public static void main(String[] args) {

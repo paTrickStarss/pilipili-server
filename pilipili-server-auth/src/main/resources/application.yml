@@ -32,3 +32,8 @@ resource:
         - ROLE_ADMIN
         - ROLE_USER
         - ROLE_TEST
+
+security-config:
+  ignore-url-list:
+    - /rsa/publicKey
+    - /session/**
