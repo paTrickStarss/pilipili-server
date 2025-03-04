@@ -10,7 +10,6 @@ import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
-import com.bubble.pilipili.interact.pojo.req.QueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +36,7 @@ public class DynamicController implements Controller {
     @PostMapping("/save")
     public SimpleResponse<String> save(@Valid @RequestBody SaveDynamicInfoReq req) {
         Boolean b = dynamicInfoService.saveDynamicInfo(req);
-        if (b) {
-            return SimpleResponse.success("保存成功");
-        }
-        return SimpleResponse.failed("保存失败");
+        return SimpleResponse.result(b);
     }
 
     /**
@@ -51,24 +47,61 @@ public class DynamicController implements Controller {
     @PutMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody SaveDynamicInfoReq req) {
         Boolean b = dynamicInfoService.updateDynamicInfo(req);
-        if (b) {
-            return SimpleResponse.success("更新成功");
-        }
-        return SimpleResponse.failed("更新失败");
+        return SimpleResponse.result(b);
+    }
+
+    // todo: 关于互动关系的变更请求考虑使用消息队列
+    /**
+     * 点赞动态
+     * @param did
+     * @return
+     */
+    @PutMapping("/favor")
+    public SimpleResponse<String> favor(
+            @Valid @RequestParam Integer did,
+            @Valid @RequestParam Integer uid
+    ) {
+        Boolean b = dynamicInfoService.favorDynamicInfo(did, uid, 1);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消点赞动态
+     * @param did
+     * @return
+     */
+    @PutMapping("/favorRevoke")
+    public SimpleResponse<String> favorRevoke(
+            @Valid @RequestParam Integer did,
+            @Valid @RequestParam Integer uid
+    ) {
+        Boolean b = dynamicInfoService.favorDynamicInfo(did, uid, 0);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 转发动态
+     * @param did
+     * @return
+     */
+    @PutMapping("/repost")
+    public SimpleResponse<String> repost(
+            @Valid @RequestParam Integer did,
+            @Valid @RequestParam Integer uid
+    ) {
+        Boolean b = dynamicInfoService.repostDynamicInfo(did, uid);
+        return SimpleResponse.result(b);
     }
 
     /**
      * 删除动态
-     * @param req
+     * @param did
      * @return
      */
-    @DeleteMapping("/remove")
-    public SimpleResponse<String> remove(@Valid @ModelAttribute QueryDynamicInfoReq req) {
-        Boolean b = dynamicInfoService.deleteDynamicInfo(req.getDid());
-        if (b) {
-            return SimpleResponse.success("删除成功");
-        }
-        return SimpleResponse.failed("删除失败");
+    @DeleteMapping("/{did}")
+    public SimpleResponse<String> remove(@Valid @PathVariable Integer did) {
+        Boolean b = dynamicInfoService.deleteDynamicInfo(did);
+        return SimpleResponse.result(b);
     }
 
     /**
@@ -86,17 +119,16 @@ public class DynamicController implements Controller {
 
     /**
      * 查询某条动态
-     * @param req
+     * @param did
      * @return
      */
-    @GetMapping("/query")
+    @GetMapping("/{did}")
     public SimpleResponse<QueryDynamicInfoDTO> queryDynamicInfo(
-            @Valid @ModelAttribute QueryDynamicInfoReq req
+            @Valid @PathVariable Integer did
     ) {
-        QueryDynamicInfoDTO dto = dynamicInfoService.queryDynamicInfoDTO(req.getDid());
-        if (dto == null) {
-            return SimpleResponse.success("数据不存在");
-        }
+        QueryDynamicInfoDTO dto = dynamicInfoService.queryDynamicInfoDTO(did);
         return SimpleResponse.success(dto);
     }
+
+
 }

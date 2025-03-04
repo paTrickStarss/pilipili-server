@@ -60,4 +60,13 @@ public class QueryDynamicInfoDTO implements Serializable {
      * 附件
      */
     List<QueryDynamicAttachDTO> attachList;
+
+    /**
+     * 点赞数
+     */
+    private Integer favorCount;
+    /**
+     * 转发数
+     */
+    private Integer repostCount;
 }

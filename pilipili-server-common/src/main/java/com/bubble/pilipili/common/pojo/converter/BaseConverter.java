@@ -58,27 +58,7 @@ public class BaseConverter {
         Map<String, Field> resultFieldMap = getFieldCacheMap(resultClz);
         Map<String, Field> fromFieldMap = getFieldCacheMap(fromClz);
 
-        fromFieldMap.forEach((name, fromField) -> {
-            // 包含同名字段
-            if (resultFieldMap.containsKey(name)) {
-                Field curField = resultFieldMap.get(fromField.getName());
-                // 包含同名同类型字段
-                if (curField.getType().equals(fromField.getType())) {
-                    try {
-                        // 赋值
-                        Method writeMethod = new PropertyDescriptor(curField.getName(), resultClz).getWriteMethod();
-                        Method readMethod = new PropertyDescriptor(fromField.getName(), fromClz).getReadMethod();
-                        Object fieldValue = readMethod.invoke(from);
-                        writeMethod.invoke(result, fieldValue);
-
-                    } catch (NullPointerException e) {
-                        log.error("类字段getter/setter方法为空！{}", e.getMessage());
-                    } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
-                        log.error("类字段getter/setter方法调用异常！ {}", e.getMessage());
-                    }
-                }
-            }
-        });
+        doWriteFiledValue(fromFieldMap, resultFieldMap, fromClz, resultClz, from, result);
 
         return result;
     }

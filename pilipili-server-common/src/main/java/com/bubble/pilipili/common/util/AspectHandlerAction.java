@@ -37,8 +37,9 @@ public class AspectHandlerAction {
             return rt;
         } catch (Throwable throwable) {
             LogUtil.apiFailedLog(clz, pathMap.get(methodName), args, throwable.getMessage(), System.currentTimeMillis() - l1);
+//            return ResponseEntity.internalServerError().body(throwable.getMessage());
             throw throwable;
-//            return SimpleResponse.error("Internal Server Error");
+//            return SimpleResponse.error(throwable.getMessage());
         }
     }
 }

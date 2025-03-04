@@ -11,13 +11,16 @@ import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
 import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicAttachDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryDynamicStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.DynamicAttach;
 import com.bubble.pilipili.interact.pojo.entity.DynamicInfo;
+import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicAttachReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.repository.DynamicAttachRepository;
 import com.bubble.pilipili.interact.repository.DynamicInfoRepository;
+import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +45,8 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     private DynamicInfoRepository dynamicInfoRepository;
     @Autowired
     private DynamicAttachRepository dynamicAttachRepository;
+    @Autowired
+    private UserDynamicRepository userDynamicRepository;
 
     /**
      * 保存动态信息
@@ -141,6 +146,37 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         return dynamicInfoRepository.deleteDynamicInfoByDid(did);
     }
 
+
+    /**
+     *
+     * @param did
+     * @param uid
+     * @param favor
+     * @return
+     */
+    @Override
+    public Boolean favorDynamicInfo(Integer did, Integer uid, Integer favor) {
+        UserDynamic userDynamic = new UserDynamic();
+        userDynamic.setDid(did);
+        userDynamic.setUid(uid);
+        userDynamic.setFavor(favor);
+        return userDynamicRepository.saveUserDynamic(userDynamic);
+    }
+
+    /**
+     * @param did
+     * @param uid
+     * @return
+     */
+    @Override
+    public Boolean repostDynamicInfo(Integer did, Integer uid) {
+        UserDynamic userDynamic = new UserDynamic();
+        userDynamic.setDid(did);
+        userDynamic.setUid(uid);
+        userDynamic.setRepost(1);
+        return userDynamicRepository.saveUserDynamic(userDynamic);
+    }
+
     /**
      * 查询指定动态信息
      * @param did
@@ -148,16 +184,23 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      */
     @Override
     public QueryDynamicInfoDTO queryDynamicInfoDTO(Integer did) {
+//        查询动态信息
         DynamicInfo dynamicInfo = dynamicInfoRepository.queryDynamicInfoByDid(did);
         if (dynamicInfo == null) {
             return null;
         }
+//        查询附件信息
         List<DynamicAttach> attachList = dynamicAttachRepository.listDynamicAttachByDid(did);
+//        查询统计数据
+        QueryDynamicStatsDTO dynamicStats = userDynamicRepository.getDynamicStats(did);
+
         QueryDynamicInfoDTO dto =
                 DynamicInfoConverter.getInstance().copyFieldValue(dynamicInfo, QueryDynamicInfoDTO.class);
         dto.setAttachList(
                 DynamicAttachConverter.getInstance().copyFieldValueList(attachList, QueryDynamicAttachDTO.class)
         );
+        dto.setFavorCount(dynamicStats.getFavorCount());
+        dto.setRepostCount(dynamicStats.getRepostCount());
 
         return dto;
     }
@@ -191,6 +234,13 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                     DynamicAttachConverter.getInstance().copyFieldValueList(attachList, QueryDynamicAttachDTO.class);
             dynamicInfoDTOMap.get(did).setAttachList(attachDTOList);
         });
+
+//        批量查询统计数据
+        userDynamicRepository.getDynamicStatsBatch(didList)
+                .forEach(stats -> {
+                    dynamicInfoDTOMap.get(stats.getDid()).setFavorCount(stats.getFavorCount());
+                    dynamicInfoDTOMap.get(stats.getDid()).setRepostCount(stats.getRepostCount());
+                });
 
         PageDTO<QueryDynamicInfoDTO> pageDTO = new PageDTO<>();
         pageDTO.setTotal(dynamicInfoPage.getTotal());

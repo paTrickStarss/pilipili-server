@@ -80,7 +80,7 @@ public class UserController implements Controller {
      * @param request
      * @return
      */
-    @PatchMapping("/update")
+    @PutMapping("/update")
     public SimpleResponse<SaveUserInfoDTO> update(@Valid @RequestBody SaveUserInfoReq request) {
         SaveUserInfoDTO result = userInfoService.updateUserInfo(request);
         return SimpleResponse.success(result);

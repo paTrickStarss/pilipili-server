@@ -37,10 +37,7 @@ public class VideoController implements Controller {
     @PostMapping("/save")
     public SimpleResponse<String> save(@Valid @RequestBody CreateVideoInfoReq req) {
         Boolean b = videoInfoService.saveVideoInfo(req);
-        if (b) {
-            return SimpleResponse.success("保存成功！");
-        }
-        return SimpleResponse.failed("保存失败！");
+        return SimpleResponse.result(b);
     }
 
     /**
@@ -48,13 +45,10 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
-    @PatchMapping("/update")
+    @PutMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req) {
         Boolean b = videoInfoService.updateVideoInfo(req);
-        if (b) {
-            return SimpleResponse.success("更新成功！");
-        }
-        return SimpleResponse.failed("更新失败！");
+        return SimpleResponse.result(b);
     }
 
     // TODO: 这个接口路径需要做权限限制（仅限管理员）
@@ -63,13 +57,10 @@ public class VideoController implements Controller {
      * @param vid
      * @return
      */
-    @DeleteMapping("/delete")
-    public SimpleResponse<String> delete(@Valid @RequestParam Integer vid) {
+    @DeleteMapping("/{vid}")
+    public SimpleResponse<String> delete(@Valid @PathVariable Integer vid) {
         Boolean b = videoInfoService.deleteVideoInfo(vid);
-        if (b) {
-            return SimpleResponse.success("删除成功！");
-        }
-        return SimpleResponse.failed("删除失败！");
+        return SimpleResponse.result(b);
     }
 
     /**
@@ -79,8 +70,8 @@ public class VideoController implements Controller {
      */
     @GetMapping("/{vid}")
     public SimpleResponse<QueryVideoInfoDTO> getVideoInfo(@Valid @PathVariable Integer vid) {
-        QueryVideoInfoDTO queryVideoInfoDTO = videoInfoService.getVideoInfoById(vid);
-        return SimpleResponse.success(queryVideoInfoDTO);
+        QueryVideoInfoDTO dto = videoInfoService.getVideoInfoById(vid);
+        return SimpleResponse.success(dto);
     }
 
     /**

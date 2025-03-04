@@ -31,6 +31,9 @@ public class SimpleResponse<T> implements Response, Serializable {
     public static <T> SimpleResponse<T> success(String msg) {
         return new SimpleResponse<>(HttpStatus.OK.value(), msg, null);
     }
+    public static <T> SimpleResponse<T> result(Boolean res) {
+        return res? success("操作成功"):failed("操作失败");
+    }
 
     public static <T> SimpleResponse<T> failed(String message) {
         return new SimpleResponse<>(HttpStatus.BAD_REQUEST.value(), message, null);

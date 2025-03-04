@@ -5,6 +5,7 @@
 package com.bubble.pilipili.interact.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,9 +22,12 @@ import java.time.LocalDateTime;
 @TableName("user_dynamic")
 public class UserDynamic {
 
-    private Integer uid;
     private Integer did;
+    private Integer uid;
     private Integer favor;
     private Integer repost;
     private LocalDateTime updateTime;
+
+    @Version
+    private Integer version;
 }
