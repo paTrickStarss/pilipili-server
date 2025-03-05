@@ -56,7 +56,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
-    @PutMapping("/favor")
+    @PatchMapping("/favor")
     public SimpleResponse<String> favor(
             @Valid @RequestParam Integer did,
             @Valid @RequestParam Integer uid
@@ -70,7 +70,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
-    @PutMapping("/favorRevoke")
+    @PatchMapping("/favorRevoke")
     public SimpleResponse<String> favorRevoke(
             @Valid @RequestParam Integer did,
             @Valid @RequestParam Integer uid
@@ -84,7 +84,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
-    @PutMapping("/repost")
+    @PatchMapping("/repost")
     public SimpleResponse<String> repost(
             @Valid @RequestParam Integer did,
             @Valid @RequestParam Integer uid

@@ -2,32 +2,27 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.pojo.entity;
+package com.bubble.pilipili.interact.pojo.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 评论信息实体类
  * @author Bubble
- * @date 2025.02.28 21:32
+ * @date 2025.03.05 16:43
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("comment_info")
-public class CommentInfo {
+public class QueryCommentInfoDTO implements Serializable {
 
     /**
      * 评论ID
      */
-    @TableId(type = IdType.AUTO)
     private Integer cid;
     /**
      * 发送用户ID
@@ -57,8 +52,19 @@ public class CommentInfo {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+
     /**
-     * 删除
+     * 回复数量（针对根评论 即parentId为空的评论 统计其回复数量）
      */
-    private Integer rm;
+    private Long replyCount;
+
+    /**
+     * 点赞数
+     */
+    private Integer favorCount;
+    /**
+     * 点踩数
+     */
+    private Integer dewCount;
 }

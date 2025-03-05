@@ -60,7 +60,7 @@ public class UserController implements Controller {
             } else {
                 return SimpleResponse.failed("签名验证不通过！");
             }
-        } catch (SignatureException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (SignatureException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException e) {
             log.error(e.getMessage());
             return SimpleResponse.failed("参数解密失败！");
         }

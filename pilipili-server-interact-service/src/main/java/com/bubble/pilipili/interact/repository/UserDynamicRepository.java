@@ -21,6 +21,6 @@ public interface UserDynamicRepository {
     Boolean saveUserDynamic(UserDynamic userDynamic);
 
     QueryDynamicStatsDTO getDynamicStats(Integer did);
-    List<QueryDynamicStatsDTO> getDynamicStatsBatch(List<Integer> didList);
+    List<QueryDynamicStatsDTO> getDynamicStats(List<Integer> didList);
 
 }

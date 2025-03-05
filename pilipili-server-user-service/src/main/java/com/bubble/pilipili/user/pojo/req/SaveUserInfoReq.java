@@ -8,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 /**
  * 新增用户信息请求参数
  * @author liweixin@hcrc1.wecom.work
@@ -37,6 +40,7 @@ public class SaveUserInfoReq {
     /**
      * 性别 0未知 1男 2女
      */
+    @Min(0) @Max(2)
     private Integer gender;
     /**
      * 头像URL
@@ -57,10 +61,12 @@ public class SaveUserInfoReq {
     /**
      * 会员状态：0普通用户 1月度大会员 2季度大会员 3年度大会员 4云视听月度大会员 5云视听季度大会员 6云视听年度大会员
      */
+    @Min(0) @Max(6)
     private Integer vipStatus;
     /**
      * 小闪电认证：0无认证 1名人认证 2机构认证
      */
+    @Min(0) @Max(2)
     private Integer authority;
     /**
      * 小闪电认证说明
@@ -69,10 +75,12 @@ public class SaveUserInfoReq {
     /**
      * 账号状态：0已注销 1正常 2封禁中
      */
+    @Min(0) @Max(2)
     private Integer validStatus;
     /**
      * 账号类型：0普通账号 1管理员账号
      */
+    @Min(0) @Max(1)
     private Integer role;
     /**
      * 等级经验值

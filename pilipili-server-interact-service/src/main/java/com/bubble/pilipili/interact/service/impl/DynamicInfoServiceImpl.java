@@ -6,6 +6,7 @@ package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.RepositoryException;
+import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
 import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
@@ -140,9 +141,14 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      * @param did
      * @return
      */
+    @Transactional
     @Override
     public Boolean deleteDynamicInfo(Integer did) {
         Boolean b = dynamicAttachRepository.deleteDynamicAttachByDid(did);
+        if (!b) {
+            throw new ServiceOperationException("动态附件删除失败");
+//            return false;
+        }
         return dynamicInfoRepository.deleteDynamicInfoByDid(did);
     }
 
@@ -236,7 +242,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         });
 
 //        批量查询统计数据
-        userDynamicRepository.getDynamicStatsBatch(didList)
+        userDynamicRepository.getDynamicStats(didList)
                 .forEach(stats -> {
                     dynamicInfoDTOMap.get(stats.getDid()).setFavorCount(stats.getFavorCount());
                     dynamicInfoDTOMap.get(stats.getDid()).setRepostCount(stats.getRepostCount());

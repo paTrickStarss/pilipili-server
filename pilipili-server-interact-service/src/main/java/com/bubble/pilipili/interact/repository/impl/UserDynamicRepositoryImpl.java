@@ -4,22 +4,16 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.bubble.pilipili.common.exception.RepositoryException;
-import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.mapper.UserDynamicMapper;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Bubble
@@ -39,47 +33,20 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
     @Transactional
     @Override
     public Boolean saveUserDynamic(UserDynamic userDynamic) {
-        Integer did = userDynamic.getDid();
-        Integer uid = userDynamic.getUid();
-        Integer favor = userDynamic.getFavor();
-        Integer repost = userDynamic.getRepost();
-        if (did == null || uid == null) {
-            return false;
-        }
-        if (favor == null && repost == null) {
-            return false;
-        }
-
-        boolean exists = userDynamicMapper.exists(
-                new LambdaQueryWrapper<UserDynamic>()
-                        .eq(UserDynamic::getDid, did)
-                        .eq(UserDynamic::getUid, uid)
+        return CommonRepoImpl.save(
+                userDynamic,
+                UserDynamic::getDid,
+                UserDynamic::getUid,
+                (updateWrapper, entity) -> {
+                    if (entity.getFavor() != null) {
+                        updateWrapper.set(UserDynamic::getFavor, entity.getFavor());
+                    }
+                    if (entity.getRepost() != null) {
+                        updateWrapper.set(UserDynamic::getRepost, entity.getRepost());
+                    }
+                },
+                userDynamicMapper
         );
-        if (exists) {
-            // 更新
-            LambdaUpdateWrapper<UserDynamic> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(UserDynamic::getDid, did);
-            updateWrapper.eq(UserDynamic::getUid, uid);
-            if (favor != null) {
-                updateWrapper.set(UserDynamic::getFavor, favor);
-            }
-            if (repost != null) {
-                updateWrapper.set(UserDynamic::getRepost, repost);
-            }
-            int update = userDynamicMapper.update(updateWrapper);
-            if (update > 1) {
-                throw new RepositoryException("更新数量大于1");
-            }
-            return update == 1;
-        } else {
-            // 新增
-            try {
-                return userDynamicMapper.insert(userDynamic) == 1;
-            } catch (DataIntegrityViolationException ex) {
-                throw new RepositoryException("新增记录异常");
-            }
-        }
-
     }
     /**
      * 查询指定动态的统计数据
@@ -88,11 +55,18 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
      */
     @Override
     public QueryDynamicStatsDTO getDynamicStats(Integer did) {
-        QueryWrapper<UserDynamic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("did", "SUM(favor) AS favor", "SUM(repost) AS repost");
-        queryWrapper.eq("did", did);
-
-        return doQueryDynamicStats(queryWrapper).get(0);
+        return CommonRepoImpl.getStatsBatch(
+                Collections.singletonList(did),
+                QueryDynamicStatsDTO.class,
+                (entity, dto) -> {
+                    dto.setDid(entity.getDid());
+                    dto.setFavorCount(entity.getFavor());
+                    dto.setRepostCount(entity.getRepost());
+                },
+                userDynamicMapper,
+                "did",
+                "favor", "repost"
+        ).get(0);
     }
 
     /**
@@ -101,28 +75,18 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
      * @return
      */
     @Override
-    public List<QueryDynamicStatsDTO> getDynamicStatsBatch(List<Integer> didList) {
-        if (ListUtil.isEmpty(didList)) {
-            return null;
-        }
-
-        QueryWrapper<UserDynamic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("did", "SUM(favor) AS favor", "SUM(repost) AS repost");
-        queryWrapper.in("did", didList);
-        queryWrapper.groupBy("did");
-
-        return doQueryDynamicStats(queryWrapper);
-    }
-
-    private List<QueryDynamicStatsDTO> doQueryDynamicStats(QueryWrapper<UserDynamic> queryWrapper) {
-        return userDynamicMapper.selectList(queryWrapper).stream()
-                .map(userDynamic -> {
-                    QueryDynamicStatsDTO dto = new QueryDynamicStatsDTO();
-                    dto.setDid(userDynamic.getDid());
-                    dto.setFavorCount(userDynamic.getFavor());
-                    dto.setRepostCount(userDynamic.getRepost());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+    public List<QueryDynamicStatsDTO> getDynamicStats(List<Integer> didList) {
+        return CommonRepoImpl.getStatsBatch(
+                didList,
+                QueryDynamicStatsDTO.class,
+                (entity, dto) -> {
+                    dto.setDid(entity.getDid());
+                    dto.setFavorCount(entity.getFavor());
+                    dto.setRepostCount(entity.getRepost());
+                },
+                userDynamicMapper,
+                "did",
+                "favor", "repost"
+        );
     }
 }
