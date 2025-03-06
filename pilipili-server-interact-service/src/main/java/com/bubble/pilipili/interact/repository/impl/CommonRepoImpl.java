@@ -82,7 +82,7 @@ public class CommonRepoImpl {
         QueryWrapper<T> queryWrapper = new QueryWrapper<>();
         List<String> selectFields = new ArrayList<>(Collections.singletonList(idFieldName));
         String[] array = Arrays.stream(fieldNames)
-                .map(field -> String.join("SUN(", field, ") AS ", field))
+                .map(field -> String.join("", "SUM(", field, ") AS ", field))
                 .toArray(String[]::new);
         selectFields.addAll(Arrays.asList(array));
 

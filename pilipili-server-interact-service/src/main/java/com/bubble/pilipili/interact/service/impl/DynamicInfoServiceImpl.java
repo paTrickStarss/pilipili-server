@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -147,40 +148,48 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         Boolean b = dynamicAttachRepository.deleteDynamicAttachByDid(did);
         if (!b) {
             throw new ServiceOperationException("动态附件删除失败");
-//            return false;
         }
         return dynamicInfoRepository.deleteDynamicInfoByDid(did);
     }
 
 
     /**
-     *
+     * 点赞动态
      * @param did
      * @param uid
-     * @param favor
      * @return
      */
     @Override
-    public Boolean favorDynamicInfo(Integer did, Integer uid, Integer favor) {
-        UserDynamic userDynamic = new UserDynamic();
-        userDynamic.setDid(did);
-        userDynamic.setUid(uid);
-        userDynamic.setFavor(favor);
-        return userDynamicRepository.saveUserDynamic(userDynamic);
+    public Boolean favorDynamicInfo(Integer did, Integer uid) {
+        return userDynamicRepository.saveUserDynamic(
+                generateUserDynamic(did, uid, u -> u.setFavor(1))
+        );
     }
 
     /**
+     * 取消点赞动态
+     * @param did
+     * @param uid
+     * @return
+     */
+    @Override
+    public Boolean revokeFavorDynamicInfo(Integer did, Integer uid) {
+        return userDynamicRepository.saveUserDynamic(
+                generateUserDynamic(did, uid, u -> u.setFavor(0))
+        );
+    }
+
+    /**
+     * 转发动态
      * @param did
      * @param uid
      * @return
      */
     @Override
     public Boolean repostDynamicInfo(Integer did, Integer uid) {
-        UserDynamic userDynamic = new UserDynamic();
-        userDynamic.setDid(did);
-        userDynamic.setUid(uid);
-        userDynamic.setRepost(1);
-        return userDynamicRepository.saveUserDynamic(userDynamic);
+        return userDynamicRepository.saveUserDynamic(
+                generateUserDynamic(did, uid, u -> u.setRepost(1))
+        );
     }
 
     /**
@@ -254,5 +263,16 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         pageDTO.setPageSize(dynamicInfoPage.getSize());
         pageDTO.setData(new ArrayList<>(dynamicInfoDTOMap.values()));
         return pageDTO;
+    }
+
+    private UserDynamic generateUserDynamic(
+            Integer did, Integer uid,
+            Consumer<UserDynamic> consumer
+    ) {
+        UserDynamic userDynamic = new UserDynamic();
+        userDynamic.setDid(did);
+        userDynamic.setUid(uid);
+        consumer.accept(userDynamic);
+        return userDynamic;
     }
 }

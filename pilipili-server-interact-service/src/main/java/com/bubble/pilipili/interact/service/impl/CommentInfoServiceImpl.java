@@ -8,8 +8,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
-import com.bubble.pilipili.interact.pojo.dto.QueryCommentStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
+import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
 import com.bubble.pilipili.interact.repository.CommentInfoRepository;
@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,63 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     }
 
     /**
+     * 点赞评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @Override
+    public Boolean favorCommentInfo(Integer cid, Integer uid) {
+        return userCommentRepository.saveUserComment(
+                generateUserComment(cid, uid, u -> {
+                    u.setFavor(1);
+                    u.setDew(0);
+                })
+        );
+    }
+
+    /**取消点赞评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @Override
+    public Boolean revokeFavorCommentInfo(Integer cid, Integer uid) {
+        return userCommentRepository.saveUserComment(
+                generateUserComment(cid, uid, u -> u.setFavor(0))
+        );
+    }
+
+    /**
+     * 点踩评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @Override
+    public Boolean dewCommentInfo(Integer cid, Integer uid) {
+        return userCommentRepository.saveUserComment(
+                generateUserComment(cid, uid, u -> {
+                    u.setDew(1);
+                    u.setFavor(0);
+                })
+        );
+    }
+
+    /**
+     * 取消点踩评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @Override
+    public Boolean revokeDewCommentInfo(Integer cid, Integer uid) {
+        return userCommentRepository.saveUserComment(
+                generateUserComment(cid, uid, u -> u.setDew(0))
+        );
+    }
+
+    /**
      * @param cid
      * @return
      */
@@ -75,25 +133,26 @@ public class CommentInfoServiceImpl implements CommentInfoService {
      */
     @Override
     public PageDTO<QueryCommentInfoDTO> pageQueryCommentInfoByRela(PageQueryCommentInfoReq req) {
-        Page<CommentInfo> commentInfoPage = commentInfoRepository.pageQueryCommentInfoByRela(req.getRelaType(), req.getRelaId(), req.getPageNo(), req.getPageSize());
-        List<CommentInfo> records = commentInfoPage.getRecords();
-
-
+        Page<CommentInfo> commentInfoPage =
+                commentInfoRepository.pageQueryCommentInfoByRela(
+                        req.getRelaType(), req.getRelaId(), req.getPageNo(), req.getPageSize()
+                );
         Map<Integer, QueryCommentInfoDTO> dtoMap = getCidMap(commentInfoPage.getRecords());
-
         // 查询每条评论的回复数量
         List<Integer> cidList = new ArrayList<>(dtoMap.keySet());
         Map<Long, Long> replyCountMap = commentInfoRepository.countCommentInfoByParentRootId(cidList);
 
         // 查询每条评论的统计数据
-        List<QueryCommentStatsDTO> commentStats = userCommentRepository.getCommentStats(cidList);
+        userCommentRepository.getCommentStats(cidList)
+                .forEach(commentStats -> {
+                    dtoMap.get(commentStats.getCid()).setFavorCount(commentStats.getFavorCount());
+                    dtoMap.get(commentStats.getCid()).setDewCount(commentStats.getDewCount());
+                });
 
         List<QueryCommentInfoDTO> resultDTOList = new ArrayList<>(dtoMap.values());
         for (QueryCommentInfoDTO dto : resultDTOList) {
             dto.setReplyCount(replyCountMap.get(dto.getCid().longValue()));
         }
-
-        // todo: 绑定评论统计数据
 
         return new PageDTO<>(
                 commentInfoPage.getCurrent(),
@@ -145,5 +204,16 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                 .collect(Collectors.toMap(QueryCommentInfoDTO::getCid, Function.identity(),
                         (a, b) -> a)
                 );
+    }
+
+    private UserComment generateUserComment(
+            Integer cid, Integer uid,
+            Consumer<UserComment> consumer
+    ) {
+        UserComment userComment = new UserComment();
+        userComment.setCid(cid);
+        userComment.setUid(uid);
+        consumer.accept(userComment);
+        return userComment;
     }
 }

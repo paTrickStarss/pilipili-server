@@ -54,6 +54,66 @@ public class CommentController implements Controller {
     }
 
     /**
+     * 点赞评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @PatchMapping("/favor")
+    public SimpleResponse<String> favor(
+            @NotBlank(message = "请传入cid") @RequestParam Integer cid,
+            @NotBlank(message = "请传入uid") @RequestParam Integer uid
+    ) {
+        Boolean b = commentInfoService.favorCommentInfo(cid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消点赞评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @PatchMapping("/favorRevoke")
+    public SimpleResponse<String> favorRevoke(
+            @NotBlank(message = "请传入cid") @RequestParam Integer cid,
+            @NotBlank(message = "请传入uid") @RequestParam Integer uid
+    ) {
+        Boolean b = commentInfoService.revokeFavorCommentInfo(cid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 点踩评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @PatchMapping("/dew")
+    public SimpleResponse<String> dew(
+            @NotBlank(message = "请传入cid") @RequestParam Integer cid,
+            @NotBlank(message = "请传入uid") @RequestParam Integer uid
+    ) {
+        Boolean b = commentInfoService.dewCommentInfo(cid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消点踩评论
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @PatchMapping("/dewRevoke")
+    public SimpleResponse<String> dewRevoke(
+            @NotBlank(message = "请传入cid") @RequestParam Integer cid,
+            @NotBlank(message = "请传入uid") @RequestParam Integer uid
+    ) {
+        Boolean b = commentInfoService.revokeDewCommentInfo(cid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
      * 查询指定评论信息
      * @param cid
      * @return

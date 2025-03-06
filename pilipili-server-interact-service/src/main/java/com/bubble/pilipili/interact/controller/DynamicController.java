@@ -61,7 +61,7 @@ public class DynamicController implements Controller {
             @Valid @RequestParam Integer did,
             @Valid @RequestParam Integer uid
     ) {
-        Boolean b = dynamicInfoService.favorDynamicInfo(did, uid, 1);
+        Boolean b = dynamicInfoService.favorDynamicInfo(did, uid);
         return SimpleResponse.result(b);
     }
 
@@ -75,7 +75,7 @@ public class DynamicController implements Controller {
             @Valid @RequestParam Integer did,
             @Valid @RequestParam Integer uid
     ) {
-        Boolean b = dynamicInfoService.favorDynamicInfo(did, uid, 0);
+        Boolean b = dynamicInfoService.revokeFavorDynamicInfo(did, uid);
         return SimpleResponse.result(b);
     }
 

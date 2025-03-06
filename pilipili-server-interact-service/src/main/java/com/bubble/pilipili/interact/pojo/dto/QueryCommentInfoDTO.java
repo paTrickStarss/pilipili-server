@@ -62,9 +62,9 @@ public class QueryCommentInfoDTO implements Serializable {
     /**
      * 点赞数
      */
-    private Integer favorCount;
+    private Integer favorCount = 0;
     /**
      * 点踩数
      */
-    private Integer dewCount;
+    private Integer dewCount = 0;
 }
