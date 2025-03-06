@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2024. Bubble
+ * Copyright (c) 2024-2025. Bubble
  */
 
 package com.bubble.pilipili.auth.config;
 
 import com.bubble.pilipili.auth.dto.UserDTO;
-import com.bubble.pilipili.auth.entity.UserAuth;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;

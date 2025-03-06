@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Bubble
+ * Copyright (c) 2024-2025. Bubble
  */
 
 package com.bubble.pilipili.auth.dto;
@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 

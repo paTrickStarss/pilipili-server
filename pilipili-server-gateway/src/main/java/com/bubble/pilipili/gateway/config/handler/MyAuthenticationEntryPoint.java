@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Bubble
+ * Copyright (c) 2024-2025. Bubble
  */
 
 package com.bubble.pilipili.gateway.config.handler;
@@ -8,18 +8,13 @@ import com.bubble.pilipili.common.constant.AuthConstant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.core.util.Json;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.RequestPath;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 

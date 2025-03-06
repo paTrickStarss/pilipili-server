@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Bubble
+ * Copyright (c) 2024-2025. Bubble
  */
 
 package com.bubble.pilipili.gateway.config.handler;
@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.core.util.Json;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.access.AccessDeniedException;
