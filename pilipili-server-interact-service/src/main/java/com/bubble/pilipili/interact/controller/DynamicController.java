@@ -12,17 +12,21 @@ import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
 /**
+ * 动态管理控制器
  * @author Bubble
  * @date 2025.03.01 21:32
  */
 @RestController
 @RequestMapping("/api/interact/dynamic")
+@Tag(name = "DynamicController", description = "动态管理相关接口")
 public class DynamicController implements Controller {
 
     @Autowired
@@ -33,6 +37,7 @@ public class DynamicController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "保存动态")
     @PostMapping("/save")
     public SimpleResponse<String> save(@Valid @RequestBody SaveDynamicInfoReq req) {
         Boolean b = dynamicInfoService.saveDynamicInfo(req);
@@ -44,6 +49,7 @@ public class DynamicController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "更新动态")
     @PutMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody SaveDynamicInfoReq req) {
         Boolean b = dynamicInfoService.updateDynamicInfo(req);
@@ -56,6 +62,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
+    @Operation(summary = "点赞动态")
     @PatchMapping("/favor")
     public SimpleResponse<String> favor(
             @Valid @RequestParam Integer did,
@@ -70,6 +77,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
+    @Operation(summary = "取消点赞动态")
     @PatchMapping("/favorRevoke")
     public SimpleResponse<String> favorRevoke(
             @Valid @RequestParam Integer did,
@@ -84,6 +92,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
+    @Operation(summary = "转发动态")
     @PatchMapping("/repost")
     public SimpleResponse<String> repost(
             @Valid @RequestParam Integer did,
@@ -98,6 +107,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
+    @Operation(summary = "删除动态")
     @DeleteMapping("/{did}")
     public SimpleResponse<String> remove(@Valid @PathVariable Integer did) {
         Boolean b = dynamicInfoService.deleteDynamicInfo(did);
@@ -109,6 +119,7 @@ public class DynamicController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "分页查询某用户动态")
     @GetMapping("/pageQueryByUid")
     public PageQueryResponse<QueryDynamicInfoDTO> pageQueryDynamicInfo(
             @Valid @ModelAttribute PageQueryDynamicInfoReq req
@@ -122,6 +133,7 @@ public class DynamicController implements Controller {
      * @param did
      * @return
      */
+    @Operation(summary = "查询某条动态")
     @GetMapping("/{did}")
     public SimpleResponse<QueryDynamicInfoDTO> queryDynamicInfo(
             @Valid @PathVariable Integer did

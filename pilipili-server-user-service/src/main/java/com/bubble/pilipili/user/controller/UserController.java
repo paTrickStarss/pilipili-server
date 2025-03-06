@@ -13,6 +13,8 @@ import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.RegisterReq;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 import com.bubble.pilipili.user.service.UserInfoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/user")
+@Tag(name = "UserController", description = "用户管理相关接口")
 public class UserController implements Controller {
 
     @Autowired
@@ -49,6 +52,7 @@ public class UserController implements Controller {
      * @param registerReq
      * @return
      */
+    @Operation(summary = "注册用户")
     @PostMapping("/register")
     public SimpleResponse<SaveUserInfoDTO> register(@Valid @RequestBody RegisterReq registerReq) {
         String encryptedPwd = registerReq.getPassword();
@@ -80,12 +84,19 @@ public class UserController implements Controller {
      * @param request
      * @return
      */
+    @Operation(summary = "更新用户信息")
     @PutMapping("/update")
     public SimpleResponse<SaveUserInfoDTO> update(@Valid @RequestBody SaveUserInfoReq request) {
         SaveUserInfoDTO result = userInfoService.updateUserInfo(request);
         return SimpleResponse.success(result);
     }
 
+    /**
+     * 查询用户信息
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "查询用户信息")
     @GetMapping("/{uid}")
     public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @PathVariable String uid) {
         QueryUserInfoDTO userInfoDTO = userInfoService.getUserInfoByUid(uid);
@@ -96,6 +107,7 @@ public class UserController implements Controller {
      * 查询所有用户
      * @return
      */
+    @Operation(summary = "查询所有用户")
     @GetMapping("/listUser")
     public SimpleResponse<List<QueryUserInfoDTO>> listUser() {
         List<QueryUserInfoDTO> queryUserInfoDTOS = userInfoService.listUserInfo();

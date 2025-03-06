@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class PageDTO<T> implements Serializable {
     private List<T> data;
 
     public static <T> PageDTO<T> createPageDTO(Page<T> page) {
-        PageDTO<T> pageDTO = new PageDTO();
+        PageDTO<T> pageDTO = new PageDTO<>();
         pageDTO.setPageNo(page.getCurrent());
         pageDTO.setPageSize(page.getSize());
         pageDTO.setTotal(page.getTotal());
@@ -36,11 +37,19 @@ public class PageDTO<T> implements Serializable {
         return pageDTO;
     }
     public static <T> PageDTO<T> createPageDTO(Long pageNo, Long pageSize, Long total, List<T> data) {
-        PageDTO<T> pageDTO = new PageDTO();
+        PageDTO<T> pageDTO = new PageDTO<>();
         pageDTO.setPageNo(pageNo);
         pageDTO.setPageSize(pageSize);
         pageDTO.setTotal(total);
         pageDTO.setData(data);
+        return pageDTO;
+    }
+    public static <T> PageDTO<T> emptyPageDTO() {
+        PageDTO<T> pageDTO = new PageDTO<>();
+        pageDTO.setPageNo(0L);
+        pageDTO.setPageSize(0L);
+        pageDTO.setTotal(0L);
+        pageDTO.setData(Collections.emptyList());
         return pageDTO;
     }
 

@@ -10,7 +10,6 @@ import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +29,6 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
      * @param userDynamic
      * @return
      */
-    @Transactional
     @Override
     public Boolean saveUserDynamic(UserDynamic userDynamic) {
         return CommonRepoImpl.save(

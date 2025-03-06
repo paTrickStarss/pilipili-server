@@ -12,17 +12,17 @@ import java.io.Serializable;
 
 /**
  * @author Bubble
- * @date 2025.03.05 21:28
+ * @date 2025.03.06 14:37
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QueryCommentStatsDTO implements Serializable {
+public class QueryDanmakuStatsDTO implements Serializable {
 
     /**
-     * 评论ID
+     * 弹幕ID
      */
-    private Integer cid;
+    private Integer danmakuId;
     /**
      * 点赞数
      */

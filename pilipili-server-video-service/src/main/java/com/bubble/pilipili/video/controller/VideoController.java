@@ -13,17 +13,21 @@ import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
 import com.bubble.pilipili.video.service.VideoInfoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
 /**
+ * 视频管理控制器
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/23
  */
 @RestController
 @RequestMapping("/api/video")
+@Tag(name = "VideoController", description = "视频管理相关接口")
 public class VideoController implements Controller {
 
     @Autowired
@@ -34,6 +38,7 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "保存视频信息")
     @PostMapping("/save")
     public SimpleResponse<String> save(@Valid @RequestBody CreateVideoInfoReq req) {
         Boolean b = videoInfoService.saveVideoInfo(req);
@@ -45,6 +50,7 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "更新视频信息")
     @PutMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req) {
         Boolean b = videoInfoService.updateVideoInfo(req);
@@ -57,6 +63,7 @@ public class VideoController implements Controller {
      * @param vid
      * @return
      */
+    @Operation(summary = "删除视频信息（管理员）")
     @DeleteMapping("/{vid}")
     public SimpleResponse<String> delete(@Valid @PathVariable Integer vid) {
         Boolean b = videoInfoService.deleteVideoInfo(vid);
@@ -68,6 +75,7 @@ public class VideoController implements Controller {
      * @param vid
      * @return
      */
+    @Operation(summary = "查询视频信息")
     @GetMapping("/{vid}")
     public SimpleResponse<QueryVideoInfoDTO> getVideoInfo(@Valid @PathVariable Integer vid) {
         QueryVideoInfoDTO dto = videoInfoService.getVideoInfoById(vid);
@@ -79,6 +87,7 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "分页查询用户视频信息")
     @GetMapping("/pageQueryByUid")
     public PageQueryResponse<QueryVideoInfoDTO> pageQueryByUid(
             @Valid @ModelAttribute PageQueryVideoInfoReq req
@@ -92,6 +101,7 @@ public class VideoController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "分页查询视频信息")
     @GetMapping("/pageQuery")
     public PageQueryResponse<QueryVideoInfoDTO> pageQuery(
             @Valid @ModelAttribute PageQueryVideoInfoReq req

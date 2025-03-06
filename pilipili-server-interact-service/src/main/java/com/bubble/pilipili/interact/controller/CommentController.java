@@ -12,6 +12,8 @@ import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
 import com.bubble.pilipili.interact.service.CommentInfoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +21,13 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 /**
+ * 评论管理控制器
  * @author Bubble
  * @date 2025.03.05 20:30
  */
 @RestController
 @RequestMapping("/api/interact/comment")
+@Tag(name = "CommentController", description = "评论管理相关接口")
 public class CommentController implements Controller {
 
     @Autowired
@@ -34,6 +38,7 @@ public class CommentController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "新增评论")
     @PostMapping("/save")
     public SimpleResponse<String> save(@Valid @RequestBody SaveCommentInfoReq req) {
         Boolean b = commentInfoService.saveCommentInfo(req);
@@ -45,6 +50,7 @@ public class CommentController implements Controller {
      * @param cid
      * @return
      */
+    @Operation(summary = "删除评论")
     @DeleteMapping("/{cid}")
     public SimpleResponse<String> delete(
             @NotBlank(message = "请传入cid") @PathVariable Integer cid
@@ -59,6 +65,7 @@ public class CommentController implements Controller {
      * @param uid
      * @return
      */
+    @Operation(summary = "点赞评论")
     @PatchMapping("/favor")
     public SimpleResponse<String> favor(
             @NotBlank(message = "请传入cid") @RequestParam Integer cid,
@@ -74,6 +81,7 @@ public class CommentController implements Controller {
      * @param uid
      * @return
      */
+    @Operation(summary = "取消点赞评论")
     @PatchMapping("/favorRevoke")
     public SimpleResponse<String> favorRevoke(
             @NotBlank(message = "请传入cid") @RequestParam Integer cid,
@@ -89,6 +97,7 @@ public class CommentController implements Controller {
      * @param uid
      * @return
      */
+    @Operation(summary = "点踩评论")
     @PatchMapping("/dew")
     public SimpleResponse<String> dew(
             @NotBlank(message = "请传入cid") @RequestParam Integer cid,
@@ -104,6 +113,7 @@ public class CommentController implements Controller {
      * @param uid
      * @return
      */
+    @Operation(summary = "取消点踩评论")
     @PatchMapping("/dewRevoke")
     public SimpleResponse<String> dewRevoke(
             @NotBlank(message = "请传入cid") @RequestParam Integer cid,
@@ -118,6 +128,7 @@ public class CommentController implements Controller {
      * @param cid
      * @return
      */
+    @Operation(summary = "查询指定评论")
     @GetMapping("{cid}")
     public SimpleResponse<QueryCommentInfoDTO> getCommentInfo(
             @NotBlank(message = "请传入cid") @PathVariable Integer cid
@@ -131,6 +142,7 @@ public class CommentController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "分页查询某对象评论")
     @GetMapping("/pageQueryByRela")
     public PageQueryResponse<QueryCommentInfoDTO> pageQueryByRela(
             @Valid @ModelAttribute PageQueryCommentInfoReq req
@@ -144,6 +156,7 @@ public class CommentController implements Controller {
      * @param req
      * @return
      */
+    @Operation(summary = "分页查询评论回复")
     @GetMapping("/pageQueryCommentReply")
     public PageQueryResponse<QueryCommentInfoDTO> pageQueryCommentReply(
             @Valid @ModelAttribute PageQueryCommentInfoReq req
