@@ -5,7 +5,7 @@
 package com.bubble.pilipili.interact.controller;
 
 import com.bubble.pilipili.common.http.Controller;
-import com.bubble.pilipili.common.http.PageQueryResponse;
+import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
@@ -128,11 +128,11 @@ public class DanmakuController implements Controller {
      */
     @Operation(summary = "查询视频弹幕")
     @GetMapping("/pageQueryByVid")
-    public PageQueryResponse<QueryDanmakuInfoDTO> pageQueryByVid(
+    public PageResponse<QueryDanmakuInfoDTO> pageQueryByVid(
             @Valid @ModelAttribute PageQueryDanmakuInfoReq req
     ) {
         PageDTO<QueryDanmakuInfoDTO> dto = danmakuInfoService.pageQueryDanmakuInfoByVid(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
     /**
@@ -142,11 +142,11 @@ public class DanmakuController implements Controller {
      */
     @Operation(summary = "查询用户弹幕")
     @GetMapping("/pageQueryByUid")
-    public PageQueryResponse<QueryDanmakuInfoDTO> pageQueryByUid(
+    public PageResponse<QueryDanmakuInfoDTO> pageQueryByUid(
             @Valid @ModelAttribute PageQueryDanmakuInfoReq req
     ) {
         PageDTO<QueryDanmakuInfoDTO> dto = danmakuInfoService.pageQueryDanmakuInfoByUid(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
     /**
@@ -156,11 +156,11 @@ public class DanmakuController implements Controller {
      */
     @Operation(summary = "查询视频用户弹幕")
     @GetMapping("/pageQueryByVidAndUid")
-    public PageQueryResponse<QueryDanmakuInfoDTO> pageQueryByVidAndUid(
+    public PageResponse<QueryDanmakuInfoDTO> pageQueryByVidAndUid(
             @Valid @ModelAttribute PageQueryDanmakuInfoReq req
     ) {
         PageDTO<QueryDanmakuInfoDTO> dto = danmakuInfoService.pageQueryDanmakuInfoByVidAndUid(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
 }

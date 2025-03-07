@@ -5,7 +5,7 @@
 package com.bubble.pilipili.interact.controller;
 
 import com.bubble.pilipili.common.http.Controller;
-import com.bubble.pilipili.common.http.PageQueryResponse;
+import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
@@ -144,11 +144,11 @@ public class CommentController implements Controller {
      */
     @Operation(summary = "分页查询某对象评论")
     @GetMapping("/pageQueryByRela")
-    public PageQueryResponse<QueryCommentInfoDTO> pageQueryByRela(
+    public PageResponse<QueryCommentInfoDTO> pageQueryByRela(
             @Valid @ModelAttribute PageQueryCommentInfoReq req
     ) {
         PageDTO<QueryCommentInfoDTO> dto = commentInfoService.pageQueryCommentInfoByRela(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
     /**
@@ -158,11 +158,11 @@ public class CommentController implements Controller {
      */
     @Operation(summary = "分页查询评论回复")
     @GetMapping("/pageQueryCommentReply")
-    public PageQueryResponse<QueryCommentInfoDTO> pageQueryCommentReply(
+    public PageResponse<QueryCommentInfoDTO> pageQueryCommentReply(
             @Valid @ModelAttribute PageQueryCommentInfoReq req
     ) {
         PageDTO<QueryCommentInfoDTO> dto = commentInfoService.pageQueryCommentReply(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
 }

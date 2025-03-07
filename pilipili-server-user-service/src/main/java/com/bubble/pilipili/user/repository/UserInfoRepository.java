@@ -20,6 +20,7 @@ public interface UserInfoRepository {
     Boolean updateUserInfo(UserInfo userInfo);
 
     UserInfo findUserInfoByUid(Integer uid);
+    List<UserInfo> findUserInfoByUid(List<Integer> uidList);
 
     List<UserInfo> listUserInfo();
 }

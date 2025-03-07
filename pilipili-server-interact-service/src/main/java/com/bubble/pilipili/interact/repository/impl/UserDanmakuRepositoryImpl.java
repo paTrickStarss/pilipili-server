@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
+import com.bubble.pilipili.common.util.CommonRepoImpl;
 import com.bubble.pilipili.interact.mapper.UserDanmakuMapper;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;

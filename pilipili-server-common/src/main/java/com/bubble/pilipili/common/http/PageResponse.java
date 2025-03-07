@@ -21,7 +21,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageQueryResponse<T> implements Response, Serializable {
+public class PageResponse<T> implements Response, Serializable {
 
     private int code;
     private String msg;
@@ -30,16 +30,16 @@ public class PageQueryResponse<T> implements Response, Serializable {
     private Long total;
     private List<T> data;
 
-    public static <T> PageQueryResponse<T> success(List<T> data, Long pageNo, Long pageSize, Long total) {
-        return new PageQueryResponse<>(HttpStatus.OK.value(), "", pageNo, pageSize, total, data);
+    public static <T> PageResponse<T> success(List<T> data, Long pageNo, Long pageSize, Long total) {
+        return new PageResponse<>(HttpStatus.OK.value(), "", pageNo, pageSize, total, data);
     }
-    public static <T> PageQueryResponse<T> success(PageDTO<T> pageDTO) {
-        return new PageQueryResponse<>(HttpStatus.OK.value(), "",
+    public static <T> PageResponse<T> success(PageDTO<T> pageDTO) {
+        return new PageResponse<>(HttpStatus.OK.value(), "",
                 pageDTO.getPageNo(), pageDTO.getPageSize(), pageDTO.getTotal(), pageDTO.getData());
     }
 
-    public static <T> PageQueryResponse<T> failed(String message) {
-        return new PageQueryResponse<>(HttpStatus.BAD_REQUEST.value(), message,
+    public static <T> PageResponse<T> failed(String message) {
+        return new PageResponse<>(HttpStatus.BAD_REQUEST.value(), message,
                 null, null, null, null);
     }
 }

@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.repository.impl;
+package com.bubble.pilipili.common.util;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.bubble.pilipili.common.exception.RepositoryException;
-import com.bubble.pilipili.common.util.ListUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;

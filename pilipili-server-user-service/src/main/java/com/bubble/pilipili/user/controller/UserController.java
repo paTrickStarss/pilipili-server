@@ -6,10 +6,14 @@ package com.bubble.pilipili.user.controller;
 
 import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.common.http.Controller;
+import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
+import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.util.RSACryptoUtil;
+import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
+import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
 import com.bubble.pilipili.user.pojo.req.RegisterReq;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 import com.bubble.pilipili.user.service.UserInfoService;
@@ -23,8 +27,10 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.security.SignatureException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户信息控制器
@@ -92,19 +98,84 @@ public class UserController implements Controller {
     }
 
     /**
+     * 关注用户
+     * @param fromUid
+     * @param toUid
+     * @param special
+     * @return
+     */
+    @Operation(summary = "关注用户")
+    @PatchMapping("/follow")
+    public SimpleResponse<String> follow(
+            @NotBlank @RequestParam Integer fromUid,
+            @NotBlank @RequestParam Integer toUid,
+            @RequestParam(required = false, defaultValue = "0") Integer special
+    ) {
+        if (Objects.equals(fromUid, toUid)) {
+            return SimpleResponse.failed("不能关注自己哦");
+        }
+        Boolean b = userInfoService.followUser(fromUid, toUid, special == 1);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消关注用户
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    @Operation(summary = "取消关注用户")
+    @PatchMapping("/unfollow")
+    public SimpleResponse<String> unfollow(
+            @NotBlank @RequestParam Integer fromUid,
+            @NotBlank @RequestParam Integer toUid
+    ) {
+        Boolean b = userInfoService.unfollowUser(fromUid, toUid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
      * 查询用户信息
      * @param uid
      * @return
      */
     @Operation(summary = "查询用户信息")
     @GetMapping("/{uid}")
-    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @PathVariable String uid) {
+    public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @PathVariable Integer uid) {
         QueryUserInfoDTO userInfoDTO = userInfoService.getUserInfoByUid(uid);
         return SimpleResponse.success(userInfoDTO);
     }
 
     /**
-     * 查询所有用户
+     * 查询关注用户
+     * @param req
+     * @return
+     */
+    @Operation(summary = "查询关注用户")
+    @GetMapping("/pageQueryFollowers")
+    public PageResponse<QueryFollowUserInfoDTO> pageQueryFollowers(
+            @Valid @ModelAttribute PageQueryUserInfoReq req
+    ) {
+        PageDTO<QueryFollowUserInfoDTO> dto = userInfoService.pageQueryFollowers(req);
+        return PageResponse.success(dto);
+    }
+
+    /**
+     * 查询粉丝用户
+     * @param req
+     * @return
+     */
+    @Operation(summary = "查询粉丝用户")
+    @GetMapping("/pageQueryFans")
+    public PageResponse<QueryFollowUserInfoDTO> pageQueryFans(
+            @Valid @ModelAttribute PageQueryUserInfoReq req
+    ) {
+        PageDTO<QueryFollowUserInfoDTO> dto = userInfoService.pageQueryFans(req);
+        return PageResponse.success(dto);
+    }
+
+    /**
+     * 查询所有用户（管理员）
      * @return
      */
     @Operation(summary = "查询所有用户")

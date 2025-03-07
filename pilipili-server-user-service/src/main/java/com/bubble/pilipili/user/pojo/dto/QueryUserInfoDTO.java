@@ -99,4 +99,13 @@ public class QueryUserInfoDTO implements Serializable {
      * 用户等级 0-6 （计算得出）
      */
     private Integer level;
+
+    /**
+     * 关注数
+     */
+    private Long followerCount = 0L;
+    /**
+     * 粉丝数
+     */
+    private Long fansCount = 0L;
 }

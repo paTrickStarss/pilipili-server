@@ -4,6 +4,12 @@
 
 package com.bubble.pilipili.user.util;
 
+import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 /**
  * @author Bubble
  * @date 2025.02.19 14:48
@@ -43,5 +49,22 @@ public class UserInfoUtil {
         }
 
         return level;
+    }
+
+    public static void main(String[] args) {
+        Class<QueryFollowUserInfoDTO> clz = QueryFollowUserInfoDTO.class;
+
+        Field[] declaredFields = getDeclaredFieldsWithSuper(clz);
+        Arrays.stream(declaredFields).forEach(System.out::println);
+    }
+
+    private static <T> Field[] getDeclaredFieldsWithSuper(Class<T> clz) {
+        Field[] declaredFields = clz.getDeclaredFields();
+        Class<? super T> superclass = clz.getSuperclass();
+        if (superclass != null) {
+            Field[] superFields = superclass.getDeclaredFields();
+            return Stream.concat(Arrays.stream(superFields), Arrays.stream(declaredFields)).toArray(Field[]::new);
+        }
+        return declaredFields;
     }
 }

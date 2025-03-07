@@ -5,7 +5,7 @@
 package com.bubble.pilipili.video.controller;
 
 import com.bubble.pilipili.common.http.Controller;
-import com.bubble.pilipili.common.http.PageQueryResponse;
+import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
@@ -89,11 +89,11 @@ public class VideoController implements Controller {
      */
     @Operation(summary = "分页查询用户视频信息")
     @GetMapping("/pageQueryByUid")
-    public PageQueryResponse<QueryVideoInfoDTO> pageQueryByUid(
+    public PageResponse<QueryVideoInfoDTO> pageQueryByUid(
             @Valid @ModelAttribute PageQueryVideoInfoReq req
     ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfoByUid(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
     /**
@@ -103,10 +103,10 @@ public class VideoController implements Controller {
      */
     @Operation(summary = "分页查询视频信息")
     @GetMapping("/pageQuery")
-    public PageQueryResponse<QueryVideoInfoDTO> pageQuery(
+    public PageResponse<QueryVideoInfoDTO> pageQuery(
             @Valid @ModelAttribute PageQueryVideoInfoReq req
     ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfo(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 }

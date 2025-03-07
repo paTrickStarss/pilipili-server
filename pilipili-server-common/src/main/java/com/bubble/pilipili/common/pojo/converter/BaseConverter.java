@@ -12,7 +12,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 值类转化器基类
@@ -33,7 +35,25 @@ public class BaseConverter {
     private Map<String, Field> getFieldCacheMap(Class<?> clz) {
         String clzName = clz.getName();
         return lazyHolder.fieldCache.computeIfAbsent(clzName,
-                k -> Arrays.stream(clz.getDeclaredFields()).collect(Collectors.toMap(Field::getName, field -> field)));
+                k -> Arrays.stream(getDeclaredFieldsWithSuper(clz))
+                        .collect(Collectors.toMap(Field::getName, Function.identity()))
+        );
+    }
+
+    /**
+     * 获取声明字段（包含父类）
+     * @param clz
+     * @return
+     * @param <T>
+     */
+    private <T> Field[] getDeclaredFieldsWithSuper(Class<T> clz) {
+        Field[] declaredFields = clz.getDeclaredFields();
+        Class<? super T> superclass = clz.getSuperclass();
+        if (superclass != null) {
+            Field[] superFields = superclass.getDeclaredFields();
+            return Stream.concat(Arrays.stream(superFields), Arrays.stream(declaredFields)).toArray(Field[]::new);
+        }
+        return declaredFields;
     }
 
     /**

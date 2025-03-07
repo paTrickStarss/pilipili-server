@@ -29,4 +29,11 @@ public class PageQueryReq implements Serializable {
     @Max(value = 100, message = "分页大小不能大于100")
     private Long pageSize;
 
+    public Long getPageNo() {
+        return pageNo == null ? 1L : pageNo;
+    }
+
+    public Long getPageSize() {
+        return pageSize == null ? 10L : pageSize;
+    }
 }

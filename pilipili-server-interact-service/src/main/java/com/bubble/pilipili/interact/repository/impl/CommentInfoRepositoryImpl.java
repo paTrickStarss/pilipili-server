@@ -132,6 +132,7 @@ public class CommentInfoRepositoryImpl implements CommentInfoRepository {
                         result.put((Long) row.get("cid"), (Long) row.get("count"))
                 );
 
+
         /*
          * Map<String, Object> :
          * [0] -> cid: count

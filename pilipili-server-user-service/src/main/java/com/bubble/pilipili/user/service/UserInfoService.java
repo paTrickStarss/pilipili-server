@@ -4,8 +4,11 @@
 
 package com.bubble.pilipili.user.service;
 
+import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
+import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 
 import java.util.List;
@@ -35,7 +38,38 @@ public interface UserInfoService {
      * @param uid
      * @return
      */
-    QueryUserInfoDTO getUserInfoByUid(String uid);
+    QueryUserInfoDTO getUserInfoByUid(Integer uid);
+
+    /**
+     * 分页查询关注用户
+     * @param req
+     * @return
+     */
+    PageDTO<QueryFollowUserInfoDTO> pageQueryFollowers(PageQueryUserInfoReq req);
+
+    /**
+     * 分页查询粉丝用户
+     * @param req
+     * @return
+     */
+    PageDTO<QueryFollowUserInfoDTO> pageQueryFans(PageQueryUserInfoReq req);
+
+    /**
+     * 关注用户
+     * @param fromUid 关注者uid
+     * @param toUid 被关注者uid
+     * @param special 特别关注
+     * @return
+     */
+    Boolean followUser(Integer fromUid, Integer toUid, boolean special);
+
+    /**
+     * 取消关注用户
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    Boolean unfollowUser(Integer fromUid, Integer toUid);
 
     /**
      * 查询所有用户信息

@@ -5,7 +5,7 @@
 package com.bubble.pilipili.interact.controller;
 
 import com.bubble.pilipili.common.http.Controller;
-import com.bubble.pilipili.common.http.PageQueryResponse;
+import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
@@ -121,11 +121,11 @@ public class DynamicController implements Controller {
      */
     @Operation(summary = "分页查询某用户动态")
     @GetMapping("/pageQueryByUid")
-    public PageQueryResponse<QueryDynamicInfoDTO> pageQueryDynamicInfo(
+    public PageResponse<QueryDynamicInfoDTO> pageQueryDynamicInfo(
             @Valid @ModelAttribute PageQueryDynamicInfoReq req
     ) {
         PageDTO<QueryDynamicInfoDTO> dto = dynamicInfoService.pageQueryDynamicInfoByUid(req);
-        return PageQueryResponse.success(dto);
+        return PageResponse.success(dto);
     }
 
     /**
