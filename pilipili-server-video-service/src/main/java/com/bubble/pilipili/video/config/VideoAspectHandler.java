@@ -36,14 +36,14 @@ public class VideoAspectHandler {
         return AspectHandlerAction.controllerLoggingAction(joinPoint, pathMap);
     }
 
-    @Around("execution(* com.bubble.pilipili.video.service.*.*(..))")
-    public Object handleServiceException(ProceedingJoinPoint joinPoint) throws Throwable {
-        try {
-            return joinPoint.proceed();
-        } catch (Exception e) {
-            log.error("Service section Error");
-            throw e;
-        }
-    }
+//    @Around("execution(* com.bubble.pilipili.video.service.*.*(..))")
+//    public Object handleServiceException(ProceedingJoinPoint joinPoint) throws Throwable {
+//        try {
+//            return joinPoint.proceed();
+//        } catch (Exception e) {
+//            log.error("Service section Error");
+//            throw e;
+//        }
+//    }
 
 }

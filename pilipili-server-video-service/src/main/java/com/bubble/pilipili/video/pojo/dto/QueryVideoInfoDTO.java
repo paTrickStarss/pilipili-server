@@ -84,4 +84,26 @@ public class QueryVideoInfoDTO implements Serializable {
      * 发布时间（过审时间/定时发布时间）
      */
     private LocalDateTime publishTime;
+
+
+    /**
+     * 点赞数
+     */
+    private Long favorCount = 0L;
+    /**
+     * 投币数
+     */
+    private Long coinCount = 0L;
+    /**
+     * 收藏数
+     */
+    private Long collectCount = 0L;
+    /**
+     * 转发数
+     */
+    private Long repostCount = 0L;
+    /**
+     * 点踩数
+     */
+    private Long dewCount = 0L;
 }
