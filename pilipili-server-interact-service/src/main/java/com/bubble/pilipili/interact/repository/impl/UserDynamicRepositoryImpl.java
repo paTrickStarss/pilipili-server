@@ -4,16 +4,12 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
-import com.bubble.pilipili.common.util.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
 import com.bubble.pilipili.interact.mapper.UserDynamicMapper;
-import com.bubble.pilipili.interact.pojo.dto.QueryDynamicStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Bubble
@@ -47,45 +43,45 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
                 userDynamicMapper
         );
     }
-    /**
-     * 查询指定动态的统计数据
-     * @param did
-     * @return
-     */
-    @Override
-    public QueryDynamicStatsDTO getDynamicStats(Integer did) {
-        return CommonRepoImpl.getStatsBatch(
-                Collections.singletonList(did),
-                QueryDynamicStatsDTO.class,
-                (entity, dto) -> {
-                    dto.setDid(entity.getDid());
-                    dto.setFavorCount(entity.getFavor());
-                    dto.setRepostCount(entity.getRepost());
-                },
-                userDynamicMapper,
-                "did",
-                "favor", "repost"
-        ).get(0);
-    }
-
-    /**
-     * 批量查询动态统计数据
-     * @param didList
-     * @return
-     */
-    @Override
-    public List<QueryDynamicStatsDTO> getDynamicStats(List<Integer> didList) {
-        return CommonRepoImpl.getStatsBatch(
-                didList,
-                QueryDynamicStatsDTO.class,
-                (entity, dto) -> {
-                    dto.setDid(entity.getDid());
-                    dto.setFavorCount(entity.getFavor());
-                    dto.setRepostCount(entity.getRepost());
-                },
-                userDynamicMapper,
-                "did",
-                "favor", "repost"
-        );
-    }
+//    /**
+//     * 查询指定动态的统计数据
+//     * @param did
+//     * @return
+//     */
+//    @Override
+//    public QueryDynamicStatsDTO getDynamicStats(Integer did) {
+//        return CommonRepoImpl.getStatsBatch(
+//                Collections.singletonList(did),
+//                QueryDynamicStatsDTO.class,
+//                (entity, dto) -> {
+//                    dto.setDid(entity.getDid());
+//                    dto.setFavorCount(entity.getFavor());
+//                    dto.setRepostCount(entity.getRepost());
+//                },
+//                userDynamicMapper,
+//                "did",
+//                "favor", "repost"
+//        ).get(0);
+//    }
+//
+//    /**
+//     * 批量查询动态统计数据
+//     * @param didList
+//     * @return
+//     */
+//    @Override
+//    public List<QueryDynamicStatsDTO> getDynamicStats(List<Integer> didList) {
+//        return CommonRepoImpl.getStatsBatch(
+//                didList,
+//                QueryDynamicStatsDTO.class,
+//                (entity, dto) -> {
+//                    dto.setDid(entity.getDid());
+//                    dto.setFavorCount(entity.getFavor());
+//                    dto.setRepostCount(entity.getRepost());
+//                },
+//                userDynamicMapper,
+//                "did",
+//                "favor", "repost"
+//        );
+//    }
 }

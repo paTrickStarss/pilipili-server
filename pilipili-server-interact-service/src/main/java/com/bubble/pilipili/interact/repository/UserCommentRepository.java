@@ -4,11 +4,8 @@
 
 package com.bubble.pilipili.interact.repository;
 
-import com.bubble.pilipili.interact.pojo.dto.QueryCommentStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Bubble
@@ -19,6 +16,6 @@ public interface UserCommentRepository {
 
     Boolean saveUserComment(UserComment userComment);
 
-    QueryCommentStatsDTO getCommentStats(Integer cid);
-    List<QueryCommentStatsDTO> getCommentStats(List<Integer> cidList);
+//    QueryCommentStatsDTO getCommentStats(Integer cid);
+//    List<QueryCommentStatsDTO> getCommentStats(List<Integer> cidList);
 }

@@ -4,6 +4,8 @@
 
 package com.bubble.pilipili.interact.pojo.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -23,6 +25,12 @@ import java.time.LocalDateTime;
 @TableName("dynamic_attach")
 public class DynamicAttach {
 
+
+    /**
+     * 附件ID
+     */
+    @TableId(type = IdType.AUTO)
+    private Integer attachId;
     /**
      * 动态ID
      */
@@ -30,7 +38,7 @@ public class DynamicAttach {
     /**
      * 附件UUID
      */
-    @TableId(value = "attach_uuid")
+    @TableField(value = "attach_uuid")
     private String attachUUID;
     /**
      * 附件类型 0图片 1视频

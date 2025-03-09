@@ -11,23 +11,21 @@ import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.video.pojo.converter.VideoInfoConverter;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
+import com.bubble.pilipili.video.pojo.entity.VideoStats;
 import com.bubble.pilipili.video.pojo.param.QueryVideoInfoParam;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
 import com.bubble.pilipili.video.repository.UserVideoRepository;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
+import com.bubble.pilipili.video.repository.VideoStatsRepository;
 import com.bubble.pilipili.video.service.VideoInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +41,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private VideoInfoRepository videoInfoRepository;
     @Autowired
     private UserVideoRepository userVideoRepository;
+    @Autowired
+    private VideoStatsRepository videoStatsRepository;
 
     /**
      * 新增视频信息
@@ -102,8 +102,13 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public PageDTO<QueryVideoInfoDTO> pageQueryVideoInfoByUid(PageQueryVideoInfoReq req) {
+
+        // 查询结果按投稿时间降序排序
         Page<VideoInfo> videoInfoPage =
-                videoInfoRepository.pageQueryVideoInfoByUid(req.getUid(), req.getPageNo(), req.getPageSize());
+                videoInfoRepository.pageQueryVideoInfoByUid(
+                        req.getUid(), req.getPageNo(), req.getPageSize(),
+                        true, false, Collections.singletonList(VideoInfo::getUploadTime)
+                );
 
         List<QueryVideoInfoDTO> dtoList = handleVideoStats(videoInfoPage.getRecords());
         return PageDTO.createPageDTO(
@@ -115,7 +120,30 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     }
 
     /**
-     * 分页条件查询所有视频
+     * @param req
+     * @return
+     */
+    @Override
+    public PageDTO<QueryVideoInfoDTO> pageQueryPassedVideoInfoByUid(PageQueryVideoInfoReq req) {
+
+        // 查询结果按投稿时间降序排序
+        Page<VideoInfo> videoInfoPage =
+                videoInfoRepository.pageQueryPassedVideoInfoByUid(
+                        req.getUid(), req.getPageNo(), req.getPageSize(),
+                        true, false, Collections.singletonList(VideoInfo::getUploadTime)
+                );
+
+        List<QueryVideoInfoDTO> dtoList = handleVideoStats(videoInfoPage.getRecords());
+        return PageDTO.createPageDTO(
+                videoInfoPage.getCurrent(),
+                videoInfoPage.getSize(),
+                videoInfoPage.getTotal(),
+                dtoList
+        );
+    }
+
+    /**
+     * 分页条件查询所有已上架视频
      * @param req
      * @return
      */
@@ -147,21 +175,26 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 VideoInfoConverter.getInstance().copyFieldValueList(
                         videoInfoList, QueryVideoInfoDTO.class);
 
-        Map<Integer, QueryVideoInfoDTO> dtoMap = dtoList.stream().collect(Collectors.toMap(
-                QueryVideoInfoDTO::getVid, Function.identity(), (a, b) -> b
-        ));
-        // 获取视频统计数据
-        List<Integer> vidList = new ArrayList<>(dtoMap.keySet());
-        userVideoRepository.getVideoStats(vidList)
-                .forEach(stats -> {
-                    QueryVideoInfoDTO dto = dtoMap.get(stats.getVid());
-                    dto.setFavorCount(stats.getFavorCount());
-                    dto.setCoinCount(stats.getCoinCount());
-                    dto.setCollectCount(stats.getCollectCount());
-                    dto.setRepostCount(stats.getRepostCount());
-                    dto.setDewCount(stats.getDewCount());
-                });
+        // map映射后顺序会被打乱
+//        Map<Integer, QueryVideoInfoDTO> dtoMap = dtoList.stream().collect(Collectors.toMap(
+//                QueryVideoInfoDTO::getVid, Function.identity(), (a, b) -> b
+//        ));
 
-        return new ArrayList<>(dtoMap.values());
+        // 获取视频统计数据
+        List<Integer> vidList = dtoList.stream().map(QueryVideoInfoDTO::getVid).collect(Collectors.toList());
+        Map<Integer, VideoStats> statsMap = videoStatsRepository.getVideoStats(vidList);
+        dtoList.forEach(dto -> {
+                    VideoStats stats = statsMap.get(dto.getVid());
+                    if (stats != null) {
+                        dto.setViewCount(stats.getViewCount());
+                        dto.setDanmakuCount(stats.getDanmakuCount());
+                        dto.setFavorCount(stats.getFavorCount());
+                        dto.setCoinCount(stats.getCoinCount());
+                        dto.setCollectCount(stats.getCollectCount());
+                        dto.setRepostCount(stats.getRepostCount());
+                        dto.setDewCount(stats.getDewCount());
+                    }
+                });
+        return dtoList;
     }
 }

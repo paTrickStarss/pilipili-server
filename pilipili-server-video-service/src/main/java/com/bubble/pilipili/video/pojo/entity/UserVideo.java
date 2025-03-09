@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
+ * 用户视频互动关系实体类
  * @author Bubble
  * @date 2025.03.07 21:34
  */
@@ -54,6 +55,10 @@ public class UserVideo {
      * 更新时间
      */
     private LocalDateTime updateTime;
+    /**
+     * 最后一次观看时间
+     */
+    private LocalDateTime lastWatchTime;
 
     @Version
     private Integer version;

@@ -60,9 +60,9 @@ public class QueryDanmakuInfoDTO implements Serializable {
     /**
      * 点赞数
      */
-    private Integer favorCount = 0;
+    private Long favorCount = 0L;
     /**
      * 点踩数
      */
-    private Integer dewCount = 0;
+    private Long dewCount = 0L;
 }

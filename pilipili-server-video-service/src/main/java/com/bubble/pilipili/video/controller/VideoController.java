@@ -83,16 +83,29 @@ public class VideoController implements Controller {
     }
 
     /**
-     * 分页查询用户视频信息
+     * 分页查询用户所有视频信息
      * @param req
      * @return
      */
-    @Operation(summary = "分页查询用户视频信息")
+    @Operation(summary = "分页查询用户所有视频信息")
     @GetMapping("/pageQueryByUid")
     public PageResponse<QueryVideoInfoDTO> pageQueryByUid(
             @Valid @ModelAttribute PageQueryVideoInfoReq req
     ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfoByUid(req);
+        return PageResponse.success(dto);
+    }
+    /**
+     * 分页查询用户已上架视频信息
+     * @param req
+     * @return
+     */
+    @Operation(summary = "分页查询用户已上架视频信息")
+    @GetMapping("/pageQueryPassedByUid")
+    public PageResponse<QueryVideoInfoDTO> pageQueryPassedByUid(
+            @Valid @ModelAttribute PageQueryVideoInfoReq req
+    ) {
+        PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryPassedVideoInfoByUid(req);
         return PageResponse.success(dto);
     }
 

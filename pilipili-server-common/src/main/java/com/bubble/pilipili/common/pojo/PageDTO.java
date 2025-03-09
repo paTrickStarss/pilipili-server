@@ -36,6 +36,22 @@ public class PageDTO<T> implements Serializable {
         pageDTO.setData(page.getRecords());
         return pageDTO;
     }
+
+    /**
+     * 生成PageDTO
+     * @param page 用于填充pageNo、pageSize、total
+     * @param data 填充data
+     * @return
+     * @param <T> DTO类
+     */
+    public static <T> PageDTO<T> createPageDTO(Page<?> page, List<T> data) {
+        PageDTO<T> pageDTO = new PageDTO<>();
+        pageDTO.setPageNo(page.getCurrent());
+        pageDTO.setPageSize(page.getSize());
+        pageDTO.setTotal(page.getTotal());
+        pageDTO.setData(data);
+        return pageDTO;
+    }
     public static <T> PageDTO<T> createPageDTO(Long pageNo, Long pageSize, Long total, List<T> data) {
         PageDTO<T> pageDTO = new PageDTO<>();
         pageDTO.setPageNo(pageNo);
@@ -53,5 +69,9 @@ public class PageDTO<T> implements Serializable {
         return pageDTO;
     }
 
+    public PageDTO<T> setData(List<T> data) {
+        this.data = data;
+        return this;
+    }
 
 }

@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.video.repository.impl;
 
-import com.bubble.pilipili.common.util.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
 import com.bubble.pilipili.video.mapper.UserVideoMapper;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoStatsDTO;
 import com.bubble.pilipili.video.pojo.entity.UserVideo;
@@ -26,6 +26,7 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
     private UserVideoMapper userVideoMapper;
 
     /**
+     * 保存用户视频互动信息
      * @param userVideo
      * @return
      */
@@ -42,11 +43,17 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
                     if (uv.getCoin() != null) {
                         luw.set(UserVideo::getCoin, uv.getCoin());
                     }
+                    if (uv.getCollect() != null) {
+                        luw.set(UserVideo::getCollect, uv.getCollect());
+                    }
                     if (uv.getRepost() != null) {
                         luw.set(UserVideo::getRepost, uv.getRepost());
                     }
                     if (uv.getDew() != null) {
                         luw.set(UserVideo::getDew, uv.getDew());
+                    }
+                    if (uv.getLastWatchTime() != null) {
+                        luw.set(UserVideo::getLastWatchTime, uv.getLastWatchTime());
                     }
                 },
                 userVideoMapper
@@ -58,8 +65,8 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
      * @return
      */
     @Override
-    public QueryVideoStatsDTO getVideoStats(Integer vid) {
-        return getVideoStats(Collections.singletonList(vid)).get(0);
+    public QueryVideoStatsDTO countVideoStats(Integer vid) {
+        return countVideoStats(Collections.singletonList(vid)).get(0);
     }
 
     /**
@@ -68,7 +75,7 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
      * @return
      */
     @Override
-    public List<QueryVideoStatsDTO> getVideoStats(List<Integer> vidList) {
+    public List<QueryVideoStatsDTO> countVideoStats(List<Integer> vidList) {
         return CommonRepoImpl.getStatsBatch(
                 vidList,
                 QueryVideoStatsDTO.class,
@@ -85,4 +92,5 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
                 "favor", "coin", "collect", "repost", "dew"
         );
     }
+
 }

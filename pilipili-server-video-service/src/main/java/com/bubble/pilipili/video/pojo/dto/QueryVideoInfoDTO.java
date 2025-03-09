@@ -87,6 +87,14 @@ public class QueryVideoInfoDTO implements Serializable {
 
 
     /**
+     * 播放数
+     */
+    private Long viewCount = 0L;
+    /**
+     * 弹幕数
+     */
+    private Long danmakuCount = 0L;
+    /**
      * 点赞数
      */
     private Long favorCount = 0L;

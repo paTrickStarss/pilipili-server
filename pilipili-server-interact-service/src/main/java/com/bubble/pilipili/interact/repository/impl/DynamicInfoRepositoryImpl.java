@@ -73,6 +73,7 @@ public class DynamicInfoRepositoryImpl implements DynamicInfoRepository {
                 new LambdaQueryWrapper<DynamicInfo>()
                         .eq(DynamicInfo::getUid, uid)
                         .eq(DynamicInfo::getRm, 0)
+                        .orderBy(true, false, DynamicInfo::getCreateTime)
         );
     }
 }

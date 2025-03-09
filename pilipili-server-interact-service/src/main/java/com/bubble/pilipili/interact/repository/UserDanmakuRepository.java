@@ -4,11 +4,8 @@
 
 package com.bubble.pilipili.interact.repository;
 
-import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Bubble
@@ -19,5 +16,5 @@ public interface UserDanmakuRepository {
 
     Boolean saveUserDanmaku(UserDanmaku userDanmaku);
 
-    List<QueryDanmakuStatsDTO> getDanmakuStats(List<Integer> danmakuIdList);
+//    List<QueryDanmakuStatsDTO> getDanmakuStats(List<Integer> danmakuIdList);
 }

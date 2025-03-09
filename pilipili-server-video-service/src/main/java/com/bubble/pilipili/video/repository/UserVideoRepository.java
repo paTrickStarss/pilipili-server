@@ -19,7 +19,7 @@ public interface UserVideoRepository {
 
     Boolean saveUserVideo(UserVideo userVideo);
 
-    QueryVideoStatsDTO getVideoStats(Integer vid);
+    QueryVideoStatsDTO countVideoStats(Integer vid);
 
-    List<QueryVideoStatsDTO> getVideoStats(List<Integer> vidList);
+    List<QueryVideoStatsDTO> countVideoStats(List<Integer> vidList);
 }

@@ -6,24 +6,26 @@ package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
+import com.bubble.pilipili.interact.pojo.entity.CommentStats;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
 import com.bubble.pilipili.interact.repository.CommentInfoRepository;
+import com.bubble.pilipili.interact.repository.CommentStatsRepository;
 import com.bubble.pilipili.interact.repository.UserCommentRepository;
 import com.bubble.pilipili.interact.service.CommentInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +39,8 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     private CommentInfoRepository commentInfoRepository;
     @Autowired
     private UserCommentRepository userCommentRepository;
+    @Autowired
+    private CommentStatsRepository commentStatsRepository;
 
     /**
      * @param req
@@ -137,28 +141,14 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                 commentInfoRepository.pageQueryCommentInfoByRela(
                         req.getRelaType(), req.getRelaId(), req.getPageNo(), req.getPageSize()
                 );
-        Map<Integer, QueryCommentInfoDTO> dtoMap = getCidMap(commentInfoPage.getRecords());
-        // 查询每条评论的回复数量
-        List<Integer> cidList = new ArrayList<>(dtoMap.keySet());
-        Map<Long, Long> replyCountMap = commentInfoRepository.countCommentInfoByParentRootId(cidList);
 
-        // 查询每条评论的统计数据
-        userCommentRepository.getCommentStats(cidList)
-                .forEach(commentStats -> {
-                    dtoMap.get(commentStats.getCid()).setFavorCount(commentStats.getFavorCount());
-                    dtoMap.get(commentStats.getCid()).setDewCount(commentStats.getDewCount());
-                });
-
-        List<QueryCommentInfoDTO> resultDTOList = new ArrayList<>(dtoMap.values());
-        for (QueryCommentInfoDTO dto : resultDTOList) {
-            dto.setReplyCount(replyCountMap.get(dto.getCid().longValue()));
-        }
+        List<QueryCommentInfoDTO> dtoList = handleCommentInfo(commentInfoPage.getRecords());
 
         return new PageDTO<>(
                 commentInfoPage.getCurrent(),
                 commentInfoPage.getSize(),
                 commentInfoPage.getTotal(),
-                resultDTOList
+                dtoList
         );
     }
 
@@ -174,38 +164,23 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                         req.getParentRootId(), req.getPageNo(), req.getPageSize()
                 );
 
-        Map<Integer, QueryCommentInfoDTO> dtoMap = getCidMap(commentInfoPage.getRecords());
+        List<QueryCommentInfoDTO> dtoList = handleCommentInfo(commentInfoPage.getRecords());
 
-        // 查询并绑定评论统计数据
-        List<Integer> cidList = new ArrayList<>(dtoMap.keySet());
-        userCommentRepository.getCommentStats(cidList)
-                .forEach(commentStats -> {
-                    dtoMap.get(commentStats.getCid()).setFavorCount(commentStats.getFavorCount());
-                    dtoMap.get(commentStats.getCid()).setDewCount(commentStats.getDewCount());
-                });
-
-        PageDTO<QueryCommentInfoDTO> pageDTO = new PageDTO<>();
-        pageDTO.setPageNo(commentInfoPage.getCurrent());
-        pageDTO.setPageSize(commentInfoPage.getSize());
-        pageDTO.setTotal(commentInfoPage.getTotal());
-        pageDTO.setData(new ArrayList<>(dtoMap.values()));
-        return pageDTO;
+        return new PageDTO<>(
+                commentInfoPage.getCurrent(),
+                commentInfoPage.getSize(),
+                commentInfoPage.getTotal(),
+                dtoList
+        );
     }
 
     /**
-     * 按cid映射
-     * @param commentInfoList
+     * 生成用户评论关系实体类
+     * @param cid
+     * @param uid
+     * @param consumer
      * @return
      */
-    private Map<Integer, QueryCommentInfoDTO> getCidMap(List<CommentInfo> commentInfoList) {
-        return CommentInfoConverter.getInstance()
-                .copyFieldValueList(commentInfoList, QueryCommentInfoDTO.class)
-                .stream()
-                .collect(Collectors.toMap(QueryCommentInfoDTO::getCid, Function.identity(),
-                        (a, b) -> a)
-                );
-    }
-
     private UserComment generateUserComment(
             Integer cid, Integer uid,
             Consumer<UserComment> consumer
@@ -215,5 +190,29 @@ public class CommentInfoServiceImpl implements CommentInfoService {
         userComment.setUid(uid);
         consumer.accept(userComment);
         return userComment;
+    }
+
+    /**
+     * 查询统计数据并装填dto
+     * @param commentInfoList
+     * @return
+     */
+    private List<QueryCommentInfoDTO> handleCommentInfo(List<CommentInfo> commentInfoList) {
+        if (ListUtil.isEmpty(commentInfoList)) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> cidList = commentInfoList.stream().map(CommentInfo::getCid).collect(Collectors.toList());
+        Map<Integer, CommentStats> statsMap = commentStatsRepository.getStats(cidList);
+
+        List<QueryCommentInfoDTO> dtoList = CommentInfoConverter.getInstance()
+                .copyFieldValueList(commentInfoList, QueryCommentInfoDTO.class);
+
+        dtoList.forEach(dto -> {
+            CommentStats stats = statsMap.get(dto.getCid());
+            dto.setFavorCount(stats.getFavorCount());
+            dto.setDewCount(stats.getDewCount());
+        });
+        return dtoList;
     }
 }

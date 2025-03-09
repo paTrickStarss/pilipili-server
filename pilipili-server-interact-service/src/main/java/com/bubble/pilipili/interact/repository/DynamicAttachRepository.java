@@ -17,12 +17,59 @@ import java.util.Map;
 @Repository
 public interface DynamicAttachRepository {
 
+    /**
+     * 保存动态附件信息
+     * @param dynamicAttach
+     * @return
+     */
     Boolean saveDynamicAttach(DynamicAttach dynamicAttach);
-    Boolean saveDynamicAttachBatch(List<DynamicAttach> dynamicAttachList);
-    Boolean deleteDynamicAttachByDid(Integer did);
-    Boolean deleteDynamicAttachByUUID(Integer attachUUID);
-    Boolean deleteDynamicAttachByUUIDBatch(List<String> attachUUIDList);
 
+    /**
+     * 批量保存动态附件信息
+     * @param dynamicAttachList
+     * @return
+     */
+    Boolean saveDynamicAttachBatch(List<DynamicAttach> dynamicAttachList);
+
+    /**
+     * 删除指定动态的所有附件信息
+     * @param did
+     * @return
+     */
+    Boolean deleteDynamicAttachByDid(Integer did);
+
+    /**
+     * 删除指定动态附件信息
+     * @param attachId
+     * @return
+     */
+    Boolean deleteDynamicAttachByAttachId(Integer attachId);
+
+    /**
+     * 删除指定动态附件信息
+     * @param attachUUID
+     * @return
+     */
+    Boolean deleteDynamicAttachByUUID(String attachUUID);
+
+    /**
+     * 批量删除动态附件信息
+     * @param attachUUIDList
+     * @return
+     */
+    Boolean deleteDynamicAttachByUUID(List<String> attachUUIDList);
+
+    /**
+     * 查询指定动态的所有附件信息
+     * @param did
+     * @return
+     */
     List<DynamicAttach> listDynamicAttachByDid(Integer did);
-    Map<Integer, List<DynamicAttach>> listDynamicAttachByDidBatch(List<Integer> didList);
+
+    /**
+     * 批量查询指定动态的所有附件信息
+     * @param didList
+     * @return Map&lt;did, attachList&gt;
+     */
+    Map<Integer, List<DynamicAttach>> listDynamicAttachByDid(List<Integer> didList);
 }

@@ -3,6 +3,9 @@ spring:
     name: interact-service
   profiles:
     active: dev
+#  task:
+#    execution:
+#
 
   cloud:
     nacos:

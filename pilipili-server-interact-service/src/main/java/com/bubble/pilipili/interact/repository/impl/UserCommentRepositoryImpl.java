@@ -4,16 +4,12 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
-import com.bubble.pilipili.common.util.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
 import com.bubble.pilipili.interact.mapper.UserCommentMapper;
-import com.bubble.pilipili.interact.pojo.dto.QueryCommentStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import com.bubble.pilipili.interact.repository.UserCommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Bubble
@@ -47,43 +43,43 @@ public class UserCommentRepositoryImpl implements UserCommentRepository {
         );
     }
 
-    /**
-     * @param cid
-     * @return
-     */
-    @Override
-    public QueryCommentStatsDTO getCommentStats(Integer cid) {
-        return CommonRepoImpl.getStatsBatch(
-                Collections.singletonList(cid),
-                QueryCommentStatsDTO.class,
-                (entity, dto) -> {
-                    dto.setCid(entity.getCid());
-                    dto.setFavorCount(entity.getFavor());
-                    dto.setDewCount(entity.getDew());
-                },
-                userCommentMapper,
-                "cid",
-                "favor", "dew"
-        ).get(0);
-    }
-
-    /**
-     * @param cidList
-     * @return
-     */
-    @Override
-    public List<QueryCommentStatsDTO> getCommentStats(List<Integer> cidList) {
-        return CommonRepoImpl.getStatsBatch(
-                cidList,
-                QueryCommentStatsDTO.class,
-                (entity, dto) -> {
-                    dto.setCid(entity.getCid());
-                    dto.setFavorCount(entity.getFavor());
-                    dto.setDewCount(entity.getDew());
-                },
-                userCommentMapper,
-                "cid",
-                "favor", "dew"
-        );
-    }
+//    /**
+//     * @param cid
+//     * @return
+//     */
+//    @Override
+//    public QueryCommentStatsDTO getCommentStats(Integer cid) {
+//        return CommonRepoImpl.getStatsBatch(
+//                Collections.singletonList(cid),
+//                QueryCommentStatsDTO.class,
+//                (entity, dto) -> {
+//                    dto.setCid(entity.getCid());
+//                    dto.setFavorCount(entity.getFavor());
+//                    dto.setDewCount(entity.getDew());
+//                },
+//                userCommentMapper,
+//                "cid",
+//                "favor", "dew"
+//        ).get(0);
+//    }
+//
+//    /**
+//     * @param cidList
+//     * @return
+//     */
+//    @Override
+//    public List<QueryCommentStatsDTO> getCommentStats(List<Integer> cidList) {
+//        return CommonRepoImpl.getStatsBatch(
+//                cidList,
+//                QueryCommentStatsDTO.class,
+//                (entity, dto) -> {
+//                    dto.setCid(entity.getCid());
+//                    dto.setFavorCount(entity.getFavor());
+//                    dto.setDewCount(entity.getDew());
+//                },
+//                userCommentMapper,
+//                "cid",
+//                "favor", "dew"
+//        );
+//    }
 }

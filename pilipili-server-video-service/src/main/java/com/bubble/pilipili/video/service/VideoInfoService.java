@@ -20,6 +20,25 @@ public interface VideoInfoService {
     Boolean updateVideoInfo(UpdateVideoInfoReq req);
     Boolean deleteVideoInfo(Integer vid);
     QueryVideoInfoDTO getVideoInfoById(Integer vid);
+
+    /**
+     * 分页查询用户所有视频
+     * @param req
+     * @return
+     */
     PageDTO<QueryVideoInfoDTO> pageQueryVideoInfoByUid(PageQueryVideoInfoReq req);
+
+    /**
+     * 分页查询用户已上架视频
+     * @param req
+     * @return
+     */
+    PageDTO<QueryVideoInfoDTO> pageQueryPassedVideoInfoByUid(PageQueryVideoInfoReq req);
+
+    /**
+     * 分页条件查询所有已上架视频
+     * @param req
+     * @return
+     */
     PageDTO<QueryVideoInfoDTO> pageQueryVideoInfo(PageQueryVideoInfoReq req);
 }

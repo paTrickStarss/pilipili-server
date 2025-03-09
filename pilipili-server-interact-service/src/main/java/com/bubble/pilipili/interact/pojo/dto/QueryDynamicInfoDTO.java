@@ -64,9 +64,17 @@ public class QueryDynamicInfoDTO implements Serializable {
     /**
      * 点赞数
      */
-    private Integer favorCount;
+    private Long favorCount = 0L;
+    /**
+     * 评论数
+     */
+    private Long commentCount = 0L;
     /**
      * 转发数
      */
-    private Integer repostCount;
+    private Long repostCount = 0L;
+    /**
+     * 点踩数
+     */
+    private Long dewCount = 0L;
 }

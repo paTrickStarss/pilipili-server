@@ -7,7 +7,7 @@ package com.bubble.pilipili.user.repository.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bubble.pilipili.common.util.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.user.mapper.UserRelaMapper;
 import com.bubble.pilipili.user.pojo.entity.UserRela;

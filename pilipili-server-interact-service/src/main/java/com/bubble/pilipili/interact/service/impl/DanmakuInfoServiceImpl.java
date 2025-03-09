@@ -6,24 +6,26 @@ package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.pojo.converter.DanmakuInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.DanmakuInfo;
+import com.bubble.pilipili.interact.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDanmakuInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDanmakuInfoReq;
 import com.bubble.pilipili.interact.repository.DanmakuInfoRepository;
+import com.bubble.pilipili.interact.repository.DanmakuStatsRepository;
 import com.bubble.pilipili.interact.repository.UserDanmakuRepository;
 import com.bubble.pilipili.interact.service.DanmakuInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +39,8 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     private DanmakuInfoRepository danmakuInfoRepository;
     @Autowired
     private UserDanmakuRepository userDanmakuRepository;
+    @Autowired
+    private DanmakuStatsRepository danmakuStatsRepository;
 
     /**
      * 保存弹幕信息
@@ -132,7 +136,14 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
         }
         Page<DanmakuInfo> danmakuInfoPage =
                 danmakuInfoRepository.pageQueryDanmakuInfoByVid(req.getVid(), req.getPageNo(), req.getPageSize());
-        return handleDanmakuInfo(danmakuInfoPage);
+        List<QueryDanmakuInfoDTO> dtoList = handleDanmakuInfo(danmakuInfoPage.getRecords());
+
+        return new PageDTO<>(
+                danmakuInfoPage.getCurrent(),
+                danmakuInfoPage.getSize(),
+                danmakuInfoPage.getTotal(),
+                dtoList
+        );
     }
 
     /**
@@ -147,7 +158,14 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
         }
         Page<DanmakuInfo> danmakuInfoPage =
                 danmakuInfoRepository.pageQueryDanmakuInfoByUid(req.getUid(), req.getPageNo(), req.getPageSize());
-        return handleDanmakuInfo(danmakuInfoPage);
+        List<QueryDanmakuInfoDTO> dtoList = handleDanmakuInfo(danmakuInfoPage.getRecords());
+
+        return new PageDTO<>(
+                danmakuInfoPage.getCurrent(),
+                danmakuInfoPage.getSize(),
+                danmakuInfoPage.getTotal(),
+                dtoList
+        );
     }
 
     /**
@@ -162,48 +180,48 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
         Page<DanmakuInfo> danmakuInfoPage =
                 danmakuInfoRepository.pageQueryDanmakuInfoByVidAndUid(
                         req.getVid(), req.getUid(), req.getPageNo(), req.getPageSize());
-        return handleDanmakuInfo(danmakuInfoPage);
+        List<QueryDanmakuInfoDTO> dtoList = handleDanmakuInfo(danmakuInfoPage.getRecords());
+
+        return new PageDTO<>(
+                danmakuInfoPage.getCurrent(),
+                danmakuInfoPage.getSize(),
+                danmakuInfoPage.getTotal(),
+                dtoList
+        );
     }
 
     /**
-     * 按弹幕ID映射为Map
-     * @param records
+     * 查询弹幕统计数据并装填dto
+     * @param danmakuInfoList
      * @return
      */
-    private Map<Integer, QueryDanmakuInfoDTO> getDanmakuIdMap(List<DanmakuInfo> records) {
-        return DanmakuInfoConverter.getInstance()
-                .copyFieldValueList(records, QueryDanmakuInfoDTO.class)
-                .stream()
-                .collect(Collectors.toMap(
-                        QueryDanmakuInfoDTO::getDanmakuId, Function.identity(),
-                        (a, b) -> a
-                ));
+    private List<QueryDanmakuInfoDTO> handleDanmakuInfo(List<DanmakuInfo> danmakuInfoList) {
+        if (ListUtil.isEmpty(danmakuInfoList)) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> idList = danmakuInfoList.stream().map(DanmakuInfo::getDanmakuId).collect(Collectors.toList());
+        Map<Integer, DanmakuStats> statsMap = danmakuStatsRepository.getStats(idList);
+        List<QueryDanmakuInfoDTO> dtoList =
+                DanmakuInfoConverter.getInstance().copyFieldValueList(danmakuInfoList, QueryDanmakuInfoDTO.class);
+        dtoList.forEach(dto -> {
+            DanmakuStats stats = statsMap.get(dto.getDanmakuId());
+            if (stats != null) {
+                dto.setFavorCount(stats.getFavorCount());
+                dto.setDewCount(stats.getDewCount());
+            }
+        });
+
+        return dtoList;
     }
 
     /**
-     * 处理分页查询结果
-     * @param page
+     * 生成用户弹幕关系实体类
+     * @param danmakuId
+     * @param uid
+     * @param consumer
      * @return
      */
-    private PageDTO<QueryDanmakuInfoDTO> handleDanmakuInfo(Page<DanmakuInfo> page) {
-        Map<Integer, QueryDanmakuInfoDTO> dtoMap = getDanmakuIdMap(page.getRecords());
-
-        // 统计数据
-        userDanmakuRepository.getDanmakuStats(new ArrayList<>(dtoMap.keySet()))
-                .forEach(stats -> {
-                    dtoMap.get(stats.getDanmakuId()).setFavorCount(stats.getFavorCount());
-                    dtoMap.get(stats.getDanmakuId()).setDewCount(stats.getDewCount());
-                });
-
-        PageDTO<QueryDanmakuInfoDTO> pageDTO = new PageDTO<>();
-        pageDTO.setPageNo(page.getCurrent());
-        pageDTO.setPageSize(page.getSize());
-        pageDTO.setTotal(page.getTotal());
-        pageDTO.setData(new ArrayList<>(dtoMap.values()));
-
-        return pageDTO;
-    }
-
     private UserDanmaku generateUserDanmaku(
             Integer danmakuId, Integer uid,
             Consumer<UserDanmaku> consumer

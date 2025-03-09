@@ -5,6 +5,8 @@
 package com.bubble.pilipili.interact.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bubble.pilipili.common.exception.RepositoryException;
+import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.mapper.DynamicAttachMapper;
 import com.bubble.pilipili.interact.pojo.entity.DynamicAttach;
 import com.bubble.pilipili.interact.repository.DynamicAttachRepository;
@@ -43,9 +45,15 @@ public class DynamicAttachRepositoryImpl implements DynamicAttachRepository {
     @Override
     public Boolean saveDynamicAttachBatch(List<DynamicAttach> dynamicAttachList) {
         List<BatchResult> batchResultList = dynamicAttachMapper.insert(dynamicAttachList);
+
+        // todo: 批处理结果的处理方式可能有问题
         BatchResult batchResult = batchResultList.get(0);
+
         int sum = Arrays.stream(batchResult.getUpdateCounts()).sum();
-        return sum == dynamicAttachList.size();
+        if (sum != dynamicAttachList.size()) {
+            throw new RepositoryException("附件批量保存结果异常");
+        }
+        return true;
     }
 
     /**
@@ -63,11 +71,21 @@ public class DynamicAttachRepositoryImpl implements DynamicAttachRepository {
 
     /**
      * 删除指定动态附件信息
+     * @param attachId
+     * @return
+     */
+    @Override
+    public Boolean deleteDynamicAttachByAttachId(Integer attachId) {
+        return dynamicAttachMapper.deleteById(attachId) == 1;
+    }
+
+    /**
+     * 删除指定动态附件信息
      * @param attachUUID
      * @return
      */
     @Override
-    public Boolean deleteDynamicAttachByUUID(Integer attachUUID) {
+    public Boolean deleteDynamicAttachByUUID(String attachUUID) {
         return dynamicAttachMapper.delete(
                 new LambdaQueryWrapper<DynamicAttach>()
                         .eq(DynamicAttach::getAttachUUID, attachUUID)
@@ -75,12 +93,19 @@ public class DynamicAttachRepositoryImpl implements DynamicAttachRepository {
     }
 
     /**
+     * 批量删除动态附件信息
      * @param attachUUIDList
      * @return
      */
     @Override
-    public Boolean deleteDynamicAttachByUUIDBatch(List<String> attachUUIDList) {
-        return dynamicAttachMapper.deleteByIds(attachUUIDList) == attachUUIDList.size();
+    public Boolean deleteDynamicAttachByUUID(List<String> attachUUIDList) {
+        if (ListUtil.isEmpty(attachUUIDList)) {
+            return false;
+        }
+        return dynamicAttachMapper.delete(
+                new LambdaQueryWrapper<DynamicAttach>()
+                        .in(DynamicAttach::getAttachUUID, attachUUIDList)
+        ) == attachUUIDList.size();
     }
 
 
@@ -103,13 +128,15 @@ public class DynamicAttachRepositoryImpl implements DynamicAttachRepository {
      * @return Map&lt;did, attachList&gt;
      */
     @Override
-    public Map<Integer, List<DynamicAttach>>  listDynamicAttachByDidBatch(List<Integer> didList) {
+    public Map<Integer, List<DynamicAttach>> listDynamicAttachByDid(List<Integer> didList) {
         if (didList == null || didList.isEmpty()) {
             return new HashMap<>(0);
         }
         List<DynamicAttach> attachListUngrouped =
                 dynamicAttachMapper.selectList(
-                        new LambdaQueryWrapper<DynamicAttach>().in(DynamicAttach::getDid, didList));
+                        new LambdaQueryWrapper<DynamicAttach>()
+                                .in(DynamicAttach::getDid, didList)
+                );
 
         return attachListUngrouped.stream().collect(Collectors.groupingBy(DynamicAttach::getDid));
     }

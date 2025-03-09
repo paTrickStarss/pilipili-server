@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
+ * 视频统计数据实体类
  * @author Bubble
  * @date 2025.03.07 21:37
  */
@@ -28,6 +29,14 @@ public class VideoStats {
      */
     @TableId
     private Integer vid;
+    /**
+     * 播放数
+     */
+    private Long viewCount;
+    /**
+     * 弹幕数
+     */
+    private Long danmakuCount;
     /**
      * 点赞数
      */

@@ -5,6 +5,7 @@
 package com.bubble.pilipili.video.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.video.mapper.VideoInfoMapper;
@@ -13,6 +14,9 @@ import com.bubble.pilipili.video.pojo.param.QueryVideoInfoParam;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 视频信息数据库操作层
@@ -72,8 +76,60 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
      */
     @Override
     public Page<VideoInfo> pageQueryVideoInfoByUid(Integer uid, Long pageNo, Long pageSize) {
+        return pageQueryVideoInfoByUid(
+                uid, pageNo, pageSize,
+                false, false, Collections.emptyList()
+        );
+    }
+
+    /**
+     * 分页查询用户的所有视频（可排序）
+     * @param uid
+     * @param pageNo
+     * @param pageSize
+     * @param applyOrder
+     * @param isAsc
+     * @param columnFuncList
+     * @return
+     */
+    @Override
+    public Page<VideoInfo> pageQueryVideoInfoByUid(
+            Integer uid, Long pageNo, Long pageSize,
+            boolean applyOrder, boolean isAsc,
+            List<SFunction<VideoInfo, ?>> columnFuncList
+    ) {
         Page<VideoInfo> page = new Page<>(pageNo, pageSize);
-        return videoInfoMapper.selectPage(page, new LambdaQueryWrapper<VideoInfo>().eq(VideoInfo::getUid, uid));
+        return videoInfoMapper.selectPage(page,
+                new LambdaQueryWrapper<VideoInfo>()
+                        .eq(VideoInfo::getUid, uid)
+                        .orderBy(applyOrder, isAsc, columnFuncList)
+        );
+    }
+
+    /**
+     * 分页查询用户的所有已上架视频（可排序）
+     *
+     * @param uid
+     * @param pageNo
+     * @param pageSize
+     * @param applyOrder
+     * @param isAsc
+     * @param columnFuncList
+     * @return
+     */
+    @Override
+    public Page<VideoInfo> pageQueryPassedVideoInfoByUid(
+            Integer uid, Long pageNo, Long pageSize,
+            boolean applyOrder, boolean isAsc,
+            List<SFunction<VideoInfo, ?>> columnFuncList
+    ) {
+        Page<VideoInfo> page = new Page<>(pageNo, pageSize);
+        return videoInfoMapper.selectPage(page,
+                new LambdaQueryWrapper<VideoInfo>()
+                        .eq(VideoInfo::getUid, uid)
+                        .eq(VideoInfo::getStatus, 1)
+                        .orderBy(applyOrder, isAsc, columnFuncList)
+        );
     }
 
     /**

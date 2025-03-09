@@ -8,31 +8,33 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.RepositoryException;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
 import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicAttachDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
-import com.bubble.pilipili.interact.pojo.dto.QueryDynamicStatsDTO;
 import com.bubble.pilipili.interact.pojo.entity.DynamicAttach;
 import com.bubble.pilipili.interact.pojo.entity.DynamicInfo;
+import com.bubble.pilipili.interact.pojo.entity.DynamicStats;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicAttachReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.repository.DynamicAttachRepository;
 import com.bubble.pilipili.interact.repository.DynamicInfoRepository;
+import com.bubble.pilipili.interact.repository.DynamicStatsRepository;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +51,11 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     private DynamicAttachRepository dynamicAttachRepository;
     @Autowired
     private UserDynamicRepository userDynamicRepository;
+    @Autowired
+    private DynamicStatsRepository dynamicStatsRepository;
+
+    @Autowired
+    private ThreadPoolTaskExecutor bubbleThreadPool;
 
     /**
      * 保存动态信息
@@ -109,7 +116,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 List<String> removeUUIDList = attachRemoveList.stream()
                         .map(SaveDynamicAttachReq::getAttachUUID)
                         .collect(Collectors.toList());
-                Boolean removeAttach = dynamicAttachRepository.deleteDynamicAttachByUUIDBatch(removeUUIDList);
+                Boolean removeAttach = dynamicAttachRepository.deleteDynamicAttachByUUID(removeUUIDList);
                 if (!removeAttach) {
                     throw new RepositoryException("删除动态附件信息失败");
                 }
@@ -161,9 +168,24 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      */
     @Override
     public Boolean favorDynamicInfo(Integer did, Integer uid) {
-        return userDynamicRepository.saveUserDynamic(
+        Boolean b = userDynamicRepository.saveUserDynamic(
                 generateUserDynamic(did, uid, u -> u.setFavor(1))
         );
+        if (!b) {
+            throw new ServiceOperationException("用户动态互动数据保存异常");
+        }
+
+        DynamicStats stats = new DynamicStats();
+        stats.setDid(did);
+        stats.setFavorCount(1L);
+
+        // todo: 测试统计数据保存是否成功
+        Boolean b1 = dynamicStatsRepository.saveStats(stats);
+        if (!b1) {
+            throw new ServiceOperationException("动态统计数据保存异常");
+        }
+
+        return true;
     }
 
     /**
@@ -207,15 +229,20 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
 //        查询附件信息
         List<DynamicAttach> attachList = dynamicAttachRepository.listDynamicAttachByDid(did);
 //        查询统计数据
-        QueryDynamicStatsDTO dynamicStats = userDynamicRepository.getDynamicStats(did);
+        DynamicStats stats = dynamicStatsRepository.getStats(Collections.singletonList(did)).get(did);
 
         QueryDynamicInfoDTO dto =
                 DynamicInfoConverter.getInstance().copyFieldValue(dynamicInfo, QueryDynamicInfoDTO.class);
         dto.setAttachList(
                 DynamicAttachConverter.getInstance().copyFieldValueList(attachList, QueryDynamicAttachDTO.class)
         );
-        dto.setFavorCount(dynamicStats.getFavorCount());
-        dto.setRepostCount(dynamicStats.getRepostCount());
+
+        if (stats != null) {
+            dto.setFavorCount(stats.getFavorCount());
+            dto.setCommentCount(stats.getCommentCount());
+            dto.setRepostCount(stats.getRepostCount());
+            dto.setDewCount(stats.getDewCount());
+        }
 
         return dto;
     }
@@ -230,41 +257,18 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         Page<DynamicInfo> dynamicInfoPage =
                 dynamicInfoRepository.pageQueryDynamicInfoByUid(req.getUid(), req.getPageNo(), req.getPageSize());
 
-        // 按did映射
-        Map<Integer, QueryDynamicInfoDTO> dynamicInfoDTOMap =
-                DynamicInfoConverter.getInstance().copyFieldValueList(dynamicInfoPage.getRecords(), QueryDynamicInfoDTO.class)
-                        .stream()
-                        .collect(Collectors.toMap(
-                            QueryDynamicInfoDTO::getDid, Function.identity(),
-                            (firstValue, lastValue) -> firstValue)  // did是唯一主键，是不会重复出现的，这里只是了解一下
-                        );
+        List<QueryDynamicInfoDTO> dtoList = handleDynamicInfo(dynamicInfoPage.getRecords());
 
-        // 批量查询attachList
-        List<Integer> didList = new ArrayList<>(dynamicInfoDTOMap.keySet()); //infoList.stream().map(DynamicInfo::getDid).collect(Collectors.toList());
-        Map<Integer, List<DynamicAttach>> attachGrouped =
-                dynamicAttachRepository.listDynamicAttachByDidBatch(didList);
-        // 绑定attachList
-        attachGrouped.forEach((did, attachList) -> {
-            List<QueryDynamicAttachDTO> attachDTOList =
-                    DynamicAttachConverter.getInstance().copyFieldValueList(attachList, QueryDynamicAttachDTO.class);
-            dynamicInfoDTOMap.get(did).setAttachList(attachDTOList);
-        });
-
-//        批量查询统计数据
-        userDynamicRepository.getDynamicStats(didList)
-                .forEach(stats -> {
-                    dynamicInfoDTOMap.get(stats.getDid()).setFavorCount(stats.getFavorCount());
-                    dynamicInfoDTOMap.get(stats.getDid()).setRepostCount(stats.getRepostCount());
-                });
-
-        PageDTO<QueryDynamicInfoDTO> pageDTO = new PageDTO<>();
-        pageDTO.setTotal(dynamicInfoPage.getTotal());
-        pageDTO.setPageNo(dynamicInfoPage.getCurrent());
-        pageDTO.setPageSize(dynamicInfoPage.getSize());
-        pageDTO.setData(new ArrayList<>(dynamicInfoDTOMap.values()));
-        return pageDTO;
+        return PageDTO.createPageDTO(dynamicInfoPage, dtoList);
     }
 
+    /**
+     * 生成用户动态关系实体类
+     * @param did
+     * @param uid
+     * @param consumer
+     * @return
+     */
     private UserDynamic generateUserDynamic(
             Integer did, Integer uid,
             Consumer<UserDynamic> consumer
@@ -274,5 +278,44 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         userDynamic.setUid(uid);
         consumer.accept(userDynamic);
         return userDynamic;
+    }
+
+    /**
+     * 查询动态附件、统计数据，并装填DTO
+     * @param dynamicInfoList
+     * @return
+     */
+    private List<QueryDynamicInfoDTO> handleDynamicInfo(List<DynamicInfo> dynamicInfoList) {
+        if (ListUtil.isEmpty(dynamicInfoList)) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> didList = dynamicInfoList.stream().map(DynamicInfo::getDid).collect(Collectors.toList());
+        // 查询统计数据
+        Map<Integer, DynamicStats> statsMap = dynamicStatsRepository.getStats(didList);
+        // 查询附件信息
+        Map<Integer, List<DynamicAttach>> attachMap =
+                dynamicAttachRepository.listDynamicAttachByDid(didList);
+
+        List<QueryDynamicInfoDTO> dtoList =
+                DynamicInfoConverter.getInstance().copyFieldValueList(dynamicInfoList, QueryDynamicInfoDTO.class);
+        dtoList.forEach(dto -> {
+            DynamicStats stats = statsMap.get(dto.getDid());
+            if (stats != null) {
+                dto.setFavorCount(stats.getFavorCount());
+                dto.setCommentCount(stats.getCommentCount());
+                dto.setRepostCount(stats.getRepostCount());
+                dto.setDewCount(stats.getDewCount());
+            }
+
+            List<DynamicAttach> dynamicAttachList = attachMap.get(dto.getDid());
+            if (ListUtil.isNotEmpty(dynamicAttachList)) {
+                List<QueryDynamicAttachDTO> attachDTOList = DynamicAttachConverter.getInstance()
+                        .copyFieldValueList(dynamicAttachList, QueryDynamicAttachDTO.class);
+                dto.setAttachList(attachDTOList);
+            }
+        });
+
+        return dtoList;
     }
 }

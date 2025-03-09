@@ -21,6 +21,10 @@ import java.time.LocalDateTime;
 public class QueryDynamicAttachDTO implements Serializable {
 
     /**
+     * 附件ID
+     */
+    private Integer attachId;
+    /**
      * 动态ID
      */
     private Integer did;
