@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,6 +20,26 @@ import java.util.List;
  */
 @Slf4j
 public class AnnotationUtil {
+
+    /**
+     * 获取字段注解参数值
+     * @param field
+     * @param annotationClass
+     * @param annotationFieldName
+     * @return
+     */
+    public static String getFieldAnnotationValue(Field field, Class<? extends Annotation> annotationClass, String annotationFieldName) {
+        try {
+            Annotation annotation = field.getAnnotation(annotationClass);
+            return getAnnotationFieldValue(annotation, annotationFieldName);
+
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            log.error("getMethodAnnotationValue error: {}", e.getMessage(), e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
 
     /**
      * 获取方法注解参数值
@@ -91,7 +112,17 @@ public class AnnotationUtil {
         if (annotation == null) {
             return null;
         }
-        String[] values = ((String[]) annotation.annotationType().getMethod(annotationFieldName).invoke(annotation));
-        return values != null ? values.length > 0 ? values[0] : null : null;
+        Object invoke = annotation.annotationType().getMethod(annotationFieldName).invoke(annotation);
+        if (invoke == null) {
+            return null;
+        }
+        if (invoke instanceof String) {
+            return (String) invoke;
+        }
+        if (invoke instanceof Object[]) {
+            String[] values = ((String[]) invoke);
+            return values.length > 0 ? values[0] : null;
+        }
+        return null;
     }
 }

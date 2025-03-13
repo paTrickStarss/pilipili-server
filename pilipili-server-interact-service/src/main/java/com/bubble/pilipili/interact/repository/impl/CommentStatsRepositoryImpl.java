@@ -32,7 +32,14 @@ public class CommentStatsRepositoryImpl implements CommentStatsRepository {
      */
     @Override
     public Boolean saveStats(CommentStats entity) {
-        return commentStatsMapper.insertOrUpdate(entity);
+//        return commentStatsMapper.insertOrUpdate(entity);
+        return CommonRepoImpl.saveStats(
+                entity,
+                commentStatsMapper,
+                CommentStats::getCid,
+                CommentStats::getFavorCount,
+                CommentStats::getDewCount
+        );
     }
 
     /**

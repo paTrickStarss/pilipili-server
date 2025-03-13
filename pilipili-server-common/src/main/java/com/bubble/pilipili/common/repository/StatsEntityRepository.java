@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.common.repository;
 
+import com.bubble.pilipili.common.pojo.StatsEntity;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.Map;
  * @date 2025.03.09 17:57
  */
 @Repository
-public interface StatsEntityRepository<T> {
+public interface StatsEntityRepository<T extends StatsEntity> {
 
     /**
      * 保存统计数据

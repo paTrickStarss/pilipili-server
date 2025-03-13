@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.bubble.pilipili.common.exception.RepositoryException;
 import com.bubble.pilipili.common.pojo.StatsEntity;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.common.util.MyBatisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -51,11 +52,11 @@ public class CommonRepoImpl {
             return false;
         }
 
-        boolean exists = mapper.exists(
-                new LambdaQueryWrapper<T>()
-                        .eq(targetIdFunc, targetId)
-                        .eq(uidFunc, uid)
-        );
+        LambdaQueryWrapper<T> wrapper = new LambdaQueryWrapper<T>()
+                .eq(targetIdFunc, targetId)
+                .eq(uidFunc, uid);
+
+        boolean exists = mapper.exists(wrapper);
         if (exists) {
             // 更新
             LambdaUpdateWrapper<T> updateWrapper = new LambdaUpdateWrapper<>();
@@ -146,6 +147,15 @@ public class CommonRepoImpl {
         ).stream().collect(Collectors.toMap(idFunc, Function.identity()));
     }
 
+    /**
+     * 保存（新增或更新）统计数据表
+     * @param stats 待保存统计数据实体对象
+     * @param mapper Mapper实例
+     * @param idFunc 主键getter函数
+     * @param countFuncArr 统计字段getter函数
+     * @return
+     * @param <T>
+     */
     @SafeVarargs
     public static <T extends StatsEntity> Boolean saveStats(
             T stats,
@@ -161,6 +171,15 @@ public class CommonRepoImpl {
         while (retryTime <= maxRetryTimes) {
             T one = mapper.selectOne(new LambdaQueryWrapper<T>().eq(idFunc, id));
             if (one == null) {
+                // 统计字段值不能小于0
+                for (SFunction<T, Long> countFunc : countFuncArr) {
+                    Long incrementCount = countFunc.apply(stats);
+                    if (incrementCount != null && incrementCount < 0) {
+                        // 小于0的字段值需要改为0
+                        MyBatisUtil.updateFieldValue(stats, countFunc, 0L);
+                    }
+                }
+
                 // 新增
                 return mapper.insert(stats) == 1;
             } else {
@@ -170,12 +189,15 @@ public class CommonRepoImpl {
                 LambdaUpdateWrapper<T> luw = new LambdaUpdateWrapper<>();
                 luw.eq(idFunc, id);
                 luw.eq(T::getVersion, version);
-                luw.set(T::getVersion, version + 1);
+//                luw.set(T::getVersion, version + 1); // Exception: Could not find lambda cache.
+                luw.setSql("version = version + 1");
                 for (SFunction<T, Long> countFunc : countFuncArr) {
                     Long incrementCount = countFunc.apply(stats);
                     if (incrementCount != null && incrementCount != 0L) {
                         Long originCount = countFunc.apply(one);
-                        luw.set(countFunc, originCount + incrementCount);
+                        long result = originCount + incrementCount;
+                        // 小于0的字段值需要改为0
+                        luw.set(countFunc, Math.max(result, 0L));
                     }
                 }
 

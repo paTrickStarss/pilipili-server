@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.interact.repository;
 
+import com.bubble.pilipili.common.repository.InteractEntityRepository;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import org.springframework.stereotype.Repository;
 
@@ -12,10 +13,6 @@ import org.springframework.stereotype.Repository;
  * @date 2025.03.05 21:24
  */
 @Repository
-public interface UserCommentRepository {
+public interface UserCommentRepository extends InteractEntityRepository<UserComment> {
 
-    Boolean saveUserComment(UserComment userComment);
-
-//    QueryCommentStatsDTO getCommentStats(Integer cid);
-//    List<QueryCommentStatsDTO> getCommentStats(List<Integer> cidList);
 }

@@ -73,8 +73,4 @@ public class QueryDynamicInfoDTO implements Serializable {
      * 转发数
      */
     private Long repostCount = 0L;
-    /**
-     * 点踩数
-     */
-    private Long dewCount = 0L;
 }

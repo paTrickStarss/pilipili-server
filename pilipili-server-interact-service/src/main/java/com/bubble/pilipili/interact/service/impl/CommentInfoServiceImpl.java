@@ -5,7 +5,9 @@
 package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
@@ -18,6 +20,7 @@ import com.bubble.pilipili.interact.repository.CommentInfoRepository;
 import com.bubble.pilipili.interact.repository.CommentStatsRepository;
 import com.bubble.pilipili.interact.repository.UserCommentRepository;
 import com.bubble.pilipili.interact.service.CommentInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,7 @@ import java.util.stream.Collectors;
  * @author Bubble
  * @date 2025.03.05 16:49
  */
+@Slf4j
 @Service
 public class CommentInfoServiceImpl implements CommentInfoService {
 
@@ -69,13 +73,15 @@ public class CommentInfoServiceImpl implements CommentInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean favorCommentInfo(Integer cid, Integer uid) {
-        return userCommentRepository.saveUserComment(
-                generateUserComment(cid, uid, u -> {
-                    u.setFavor(1);
-                    u.setDew(0);
-                })
+        // 当第一次保存时，表中不存在该条stats数据，这条revoke会更新一条"dew_count = -1"的统计数据导致报错
+        revokeDewCommentInfo(cid, uid);
+        return updateCommentInteract(
+                cid, uid,
+                uc -> uc.setFavor(1),
+                stats -> stats.setFavorCount(1L)
         );
     }
 
@@ -84,10 +90,13 @@ public class CommentInfoServiceImpl implements CommentInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean revokeFavorCommentInfo(Integer cid, Integer uid) {
-        return userCommentRepository.saveUserComment(
-                generateUserComment(cid, uid, u -> u.setFavor(0))
+        return updateCommentInteract(
+                cid, uid,
+                uc -> uc.setFavor(0),
+                stats -> stats.setFavorCount(-1L)
         );
     }
 
@@ -97,13 +106,14 @@ public class CommentInfoServiceImpl implements CommentInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean dewCommentInfo(Integer cid, Integer uid) {
-        return userCommentRepository.saveUserComment(
-                generateUserComment(cid, uid, u -> {
-                    u.setDew(1);
-                    u.setFavor(0);
-                })
+        revokeFavorCommentInfo(cid, uid);
+        return updateCommentInteract(
+                cid, uid,
+                uc -> uc.setDew(1),
+                stats -> stats.setDewCount(1L)
         );
     }
 
@@ -113,10 +123,13 @@ public class CommentInfoServiceImpl implements CommentInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean revokeDewCommentInfo(Integer cid, Integer uid) {
-        return userCommentRepository.saveUserComment(
-                generateUserComment(cid, uid, u -> u.setDew(0))
+        return updateCommentInteract(
+                cid, uid,
+                uc -> uc.setDew(0),
+                stats -> stats.setDewCount(-1L)
         );
     }
 
@@ -127,7 +140,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Override
     public QueryCommentInfoDTO queryCommentInfo(Integer cid) {
         CommentInfo commentInfo = commentInfoRepository.getCommentInfo(cid);
-        return CommentInfoConverter.getInstance().copyFieldValue(commentInfo, QueryCommentInfoDTO.class);
+        return handleCommentInfo(Collections.singletonList(commentInfo)).get(0);
     }
 
     /**
@@ -175,24 +188,6 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     }
 
     /**
-     * 生成用户评论关系实体类
-     * @param cid
-     * @param uid
-     * @param consumer
-     * @return
-     */
-    private UserComment generateUserComment(
-            Integer cid, Integer uid,
-            Consumer<UserComment> consumer
-    ) {
-        UserComment userComment = new UserComment();
-        userComment.setCid(cid);
-        userComment.setUid(uid);
-        consumer.accept(userComment);
-        return userComment;
-    }
-
-    /**
      * 查询统计数据并装填dto
      * @param commentInfoList
      * @return
@@ -215,4 +210,35 @@ public class CommentInfoServiceImpl implements CommentInfoService {
         });
         return dtoList;
     }
+
+    /**
+     * 更新评论互动关系数据
+     * @param cid
+     * @param uid
+     * @param interactConsumer
+     * @param statsConsumer
+     * @return
+     */
+    private Boolean updateCommentInteract(
+            Integer cid, Integer uid,
+            Consumer<UserComment> interactConsumer,
+            Consumer<CommentStats> statsConsumer
+    ) {
+        try {
+            return InteractStatsAction.updateInteract(
+                    UserComment.class, CommentStats.class,
+                    cid, uid,
+                    UserComment::setCid,
+                    userCommentRepository,
+                    interactConsumer,
+                    CommentStats::setCid,
+                    commentStatsRepository,
+                    statsConsumer
+            );
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new ServiceOperationException("更新评论互动关系数据异常");
+        }
+    }
+
 }

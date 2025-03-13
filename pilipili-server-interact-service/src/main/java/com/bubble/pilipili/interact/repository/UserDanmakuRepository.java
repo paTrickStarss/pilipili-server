@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.interact.repository;
 
+import com.bubble.pilipili.common.repository.InteractEntityRepository;
 import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;
 import org.springframework.stereotype.Repository;
 
@@ -12,9 +13,5 @@ import org.springframework.stereotype.Repository;
  * @date 2025.03.06 14:32
  */
 @Repository
-public interface UserDanmakuRepository {
-
-    Boolean saveUserDanmaku(UserDanmaku userDanmaku);
-
-//    List<QueryDanmakuStatsDTO> getDanmakuStats(List<Integer> danmakuIdList);
+public interface UserDanmakuRepository extends InteractEntityRepository<UserDanmaku> {
 }

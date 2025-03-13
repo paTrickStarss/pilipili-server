@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.RepositoryException;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
 import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
@@ -166,26 +167,14 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean favorDynamicInfo(Integer did, Integer uid) {
-        Boolean b = userDynamicRepository.saveUserDynamic(
-                generateUserDynamic(did, uid, u -> u.setFavor(1))
+        return updateDynamicInteract(
+                did, uid,
+                ud -> ud.setFavor(1),
+                stats -> stats.setFavorCount(1L)
         );
-        if (!b) {
-            throw new ServiceOperationException("用户动态互动数据保存异常");
-        }
-
-        DynamicStats stats = new DynamicStats();
-        stats.setDid(did);
-        stats.setFavorCount(1L);
-
-        // todo: 测试统计数据保存是否成功
-        Boolean b1 = dynamicStatsRepository.saveStats(stats);
-        if (!b1) {
-            throw new ServiceOperationException("动态统计数据保存异常");
-        }
-
-        return true;
     }
 
     /**
@@ -194,10 +183,13 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean revokeFavorDynamicInfo(Integer did, Integer uid) {
-        return userDynamicRepository.saveUserDynamic(
-                generateUserDynamic(did, uid, u -> u.setFavor(0))
+        return updateDynamicInteract(
+                did, uid,
+                ud -> ud.setFavor(0),
+                stats -> stats.setFavorCount(-1L)
         );
     }
 
@@ -207,10 +199,13 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean repostDynamicInfo(Integer did, Integer uid) {
-        return userDynamicRepository.saveUserDynamic(
-                generateUserDynamic(did, uid, u -> u.setRepost(1))
+        return updateDynamicInteract(
+                did, uid,
+                ud -> ud.setRepost(1),
+                stats -> stats.setRepostCount(1L)
         );
     }
 
@@ -241,7 +236,6 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
             dto.setFavorCount(stats.getFavorCount());
             dto.setCommentCount(stats.getCommentCount());
             dto.setRepostCount(stats.getRepostCount());
-            dto.setDewCount(stats.getDewCount());
         }
 
         return dto;
@@ -260,24 +254,6 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         List<QueryDynamicInfoDTO> dtoList = handleDynamicInfo(dynamicInfoPage.getRecords());
 
         return PageDTO.createPageDTO(dynamicInfoPage, dtoList);
-    }
-
-    /**
-     * 生成用户动态关系实体类
-     * @param did
-     * @param uid
-     * @param consumer
-     * @return
-     */
-    private UserDynamic generateUserDynamic(
-            Integer did, Integer uid,
-            Consumer<UserDynamic> consumer
-    ) {
-        UserDynamic userDynamic = new UserDynamic();
-        userDynamic.setDid(did);
-        userDynamic.setUid(uid);
-        consumer.accept(userDynamic);
-        return userDynamic;
     }
 
     /**
@@ -305,7 +281,6 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 dto.setFavorCount(stats.getFavorCount());
                 dto.setCommentCount(stats.getCommentCount());
                 dto.setRepostCount(stats.getRepostCount());
-                dto.setDewCount(stats.getDewCount());
             }
 
             List<DynamicAttach> dynamicAttachList = attachMap.get(dto.getDid());
@@ -317,5 +292,36 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
         });
 
         return dtoList;
+    }
+
+
+    /**
+     * 更新用户动态互动关系数据
+     * @param did
+     * @param uid
+     * @param interactConsumer
+     * @param statsConsumer
+     * @return
+     */
+    private Boolean updateDynamicInteract(
+            Integer did, Integer uid,
+            Consumer<UserDynamic> interactConsumer,
+            Consumer<DynamicStats> statsConsumer
+    ) {
+        try {
+            return InteractStatsAction.updateInteract(
+                    UserDynamic.class, DynamicStats.class,
+                    did, uid,
+                    UserDynamic::setDid,
+                    userDynamicRepository,
+                    interactConsumer,
+                    DynamicStats::setDid,
+                    dynamicStatsRepository,
+                    statsConsumer
+            );
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new ServiceOperationException("更新用户动态互动关系数据异常");
+        }
     }
 }

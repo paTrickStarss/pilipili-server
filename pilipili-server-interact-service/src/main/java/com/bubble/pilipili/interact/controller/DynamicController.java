@@ -56,7 +56,6 @@ public class DynamicController implements Controller {
         return SimpleResponse.result(b);
     }
 
-    // todo: 关于互动关系的变更请求考虑使用消息队列
     /**
      * 点赞动态
      * @param did

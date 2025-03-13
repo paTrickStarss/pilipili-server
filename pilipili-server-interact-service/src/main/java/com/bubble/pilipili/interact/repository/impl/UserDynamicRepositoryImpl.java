@@ -22,66 +22,28 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
     private UserDynamicMapper userDynamicMapper;
 
     /**
-     * 保存用户动态互动信息
-     * @param userDynamic
+     * 保存互动数据
+     *
+     * @param interactEntity
      * @return
      */
     @Override
-    public Boolean saveUserDynamic(UserDynamic userDynamic) {
+    public Boolean saveInteract(UserDynamic interactEntity) {
         return CommonRepoImpl.save(
-                userDynamic,
+                interactEntity,
                 UserDynamic::getDid,
                 UserDynamic::getUid,
                 (updateWrapper, entity) -> {
                     if (entity.getFavor() != null) {
                         updateWrapper.set(UserDynamic::getFavor, entity.getFavor());
+                        updateWrapper.ne(UserDynamic::getFavor, entity.getFavor());
                     }
                     if (entity.getRepost() != null) {
                         updateWrapper.set(UserDynamic::getRepost, entity.getRepost());
+                        updateWrapper.ne(UserDynamic::getRepost, entity.getRepost());
                     }
                 },
                 userDynamicMapper
         );
     }
-//    /**
-//     * 查询指定动态的统计数据
-//     * @param did
-//     * @return
-//     */
-//    @Override
-//    public QueryDynamicStatsDTO getDynamicStats(Integer did) {
-//        return CommonRepoImpl.getStatsBatch(
-//                Collections.singletonList(did),
-//                QueryDynamicStatsDTO.class,
-//                (entity, dto) -> {
-//                    dto.setDid(entity.getDid());
-//                    dto.setFavorCount(entity.getFavor());
-//                    dto.setRepostCount(entity.getRepost());
-//                },
-//                userDynamicMapper,
-//                "did",
-//                "favor", "repost"
-//        ).get(0);
-//    }
-//
-//    /**
-//     * 批量查询动态统计数据
-//     * @param didList
-//     * @return
-//     */
-//    @Override
-//    public List<QueryDynamicStatsDTO> getDynamicStats(List<Integer> didList) {
-//        return CommonRepoImpl.getStatsBatch(
-//                didList,
-//                QueryDynamicStatsDTO.class,
-//                (entity, dto) -> {
-//                    dto.setDid(entity.getDid());
-//                    dto.setFavorCount(entity.getFavor());
-//                    dto.setRepostCount(entity.getRepost());
-//                },
-//                userDynamicMapper,
-//                "did",
-//                "favor", "repost"
-//        );
-//    }
 }

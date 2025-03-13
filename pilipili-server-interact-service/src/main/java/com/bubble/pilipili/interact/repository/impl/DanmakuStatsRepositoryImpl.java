@@ -32,7 +32,14 @@ public class DanmakuStatsRepositoryImpl implements DanmakuStatsRepository {
      */
     @Override
     public Boolean saveStats(DanmakuStats entity) {
-        return danmakuStatsMapper.insertOrUpdate(entity);
+//        return danmakuStatsMapper.insertOrUpdate(entity);
+        return CommonRepoImpl.saveStats(
+                entity,
+                danmakuStatsMapper,
+                DanmakuStats::getDanmakuId,
+                DanmakuStats::getFavorCount,
+                DanmakuStats::getDewCount
+        );
     }
 
     /**

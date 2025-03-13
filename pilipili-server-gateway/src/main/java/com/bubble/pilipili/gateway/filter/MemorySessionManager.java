@@ -8,9 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 驻内存会话管理器
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/25
+ * @deprecated 目前使用Redis实现会话管理，详见{@link com.bubble.pilipili.common.config.SessionManager}
  */
+@Deprecated
 public class MemorySessionManager {
 
     private static class lazyHolder {
@@ -39,7 +42,7 @@ public class MemorySessionManager {
     }
 
     public boolean checkSession(String userId, String jti) {
-        // TODO: 会话检查
+
         return true;
     }
 }

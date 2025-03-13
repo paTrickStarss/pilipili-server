@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
+ * 用户会话管理器 - 基于Redis实现
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/12/31
  */

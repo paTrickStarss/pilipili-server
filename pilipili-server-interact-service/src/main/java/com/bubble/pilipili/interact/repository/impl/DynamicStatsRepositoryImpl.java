@@ -39,8 +39,7 @@ public class DynamicStatsRepositoryImpl implements DynamicStatsRepository {
                 DynamicStats::getDid,
                 DynamicStats::getFavorCount,
                 DynamicStats::getCommentCount,
-                DynamicStats::getRepostCount,
-                DynamicStats::getDewCount
+                DynamicStats::getRepostCount
         );
     }
 

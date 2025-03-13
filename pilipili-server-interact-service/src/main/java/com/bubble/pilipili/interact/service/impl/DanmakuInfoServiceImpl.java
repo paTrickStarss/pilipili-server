@@ -5,19 +5,20 @@
 package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.interact.pojo.converter.DanmakuInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
-import com.bubble.pilipili.interact.pojo.entity.DanmakuInfo;
-import com.bubble.pilipili.interact.pojo.entity.DanmakuStats;
-import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;
+import com.bubble.pilipili.interact.pojo.entity.*;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDanmakuInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDanmakuInfoReq;
 import com.bubble.pilipili.interact.repository.DanmakuInfoRepository;
 import com.bubble.pilipili.interact.repository.DanmakuStatsRepository;
 import com.bubble.pilipili.interact.repository.UserDanmakuRepository;
 import com.bubble.pilipili.interact.service.DanmakuInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @author Bubble
  * @date 2025.03.06 14:06
  */
+@Slf4j
 @Service
 public class DanmakuInfoServiceImpl implements DanmakuInfoService {
 
@@ -72,13 +74,14 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean favorDanmakuInfo(Integer danmakuId, Integer uid) {
-        return userDanmakuRepository.saveUserDanmaku(
-                generateUserDanmaku(danmakuId, uid, userDanmaku -> {
-                    userDanmaku.setFavor(1);
-                    userDanmaku.setDew(0);
-                })
+        revokeDewDanmakuInfo(danmakuId, uid);
+        return updateDanmakuInteract(
+                danmakuId, uid,
+                ud -> ud.setFavor(1),
+                stats -> stats.setFavorCount(1L)
         );
     }
 
@@ -88,10 +91,13 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean revokeFavorDanmakuInfo(Integer danmakuId, Integer uid) {
-        return userDanmakuRepository.saveUserDanmaku(
-                generateUserDanmaku(danmakuId, uid, userDanmaku -> userDanmaku.setFavor(0))
+        return updateDanmakuInteract(
+                danmakuId, uid,
+                ud -> ud.setFavor(0),
+                stats -> stats.setFavorCount(-1L)
         );
     }
 
@@ -101,13 +107,14 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean dewDanmakuInfo(Integer danmakuId, Integer uid) {
-        return userDanmakuRepository.saveUserDanmaku(
-                generateUserDanmaku(danmakuId, uid, userDanmaku -> {
-                    userDanmaku.setDew(1);
-                    userDanmaku.setFavor(0);
-                })
+        revokeFavorDanmakuInfo(danmakuId, uid);
+        return updateDanmakuInteract(
+                danmakuId, uid,
+                ud -> ud.setDew(1),
+                stats -> stats.setDewCount(1L)
         );
     }
 
@@ -117,10 +124,13 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
      * @param uid
      * @return
      */
+    @Transactional
     @Override
     public Boolean revokeDewDanmakuInfo(Integer danmakuId, Integer uid) {
-        return userDanmakuRepository.saveUserDanmaku(
-                generateUserDanmaku(danmakuId, uid, userDanmaku -> userDanmaku.setDew(0))
+        return updateDanmakuInteract(
+                danmakuId, uid,
+                ud -> ud.setDew(0),
+                stats -> stats.setDewCount(-1L)
         );
     }
 
@@ -216,20 +226,32 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     }
 
     /**
-     * 生成用户弹幕关系实体类
+     * 更新用户弹幕互动关系数据
      * @param danmakuId
      * @param uid
-     * @param consumer
+     * @param interactConsumer
+     * @param statsConsumer
      * @return
      */
-    private UserDanmaku generateUserDanmaku(
+    private Boolean updateDanmakuInteract(
             Integer danmakuId, Integer uid,
-            Consumer<UserDanmaku> consumer
+            Consumer<UserDanmaku> interactConsumer,
+            Consumer<DanmakuStats> statsConsumer
     ) {
-        UserDanmaku userDanmaku = new UserDanmaku();
-        userDanmaku.setDanmakuId(danmakuId);
-        userDanmaku.setUid(uid);
-        consumer.accept(userDanmaku);
-        return userDanmaku;
+        try {
+            return InteractStatsAction.updateInteract(
+                    UserDanmaku.class, DanmakuStats.class,
+                    danmakuId, uid,
+                    UserDanmaku::setDanmakuId,
+                    userDanmakuRepository,
+                    interactConsumer,
+                    DanmakuStats::setDanmakuId,
+                    danmakuStatsRepository,
+                    statsConsumer
+            );
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new ServiceOperationException("更新弹幕互动关系数据异常");
+        }
     }
 }

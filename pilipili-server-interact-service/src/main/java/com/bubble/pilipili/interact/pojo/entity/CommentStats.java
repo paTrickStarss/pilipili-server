@@ -4,7 +4,6 @@
 
 package com.bubble.pilipili.interact.pojo.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.bubble.pilipili.common.pojo.StatsEntity;
 import lombok.AllArgsConstructor;
@@ -23,7 +22,7 @@ import lombok.NoArgsConstructor;
 @TableName("comment_stats")
 public class CommentStats extends StatsEntity {
 
-    @TableId
+//    @TableId("cid")
     private Integer cid;
     private Long favorCount;
     private Long dewCount;

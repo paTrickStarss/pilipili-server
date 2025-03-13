@@ -22,44 +22,28 @@ public class UserDanmakuRepositoryImpl implements UserDanmakuRepository {
     private UserDanmakuMapper userDanmakuMapper;
 
     /**
-     * @param userDanmaku
+     * 保存互动数据
+     *
+     * @param interactEntity
      * @return
      */
     @Override
-    public Boolean saveUserDanmaku(UserDanmaku userDanmaku) {
+    public Boolean saveInteract(UserDanmaku interactEntity) {
         return CommonRepoImpl.save(
-                userDanmaku,
+                interactEntity,
                 UserDanmaku::getDanmakuId,
                 UserDanmaku::getUid,
                 (updateWrapper, entity) -> {
                     if (entity.getFavor() != null) {
                         updateWrapper.set(UserDanmaku::getFavor, entity.getFavor());
+                        updateWrapper.ne(UserDanmaku::getFavor, entity.getFavor());
                     }
                     if (entity.getDew() != null) {
                         updateWrapper.set(UserDanmaku::getDew, entity.getDew());
+                        updateWrapper.ne(UserDanmaku::getDew, entity.getDew());
                     }
                 },
                 userDanmakuMapper
         );
     }
-
-//    /**
-//     * @param danmakuIdList
-//     * @return
-//     */
-//    @Override
-//    public List<QueryDanmakuStatsDTO> getDanmakuStats(List<Integer> danmakuIdList) {
-//        return CommonRepoImpl.getStatsBatch(
-//                danmakuIdList,
-//                QueryDanmakuStatsDTO.class,
-//                (userDanmaku, dto) -> {
-//                    dto.setDanmakuId(userDanmaku.getDanmakuId());
-//                    dto.setFavorCount(userDanmaku.getFavor());
-//                    dto.setDewCount(userDanmaku.getDew());
-//                },
-//                userDanmakuMapper,
-//                "danmaku_id",
-//                "favor", "dew"
-//        );
-//    }
 }

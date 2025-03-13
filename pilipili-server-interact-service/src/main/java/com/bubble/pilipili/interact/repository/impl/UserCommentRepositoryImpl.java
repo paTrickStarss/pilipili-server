@@ -22,64 +22,29 @@ public class UserCommentRepositoryImpl implements UserCommentRepository {
     private UserCommentMapper userCommentMapper;
 
     /**
-     * @param userComment
+     * 保存互动数据
+     *
+     * @param interactEntity
      * @return
      */
     @Override
-    public Boolean saveUserComment(UserComment userComment) {
+    public Boolean saveInteract(UserComment interactEntity) {
         return CommonRepoImpl.save(
-                userComment,
+                interactEntity,
                 UserComment::getCid,
                 UserComment::getUid,
                 (updateWrapper, entity) -> {
                     if (entity.getFavor() != null) {
                         updateWrapper.set(UserComment::getFavor, entity.getFavor());
+                        updateWrapper.ne(UserComment::getFavor, entity.getFavor());
                     }
                     if (entity.getDew() != null) {
                         updateWrapper.set(UserComment::getDew, entity.getDew());
+                        updateWrapper.ne(UserComment::getDew, entity.getDew());
                     }
                 },
                 userCommentMapper
         );
     }
 
-//    /**
-//     * @param cid
-//     * @return
-//     */
-//    @Override
-//    public QueryCommentStatsDTO getCommentStats(Integer cid) {
-//        return CommonRepoImpl.getStatsBatch(
-//                Collections.singletonList(cid),
-//                QueryCommentStatsDTO.class,
-//                (entity, dto) -> {
-//                    dto.setCid(entity.getCid());
-//                    dto.setFavorCount(entity.getFavor());
-//                    dto.setDewCount(entity.getDew());
-//                },
-//                userCommentMapper,
-//                "cid",
-//                "favor", "dew"
-//        ).get(0);
-//    }
-//
-//    /**
-//     * @param cidList
-//     * @return
-//     */
-//    @Override
-//    public List<QueryCommentStatsDTO> getCommentStats(List<Integer> cidList) {
-//        return CommonRepoImpl.getStatsBatch(
-//                cidList,
-//                QueryCommentStatsDTO.class,
-//                (entity, dto) -> {
-//                    dto.setCid(entity.getCid());
-//                    dto.setFavorCount(entity.getFavor());
-//                    dto.setDewCount(entity.getDew());
-//                },
-//                userCommentMapper,
-//                "cid",
-//                "favor", "dew"
-//        );
-//    }
 }

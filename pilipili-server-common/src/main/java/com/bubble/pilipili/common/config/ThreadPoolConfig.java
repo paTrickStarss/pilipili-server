@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
+ * 自定义线程池配置类
  * @author Bubble
  * @date 2025.03.09 22:39
  */
@@ -17,6 +18,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class ThreadPoolConfig {
 
+    /**
+     * 自定义线程池（bubbleThreadPool）配置
+     * @return
+     */
     @Bean("bubbleThreadPool")
     public ThreadPoolTaskExecutor bubbleThreadPool() {
         int availableProcessors = Runtime.getRuntime().availableProcessors();
