@@ -51,7 +51,7 @@ public class InteractStatsAction {
                 generateInteractEntity(interactClz, id, uid, InteractIdSetter, userInteractConsumer)
         );
         if (b) {
-            // todo: 当新增了一条revoke记录时，若是第一次新增互动关系，则不能执行-1更新
+            //  当新增了一条revoke记录时，若是第一次新增互动关系，则不能执行-1更新（已在service层规避）
             // 更新统计数据
             updateStats(statsClz, id, statsIdSetter, statsConsumer, statsEntityRepository);
         }

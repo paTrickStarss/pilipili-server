@@ -54,7 +54,11 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     public Boolean saveDanmakuInfo(SaveDanmakuInfoReq req) {
         DanmakuInfo danmakuInfo =
                 DanmakuInfoConverter.getInstance().copyFieldValue(req, DanmakuInfo.class);
-        return danmakuInfoRepository.saveDanmakuInfo(danmakuInfo);
+        Boolean b = danmakuInfoRepository.saveDanmakuInfo(danmakuInfo);
+
+        //todo: 更新视频弹幕统计数据
+
+        return b;
     }
 
     /**
@@ -77,12 +81,13 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     @Transactional
     @Override
     public Boolean favorDanmakuInfo(Integer danmakuId, Integer uid) {
-        revokeDewDanmakuInfo(danmakuId, uid);
-        return updateDanmakuInteract(
+        Boolean b = updateDanmakuInteract(
                 danmakuId, uid,
                 ud -> ud.setFavor(1),
                 stats -> stats.setFavorCount(1L)
         );
+        revokeDewDanmakuInfo(danmakuId, uid);
+        return b;
     }
 
     /**
@@ -110,12 +115,13 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     @Transactional
     @Override
     public Boolean dewDanmakuInfo(Integer danmakuId, Integer uid) {
-        revokeFavorDanmakuInfo(danmakuId, uid);
-        return updateDanmakuInteract(
+        Boolean b = updateDanmakuInteract(
                 danmakuId, uid,
                 ud -> ud.setDew(1),
                 stats -> stats.setDewCount(1L)
         );
+        revokeFavorDanmakuInfo(danmakuId, uid);
+        return b;
     }
 
     /**

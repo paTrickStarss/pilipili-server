@@ -194,6 +194,22 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     }
 
     /**
+     * 评论动态
+     * @param did
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean commentDynamicInfo(Integer did, Integer uid) {
+        return updateDynamicInteract(
+                did, uid,
+                ud -> ud.setComment(1),
+                stats -> stats.setCommentCount(1L)
+        );
+    }
+
+    /**
      * 转发动态
      * @param did
      * @param uid

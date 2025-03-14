@@ -59,6 +59,7 @@ public class DynamicController implements Controller {
     /**
      * 点赞动态
      * @param did
+     * @param uid
      * @return
      */
     @Operation(summary = "点赞动态")
@@ -74,6 +75,7 @@ public class DynamicController implements Controller {
     /**
      * 取消点赞动态
      * @param did
+     * @param uid
      * @return
      */
     @Operation(summary = "取消点赞动态")
@@ -89,6 +91,7 @@ public class DynamicController implements Controller {
     /**
      * 转发动态
      * @param did
+     * @param uid
      * @return
      */
     @Operation(summary = "转发动态")
@@ -98,6 +101,22 @@ public class DynamicController implements Controller {
             @Valid @RequestParam Integer uid
     ) {
         Boolean b = dynamicInfoService.repostDynamicInfo(did, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 评论动态
+     * @param did
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "评论动态")
+    @PatchMapping("/comment")
+    public SimpleResponse<String> comment(
+            @Valid @RequestParam Integer did,
+            @Valid @RequestParam Integer uid
+    ) {
+        Boolean b = dynamicInfoService.commentDynamicInfo(did, uid);
         return SimpleResponse.result(b);
     }
 

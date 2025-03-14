@@ -26,5 +26,6 @@ public class UserDynamic extends InteractEntity {
 //    @TableField("did")
     private Integer did;
     private Integer favor;
+    private Integer comment;
     private Integer repost;
 }

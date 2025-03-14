@@ -6,9 +6,11 @@ package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
+import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.feign.api.DynamicFeignAPI;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
@@ -46,6 +48,9 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Autowired
     private CommentStatsRepository commentStatsRepository;
 
+    @Autowired
+    private DynamicFeignAPI dynamicFeignAPI;
+
     /**
      * @param req
      * @return
@@ -54,7 +59,11 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Override
     public Boolean saveCommentInfo(SaveCommentInfoReq req) {
         CommentInfo commentInfo = CommentInfoConverter.getInstance().copyFieldValue(req, CommentInfo.class);
-        return commentInfoRepository.saveCommentInfo(commentInfo);
+        Boolean b = commentInfoRepository.saveCommentInfo(commentInfo);
+
+        updateTargetStats(req.getUid(), req.getRelaType(), req.getRelaId());
+
+        return b;
     }
 
     /**
@@ -77,12 +86,15 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Override
     public Boolean favorCommentInfo(Integer cid, Integer uid) {
         // 当第一次保存时，表中不存在该条stats数据，这条revoke会更新一条"dew_count = -1"的统计数据导致报错
-        revokeDewCommentInfo(cid, uid);
-        return updateCommentInteract(
+//        revokeDewCommentInfo(cid, uid);
+        Boolean b = updateCommentInteract(
                 cid, uid,
                 uc -> uc.setFavor(1),
                 stats -> stats.setFavorCount(1L)
         );
+        // 放到这里可以解决上面的问题
+        revokeDewCommentInfo(cid, uid);
+        return b;
     }
 
     /**取消点赞评论
@@ -109,12 +121,13 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Transactional
     @Override
     public Boolean dewCommentInfo(Integer cid, Integer uid) {
-        revokeFavorCommentInfo(cid, uid);
-        return updateCommentInteract(
+        Boolean b = updateCommentInteract(
                 cid, uid,
                 uc -> uc.setDew(1),
                 stats -> stats.setDewCount(1L)
         );
+        revokeFavorCommentInfo(cid, uid);
+        return b;
     }
 
     /**
@@ -140,6 +153,9 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Override
     public QueryCommentInfoDTO queryCommentInfo(Integer cid) {
         CommentInfo commentInfo = commentInfoRepository.getCommentInfo(cid);
+        if (commentInfo == null) {
+            return null;
+        }
         return handleCommentInfo(Collections.singletonList(commentInfo)).get(0);
     }
 
@@ -156,6 +172,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                 );
 
         List<QueryCommentInfoDTO> dtoList = handleCommentInfo(commentInfoPage.getRecords());
+        queryCommentReplyCount(dtoList);
 
         return new PageDTO<>(
                 commentInfoPage.getCurrent(),
@@ -205,10 +222,30 @@ public class CommentInfoServiceImpl implements CommentInfoService {
 
         dtoList.forEach(dto -> {
             CommentStats stats = statsMap.get(dto.getCid());
-            dto.setFavorCount(stats.getFavorCount());
-            dto.setDewCount(stats.getDewCount());
+            if (stats != null) {
+                dto.setFavorCount(stats.getFavorCount());
+                dto.setDewCount(stats.getDewCount());
+            }
         });
         return dtoList;
+    }
+
+    /**
+     * 查询评论回复数量
+     * @param dtoList
+     */
+    private void queryCommentReplyCount(List<QueryCommentInfoDTO> dtoList) {
+        if (ListUtil.isEmpty(dtoList)) {
+            return;
+        }
+
+        List<Integer> cidList = dtoList.stream().map(QueryCommentInfoDTO::getCid).collect(Collectors.toList());
+        Map<Long, Long> replyCountMap = commentInfoRepository.countCommentInfoByParentRootId(cidList);
+        dtoList.forEach(dto -> {
+            Long count = replyCountMap.get(new Long(dto.getCid()));
+            dto.setReplyCount(count == null ? 0 : count);
+        });
+
     }
 
     /**
@@ -238,6 +275,37 @@ public class CommentInfoServiceImpl implements CommentInfoService {
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新评论互动关系数据异常");
+        }
+    }
+
+    /**
+     * 更新评论对象统计数据
+     * @param uid 发送用户ID
+     * @param relaType 评论对象类型 1视频 2动态 3评论（回复）
+     * @param relaId 评论对象ID
+     */
+    private void updateTargetStats(Integer uid, Integer relaType, Integer relaId) {
+        SimpleResponse<String> response = null;
+        switch (relaType) {
+            case 1:
+                // video
+                // todo: 更新视频评论统计数据
+                break;
+            case 2:
+                // dynamic
+                response = dynamicFeignAPI.comment(relaId, uid);
+                break;
+            case 3:
+                // comment reply
+
+                break;
+            default: break;
+        }
+
+        if (response == null) {
+            log.warn("更新评论对象统计数据失败");
+        } else if (response.isSuccess()) {
+            log.info("更新评论对象统计数据成功");
         }
     }
 

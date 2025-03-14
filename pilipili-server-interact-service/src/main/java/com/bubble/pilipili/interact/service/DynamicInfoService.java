@@ -20,6 +20,7 @@ public interface DynamicInfoService {
     Boolean deleteDynamicInfo(Integer did);
     Boolean favorDynamicInfo(Integer did, Integer uid);
     Boolean revokeFavorDynamicInfo(Integer did, Integer uid);
+    Boolean commentDynamicInfo(Integer did, Integer uid);
     Boolean repostDynamicInfo(Integer did, Integer uid);
 
     QueryDynamicInfoDTO queryDynamicInfoDTO(Integer did);

@@ -41,4 +41,14 @@ public class SimpleResponse<T> implements Response, Serializable {
     public static <T> SimpleResponse<T> error(String message) {
         return new SimpleResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), message, null);
     }
+
+    public boolean isSuccess() {
+        return code == HttpStatus.OK.value();
+    }
+//    public boolean isFailed() {
+//        return code == HttpStatus.BAD_REQUEST.value();
+//    }
+//    public boolean isError() {
+//        return code == HttpStatus.INTERNAL_SERVER_ERROR.value();
+//    }
 }
