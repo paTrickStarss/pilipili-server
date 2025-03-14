@@ -7,9 +7,11 @@ package com.bubble.pilipili.video.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.video.pojo.converter.VideoInfoConverter;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
+import com.bubble.pilipili.video.pojo.entity.UserVideo;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
 import com.bubble.pilipili.video.pojo.entity.VideoStats;
 import com.bubble.pilipili.video.pojo.param.QueryVideoInfoParam;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +52,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      * @param req
      * @return
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     @Override
     public Boolean saveVideoInfo(CreateVideoInfoReq req) {
         VideoInfo videoInfo = VideoInfoConverter.getInstance().copyFieldValue(req, VideoInfo.class);
@@ -61,7 +64,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      * @param req
      * @return
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     @Override
     public Boolean updateVideoInfo(UpdateVideoInfoReq req) {
         VideoInfo videoInfo = VideoInfoConverter.getInstance().copyFieldValue(req, VideoInfo.class);
@@ -75,10 +78,168 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     }
 
     /**
+     * 点赞视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean favorVideoInfo(Integer vid, Integer uid) {
+        Boolean b = updateVideoInteract(
+                vid, uid,
+                uv -> uv.setFavor(1),
+                stats -> stats.setFavorCount(1L)
+        );
+        revokeDewVideoInfo(vid, uid);
+        return b;
+    }
+
+    /**
+     * 取消点赞视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean revokeFavorVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setFavor(0),
+                stats -> stats.setFavorCount(-1L)
+        );
+    }
+
+    /**
+     * 投币视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean coinVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setCoin(1),
+                stats -> stats.setCoinCount(1L)
+        );
+    }
+
+    /**
+     * 收藏视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean collectVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setCollect(1),
+                stats -> stats.setCollectCount(1L)
+        );
+    }
+
+    /**
+     * 取消收藏
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean revokeCollectVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setCollect(0),
+                stats -> stats.setCollectCount(-1L)
+        );
+    }
+
+    /**
+     * 转发视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean repostVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setRepost(1),
+                stats -> stats.setRepostCount(1L)
+        );
+    }
+
+    /**
+     * 取消转发视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean revokeRepostVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setRepost(0),
+                stats -> stats.setRepostCount(-1L)
+        );
+    }
+
+    /**
+     * 点踩视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean dewVideoInfo(Integer vid, Integer uid) {
+        Boolean b = updateVideoInteract(
+                vid, uid,
+                uv -> uv.setDew(1),
+                stats -> stats.setDewCount(1L)
+        );
+        revokeFavorVideoInfo(vid, uid);
+        return b;
+    }
+
+    /**
+     * 取消点踩视频
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean revokeDewVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> uv.setDew(0),
+                stats -> stats.setDewCount(-1L)
+        );
+    }
+
+    /**
      * 删除视频信息
      * @param vid
      * @return
      */
+    @Transactional
     @Override
     public Boolean deleteVideoInfo(Integer vid) {
         return videoInfoRepository.deleteVideoInfo(vid);
@@ -182,19 +343,50 @@ public class VideoInfoServiceImpl implements VideoInfoService {
 
         // 获取视频统计数据
         List<Integer> vidList = dtoList.stream().map(QueryVideoInfoDTO::getVid).collect(Collectors.toList());
-        Map<Integer, VideoStats> statsMap = videoStatsRepository.getVideoStats(vidList);
+//        Map<Integer, VideoStats> statsMap = videoStatsRepository.getVideoStats(vidList);
+        Map<Integer, VideoStats> statsMap = videoStatsRepository.getStats(vidList);
         dtoList.forEach(dto -> {
-                    VideoStats stats = statsMap.get(dto.getVid());
-                    if (stats != null) {
-                        dto.setViewCount(stats.getViewCount());
-                        dto.setDanmakuCount(stats.getDanmakuCount());
-                        dto.setFavorCount(stats.getFavorCount());
-                        dto.setCoinCount(stats.getCoinCount());
-                        dto.setCollectCount(stats.getCollectCount());
-                        dto.setRepostCount(stats.getRepostCount());
-                        dto.setDewCount(stats.getDewCount());
-                    }
-                });
+            VideoStats stats = statsMap.get(dto.getVid());
+            if (stats != null) {
+                dto.setViewCount(stats.getViewCount());
+                dto.setDanmakuCount(stats.getDanmakuCount());
+                dto.setFavorCount(stats.getFavorCount());
+                dto.setCoinCount(stats.getCoinCount());
+                dto.setCollectCount(stats.getCollectCount());
+                dto.setRepostCount(stats.getRepostCount());
+                dto.setDewCount(stats.getDewCount());
+            }
+        });
         return dtoList;
+    }
+
+    /**
+     * 更新视频互动关系数据
+     * @param vid
+     * @param uid
+     * @param interactConsumer
+     * @param statsConsumer
+     * @return
+     */
+    private Boolean updateVideoInteract(
+            Integer vid, Integer uid,
+            Consumer<UserVideo> interactConsumer,
+            Consumer<VideoStats> statsConsumer
+    ) {
+        try {
+            return InteractStatsAction.updateInteract(
+                    UserVideo.class, VideoStats.class,
+                    vid, uid,
+                    UserVideo::setVid,
+                    userVideoRepository,
+                    interactConsumer,
+                    VideoStats::setVid,
+                    videoStatsRepository,
+                    statsConsumer
+            );
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new ServiceOperationException("更新视频互动关系数据异常");
+        }
     }
 }

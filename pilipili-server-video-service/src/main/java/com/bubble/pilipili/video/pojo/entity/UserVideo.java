@@ -5,9 +5,10 @@
 package com.bubble.pilipili.video.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
+import com.bubble.pilipili.common.pojo.InteractEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -17,20 +18,17 @@ import java.time.LocalDateTime;
  * @author Bubble
  * @date 2025.03.07 21:34
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("user_video")
-public class UserVideo {
+public class UserVideo extends InteractEntity {
 
     /**
      * 视频ID
      */
     private Integer vid;
-    /**
-     * 用户ID
-     */
-    private Integer uid;
     /**
      * 点赞
      */
@@ -52,14 +50,7 @@ public class UserVideo {
      */
     private Integer dew;
     /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-    /**
      * 最后一次观看时间
      */
     private LocalDateTime lastWatchTime;
-
-    @Version
-    private Integer version;
 }

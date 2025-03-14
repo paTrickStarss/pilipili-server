@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 /**
  * 视频管理控制器
@@ -54,6 +55,150 @@ public class VideoController implements Controller {
     @PutMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req) {
         Boolean b = videoInfoService.updateVideoInfo(req);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 点赞视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "点赞视频")
+    @PatchMapping("/favor")
+    public SimpleResponse<String> favor(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.favorVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消点赞视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "取消点赞视频")
+    @PatchMapping("/favorRevoke")
+    public SimpleResponse<String> favorRevoke(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.revokeFavorVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 投币视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "投币视频")
+    @PatchMapping("/coin")
+    public SimpleResponse<String> coin(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.coinVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 收藏视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "收藏视频")
+    @PatchMapping("/collect")
+    public SimpleResponse<String> collect(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.collectVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消收藏视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "取消收藏视频")
+    @PatchMapping("/collectRevoke")
+    public SimpleResponse<String> collectRevoke(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.revokeCollectVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 转发视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "转发视频")
+    @PatchMapping("/repost")
+    public SimpleResponse<String> repost(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.repostVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消转发视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "取消转发视频")
+    @PatchMapping("/repostRevoke")
+    public SimpleResponse<String> repostRevoke(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.revokeRepostVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 点踩视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "点踩视频")
+    @PatchMapping("/dew")
+    public SimpleResponse<String> dew(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.dewVideoInfo(vid, uid);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 取消点踩视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "取消点踩视频")
+    @PatchMapping("/dewRevoke")
+    public SimpleResponse<String> dewRevoke(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.revokeDewVideoInfo(vid, uid);
         return SimpleResponse.result(b);
     }
 

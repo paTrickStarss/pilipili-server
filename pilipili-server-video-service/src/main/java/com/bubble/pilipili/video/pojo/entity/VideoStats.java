@@ -6,23 +6,23 @@ package com.bubble.pilipili.video.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
+import com.bubble.pilipili.common.pojo.StatsEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
  * 视频统计数据实体类
  * @author Bubble
  * @date 2025.03.07 21:37
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("video_stats")
-public class VideoStats {
+public class VideoStats extends StatsEntity {
 
     /**
      * 视频ID
@@ -37,6 +37,10 @@ public class VideoStats {
      * 弹幕数
      */
     private Long danmakuCount;
+    /**
+     * 评论数
+     */
+    private Long commentCount;
     /**
      * 点赞数
      */
@@ -57,11 +61,5 @@ public class VideoStats {
      * 点踩数
      */
     private Long dewCount;
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
 
-    @Version
-    private Integer version;
 }

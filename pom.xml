@@ -28,6 +28,7 @@
         <module>pilipili-server-video-service</module>
         <module>pilipili-server-interact-service</module>
         <module>pilipili-server-feign-api</module>
+        <module>pilipili-server-mq-service</module>
     </modules>
 
     <properties>

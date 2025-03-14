@@ -95,6 +95,10 @@ public class QueryVideoInfoDTO implements Serializable {
      */
     private Long danmakuCount = 0L;
     /**
+     * 评论数
+     */
+    private Long commentCount = 0L;
+    /**
      * 点赞数
      */
     private Long favorCount = 0L;

@@ -25,10 +25,6 @@ public class UpdateVideoInfoReq {
      * 视频ID
      */
     private Integer vid;
-//    /**
-//     * 投稿用户ID
-//     */
-//    private Integer uid;
     /**
      * 视频标题
      */
@@ -73,14 +69,6 @@ public class UpdateVideoInfoReq {
      * 视频状态：0审核中 1审核通过 2审核不通过 3下架
      */
     private Integer status;
-//    /**
-//     * 投稿时间
-//     */
-//    private LocalDateTime uploadTime;
-//    /**
-//     * 最后一次更新时间
-//     */
-//    private LocalDateTime updateTime;
     /**
      * 发布时间（过审时间/定时发布时间）
      */
