@@ -2,11 +2,8 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.pojo.entity;
+package com.bubble.pilipili.mq.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.bubble.pilipili.common.pojo.StatsEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,16 +11,13 @@ import lombok.NoArgsConstructor;
 
 /**
  * @author Bubble
- * @date 2025.03.09 20:49
+ * @date 2025.03.15 14:48
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("dynamic_stats")
-public class DynamicStats extends StatsEntity {
-
-    @TableId
+public class DynamicStatsMessage extends StatsMessage {
     private Integer did;
     private Long favorCount;
     private Long commentCount;

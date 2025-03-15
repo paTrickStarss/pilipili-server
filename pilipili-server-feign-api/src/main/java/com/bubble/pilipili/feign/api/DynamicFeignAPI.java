@@ -6,6 +6,7 @@ package com.bubble.pilipili.feign.api;
 
 import com.bubble.pilipili.common.http.SimpleResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,7 @@ import javax.validation.Valid;
  * @date 2025.03.14 14:43
  */
 @FeignClient("interact-service")
+@Tag(name = "DynamicFeignAPI", description = "动态管理服务远程调用客户端")
 public interface DynamicFeignAPI {
 
     /**

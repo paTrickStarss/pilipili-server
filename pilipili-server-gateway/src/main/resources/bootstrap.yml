@@ -61,6 +61,11 @@ spring:
           predicates:
             - Path=/api/interact/**
 
+        - id: mq-service
+          uri: lb://mq-service
+          predicates:
+            - Path=/mq/**
+
         - id: user-service-doc
           uri: lb://user-service
           predicates:
@@ -79,6 +84,13 @@ spring:
           uri: lb://interact-service
           predicates:
             - Path=/doc/interact/**
+          filters:
+            - StripPrefix=1
+
+        - id: mq-service-doc
+          uri: lb://mq-service
+          predicates:
+            - Path=/doc/mq/**
           filters:
             - StripPrefix=1
 
