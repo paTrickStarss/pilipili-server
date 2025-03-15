@@ -23,13 +23,10 @@ public class InteractStatsAction {
     /**
      * 更新互动数据
      * @param interactClz 互动实体类
-     * @param statsClz 统计数据实体类
      * @param id 互动对象ID
      * @param uid 用户ID
      * @param interactEntityRepository 互动对象Repository实例
      * @param userInteractConsumer 互动对象初始化操作
-     * @param statsEntityRepository 统计数据Repository实例
-     * @param statsConsumer 统计数据对象初始化操作
      * @return 是否更新成功
      * @param <T> 互动实体类
      * @param <S> 统计数据实体类
@@ -37,27 +34,24 @@ public class InteractStatsAction {
      * @throws IllegalAccessException
      */
     public static <T extends InteractEntity, S extends StatsEntity> Boolean updateInteract(
-            Class<T> interactClz, Class<S> statsClz,
+            Class<T> interactClz,
             Integer id, Integer uid,
             BiConsumer<T, Integer> InteractIdSetter,
             InteractEntityRepository<T> interactEntityRepository,
-            Consumer<T> userInteractConsumer,
-            BiConsumer<S, Integer> statsIdSetter,
-            StatsEntityRepository<S> statsEntityRepository,
-            Consumer<S> statsConsumer
+            Consumer<T> userInteractConsumer
     ) throws InstantiationException, IllegalAccessException {
 
         Boolean b = interactEntityRepository.saveInteract(
                 generateInteractEntity(interactClz, id, uid, InteractIdSetter, userInteractConsumer)
         );
-        if (b) {
-            //  当新增了一条revoke记录时，若是第一次新增互动关系，则不能执行-1更新（已在service层规避）
-            // 更新统计数据
-            updateStats(statsClz, id, statsIdSetter, statsConsumer, statsEntityRepository);
-        }
-        // 没有触发更新，即互动关系已经保存，无需重复更新
+//        if (b) {
+//            //  当新增了一条revoke记录时，若是第一次新增互动关系，则不能执行-1更新（已在service层规避）
+//            // 更新统计数据
+//            updateStats(statsClz, id, statsIdSetter, statsConsumer, statsEntityRepository);
+//        }
+//        // 没有触发更新，即互动关系已经保存，无需重复更新
 
-        return true;
+        return b;
     }
 
     /**
@@ -83,7 +77,7 @@ public class InteractStatsAction {
     }
 
     /**
-     * 更新统计数据
+     * 更新统计数据（被MQ消费者调用）
      * @param id
      * @todo 统计数据的更新考虑使用消息队列实现
      * @param consumer

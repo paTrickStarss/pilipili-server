@@ -7,23 +7,25 @@ package com.bubble.pilipili.interact.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.RepositoryException;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
+import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
 import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicAttachDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.DynamicAttach;
 import com.bubble.pilipili.interact.pojo.entity.DynamicInfo;
-import com.bubble.pilipili.interact.pojo.entity.DynamicStats;
+import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicAttachReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.repository.DynamicAttachRepository;
 import com.bubble.pilipili.interact.repository.DynamicInfoRepository;
-import com.bubble.pilipili.interact.repository.DynamicStatsRepository;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +55,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     @Autowired
     private UserDynamicRepository userDynamicRepository;
     @Autowired
-    private DynamicStatsRepository dynamicStatsRepository;
+    private StatsFeignAPI statsFeignAPI;
 
     @Autowired
     private ThreadPoolTaskExecutor bubbleThreadPool;
@@ -240,7 +242,10 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
 //        查询附件信息
         List<DynamicAttach> attachList = dynamicAttachRepository.listDynamicAttachByDid(did);
 //        查询统计数据
-        DynamicStats stats = dynamicStatsRepository.getStats(Collections.singletonList(did)).get(did);
+        SimpleResponse<QueryStatsDTO<DynamicStats>> response =
+                statsFeignAPI.getDynamicStats(Collections.singletonList(did));
+        response.getData().getStatsMap().get(0);
+        DynamicStats stats = response.getData().getStatsMap().get(0);
 
         QueryDynamicInfoDTO dto =
                 DynamicInfoConverter.getInstance().copyFieldValue(dynamicInfo, QueryDynamicInfoDTO.class);
@@ -284,7 +289,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
 
         List<Integer> didList = dynamicInfoList.stream().map(DynamicInfo::getDid).collect(Collectors.toList());
         // 查询统计数据
-        Map<Integer, DynamicStats> statsMap = dynamicStatsRepository.getStats(didList);
+        Map<Integer, DynamicStats> statsMap = statsFeignAPI.getDynamicStats(didList).getData().getStatsMap();
         // 查询附件信息
         Map<Integer, List<DynamicAttach>> attachMap =
                 dynamicAttachRepository.listDynamicAttachByDid(didList);
@@ -326,15 +331,13 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     ) {
         try {
             return InteractStatsAction.updateInteract(
-                    UserDynamic.class, DynamicStats.class,
+                    UserDynamic.class,
                     did, uid,
                     UserDynamic::setDid,
                     userDynamicRepository,
-                    interactConsumer,
-                    DynamicStats::setDid,
-                    dynamicStatsRepository,
-                    statsConsumer
+                    interactConsumer
             );
+            // todo: 推送动态统计数据更新信息
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新用户动态互动关系数据异常");

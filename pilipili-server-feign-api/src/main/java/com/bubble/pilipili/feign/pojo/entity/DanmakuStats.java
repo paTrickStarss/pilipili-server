@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.pojo.entity;
+package com.bubble.pilipili.feign.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -14,18 +14,17 @@ import lombok.NoArgsConstructor;
 
 /**
  * @author Bubble
- * @date 2025.03.09 17:53
+ * @date 2025.03.09 20:33
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("comment_stats")
-public class CommentStats extends StatsEntity {
+@TableName("danmaku_stats")
+public class DanmakuStats extends StatsEntity {
 
     @TableId
-    private Integer cid;
+    private Integer danmakuId;
     private Long favorCount;
     private Long dewCount;
-
 }

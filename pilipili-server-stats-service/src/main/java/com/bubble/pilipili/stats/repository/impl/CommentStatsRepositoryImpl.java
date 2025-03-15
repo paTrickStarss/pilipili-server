@@ -2,12 +2,12 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.repository.impl;
+package com.bubble.pilipili.stats.repository.impl;
 
 import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
-import com.bubble.pilipili.interact.mapper.CommentStatsMapper;
-import com.bubble.pilipili.interact.pojo.entity.CommentStats;
-import com.bubble.pilipili.interact.repository.CommentStatsRepository;
+import com.bubble.pilipili.feign.pojo.entity.CommentStats;
+import com.bubble.pilipili.stats.mapper.CommentStatsMapper;
+import com.bubble.pilipili.stats.repository.CommentStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

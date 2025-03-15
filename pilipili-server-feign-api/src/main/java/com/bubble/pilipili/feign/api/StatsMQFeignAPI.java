@@ -29,7 +29,7 @@ public interface StatsMQFeignAPI {
      * @return
      */
     @Operation(summary = "发送评论统计数据消息")
-    @PostMapping("/comment")
+    @PostMapping("/mq/stats/comment")
     SimpleResponse<String> sendCommentStats(@Valid @RequestBody SendCommentStatsReq req);
 
     /**
@@ -38,7 +38,7 @@ public interface StatsMQFeignAPI {
      * @return
      */
     @Operation(summary = "发送动态统计数据消息")
-    @PostMapping("/dynamic")
+    @PostMapping("/mq/stats/dynamic")
     SimpleResponse<String> sendDynamicStats(@Valid @RequestBody SendDynamicStatsReq req);
 
     /**
@@ -47,7 +47,7 @@ public interface StatsMQFeignAPI {
      * @return
      */
     @Operation(summary = "发送弹幕统计数据消息")
-    @PostMapping("/danmaku")
+    @PostMapping("/mq/stats/danmaku")
     SimpleResponse<String> sendDanmakuStats(@Valid @RequestBody SendDanmakuStatsReq req);
 
     /**
@@ -56,6 +56,6 @@ public interface StatsMQFeignAPI {
      * @return
      */
     @Operation(summary = "发送视频统计数据消息")
-    @PostMapping("/video")
+    @PostMapping("/mq/stats/video")
     SimpleResponse<String> sendVideoStats(@Valid @RequestBody SendVideoStatsReq req);
 }

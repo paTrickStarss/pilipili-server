@@ -4,8 +4,10 @@
 
 package com.bubble.pilipili.mq.controller;
 
+import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.converter.BaseConverter;
+import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.req.SendCommentStatsReq;
 import com.bubble.pilipili.feign.pojo.req.SendDanmakuStatsReq;
 import com.bubble.pilipili.feign.pojo.req.SendDynamicStatsReq;
@@ -33,7 +35,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/mq/stats")
 @Tag(name = "StatsMQController", description = "统计数据消息发送管理接口")
-public class StatsMQController {
+public class StatsMQController implements StatsMQFeignAPI, Controller {
 
     @Autowired
     private StatsMessageProducer statsMessageProducer;

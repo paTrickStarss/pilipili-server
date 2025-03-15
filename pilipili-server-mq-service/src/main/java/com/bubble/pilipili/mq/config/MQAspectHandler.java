@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.video.config;
+package com.bubble.pilipili.mq.config;
 
 import com.bubble.pilipili.common.util.AspectHandlerAction;
 import com.bubble.pilipili.common.util.ClassScanner;
@@ -17,24 +17,21 @@ import java.util.Map;
 
 /**
  * @author Bubble
- * @date 2025/01/24 16:12
+ * @date 2025.03.15 21:17
  */
 @Aspect
 @Slf4j
 @Configuration
-public class VideoAspectHandler {
-
+public class MQAspectHandler {
     private Map<String, String> pathMap;
 
     @PostConstruct
     private void init(){
-        pathMap = ClassScanner.scanControllerPath("com.bubble.pilipili.video.controller");
+        pathMap = ClassScanner.scanControllerPath("com.bubble.pilipili.mq.controller");
     }
 
     @Around("execution(* com.bubble.pilipili.common.http.Controller+.*(..))")
     public Object LoggingHandler(ProceedingJoinPoint joinPoint) throws Throwable {
         return AspectHandlerAction.controllerLoggingAction(joinPoint, pathMap);
     }
-
-
 }

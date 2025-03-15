@@ -2,12 +2,12 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.repository.impl;
+package com.bubble.pilipili.stats.repository.impl;
 
 import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
-import com.bubble.pilipili.interact.mapper.DanmakuStatsMapper;
-import com.bubble.pilipili.interact.pojo.entity.DanmakuStats;
-import com.bubble.pilipili.interact.repository.DanmakuStatsRepository;
+import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
+import com.bubble.pilipili.stats.mapper.DanmakuStatsMapper;
+import com.bubble.pilipili.stats.repository.DanmakuStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

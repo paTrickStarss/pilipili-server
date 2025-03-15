@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2024-2025. Bubble
+  ~ Copyright (c) 2025. Bubble
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -13,7 +13,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>pilipili-server-video-service</artifactId>
+    <artifactId>pilipili-server-stats-service</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -30,11 +30,6 @@
         <dependency>
             <groupId>com.bubble</groupId>
             <artifactId>pilipili-server-feign-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.bubble</groupId>
-            <artifactId>pilipili-server-stats-service</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

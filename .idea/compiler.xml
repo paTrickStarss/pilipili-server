@@ -12,6 +12,7 @@
         <module name="pilipili-server-gateway" />
         <module name="pilipili-server-mq-service" />
         <module name="pilipili-server-user-service" />
+        <module name="pilipili-server-stats-service" />
         <module name="pilipili-server-auth" />
         <module name="pilipili-server-common" />
         <module name="pilipili-server-interact-service" />
@@ -26,6 +27,7 @@
       <module name="pilipili-server-gateway" options="-parameters" />
       <module name="pilipili-server-interact-service" options="-parameters" />
       <module name="pilipili-server-mq-service" options="-parameters" />
+      <module name="pilipili-server-stats-service" options="-parameters" />
       <module name="pilipili-server-user-service" options="-parameters" />
       <module name="pilipili-server-video-service" options="-parameters" />
     </option>

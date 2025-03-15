@@ -2,12 +2,12 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.video.repository.impl;
+package com.bubble.pilipili.stats.repository.impl;
 
 import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
-import com.bubble.pilipili.video.mapper.VideoStatsMapper;
-import com.bubble.pilipili.video.pojo.entity.VideoStats;
-import com.bubble.pilipili.video.repository.VideoStatsRepository;
+import com.bubble.pilipili.stats.mapper.VideoStatsMapper;
+import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.stats.repository.VideoStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,29 +23,6 @@ public class VideoStatsRepositoryImpl implements VideoStatsRepository {
 
     @Autowired
     private VideoStatsMapper videoStatsMapper;
-
-//    /**
-//     * 保存视频统计数据
-//     * @param videoStats
-//     * @return
-//     */
-//    @Override
-//    public Boolean saveVideoStats(VideoStats videoStats) {
-//        return videoStatsMapper.insertOrUpdate(videoStats);
-//    }
-//
-//    /**
-//     * 批量获取视频统计数据（直接从表中查询）
-//     * @param vidList
-//     * @return
-//     */
-//    @Override
-//    public Map<Integer, VideoStats> getVideoStats(List<Integer> vidList) {
-//        return videoStatsMapper.selectList(
-//                new LambdaQueryWrapper<VideoStats>()
-//                        .in(VideoStats::getVid, vidList)
-//        ).stream().collect(Collectors.toMap(VideoStats::getVid, Function.identity()));
-//    }
 
     /**
      * 保存统计数据

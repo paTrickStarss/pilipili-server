@@ -6,21 +6,25 @@ package com.bubble.pilipili.video.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
+import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
+import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
+import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
+import com.bubble.pilipili.feign.pojo.entity.VideoStats;
 import com.bubble.pilipili.video.pojo.converter.VideoInfoConverter;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.entity.UserVideo;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
-import com.bubble.pilipili.video.pojo.entity.VideoStats;
 import com.bubble.pilipili.video.pojo.param.QueryVideoInfoParam;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
 import com.bubble.pilipili.video.repository.UserVideoRepository;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
-import com.bubble.pilipili.video.repository.VideoStatsRepository;
 import com.bubble.pilipili.video.service.VideoInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +48,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private VideoInfoRepository videoInfoRepository;
     @Autowired
     private UserVideoRepository userVideoRepository;
+
     @Autowired
-    private VideoStatsRepository videoStatsRepository;
+    private StatsMQFeignAPI statsMQFeignAPI;
+    @Autowired
+    private StatsFeignAPI statsFeignAPI;
 
     /**
      * 新增视频信息
@@ -336,15 +343,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 VideoInfoConverter.getInstance().copyFieldValueList(
                         videoInfoList, QueryVideoInfoDTO.class);
 
-        // map映射后顺序会被打乱
-//        Map<Integer, QueryVideoInfoDTO> dtoMap = dtoList.stream().collect(Collectors.toMap(
-//                QueryVideoInfoDTO::getVid, Function.identity(), (a, b) -> b
-//        ));
-
         // 获取视频统计数据
         List<Integer> vidList = dtoList.stream().map(QueryVideoInfoDTO::getVid).collect(Collectors.toList());
-//        Map<Integer, VideoStats> statsMap = videoStatsRepository.getVideoStats(vidList);
-        Map<Integer, VideoStats> statsMap = videoStatsRepository.getStats(vidList);
+        // ok: feignAPI获取视频统计数据
+        SimpleResponse<QueryStatsDTO<VideoStats>> response = statsFeignAPI.getVideoStats(vidList);
+        Map<Integer, VideoStats> statsMap = response.getData().getStatsMap();
         dtoList.forEach(dto -> {
             VideoStats stats = statsMap.get(dto.getVid());
             if (stats != null) {
@@ -374,16 +377,23 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             Consumer<VideoStats> statsConsumer
     ) {
         try {
-            return InteractStatsAction.updateInteract(
-                    UserVideo.class, VideoStats.class,
+            Boolean b = InteractStatsAction.updateInteract(
+                    UserVideo.class,
                     vid, uid,
                     UserVideo::setVid,
                     userVideoRepository,
-                    interactConsumer,
-                    VideoStats::setVid,
-                    videoStatsRepository,
-                    statsConsumer
+                    interactConsumer
             );
+            if (b) {
+                // 推送统计数据更新消息
+                VideoStats stats = new VideoStats();
+                statsConsumer.accept(stats);
+                SendVideoStatsReq req =
+                        VideoInfoConverter.getInstance().copyFieldValue(stats, SendVideoStatsReq.class);
+                req.setVid(vid);
+                statsMQFeignAPI.sendVideoStats(req);
+            }
+            return b;
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新视频互动关系数据异常");

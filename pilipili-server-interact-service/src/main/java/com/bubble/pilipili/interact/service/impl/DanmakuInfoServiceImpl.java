@@ -9,13 +9,14 @@ import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.interact.pojo.converter.DanmakuInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.*;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDanmakuInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDanmakuInfoReq;
 import com.bubble.pilipili.interact.repository.DanmakuInfoRepository;
-import com.bubble.pilipili.interact.repository.DanmakuStatsRepository;
 import com.bubble.pilipili.interact.repository.UserDanmakuRepository;
 import com.bubble.pilipili.interact.service.DanmakuInfoService;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     @Autowired
     private UserDanmakuRepository userDanmakuRepository;
     @Autowired
-    private DanmakuStatsRepository danmakuStatsRepository;
+    private StatsFeignAPI statsFeignAPI;
 
     /**
      * 保存弹幕信息
@@ -217,7 +218,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
         }
 
         List<Integer> idList = danmakuInfoList.stream().map(DanmakuInfo::getDanmakuId).collect(Collectors.toList());
-        Map<Integer, DanmakuStats> statsMap = danmakuStatsRepository.getStats(idList);
+        Map<Integer, DanmakuStats> statsMap = statsFeignAPI.getDanmakuStats(idList).getData().getStatsMap();
         List<QueryDanmakuInfoDTO> dtoList =
                 DanmakuInfoConverter.getInstance().copyFieldValueList(danmakuInfoList, QueryDanmakuInfoDTO.class);
         dtoList.forEach(dto -> {
@@ -246,15 +247,13 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     ) {
         try {
             return InteractStatsAction.updateInteract(
-                    UserDanmaku.class, DanmakuStats.class,
+                    UserDanmaku.class,
                     danmakuId, uid,
                     UserDanmaku::setDanmakuId,
                     userDanmakuRepository,
-                    interactConsumer,
-                    DanmakuStats::setDanmakuId,
-                    danmakuStatsRepository,
-                    statsConsumer
+                    interactConsumer
             );
+            // todo: 推送弹幕统计数据更新信息
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新弹幕互动关系数据异常");

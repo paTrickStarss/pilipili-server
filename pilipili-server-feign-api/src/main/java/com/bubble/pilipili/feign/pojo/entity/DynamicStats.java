@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.interact.pojo.entity;
+package com.bubble.pilipili.feign.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

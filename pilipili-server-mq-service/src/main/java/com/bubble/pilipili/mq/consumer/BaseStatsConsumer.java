@@ -83,8 +83,6 @@ public abstract class BaseStatsConsumer<T extends StatsMessage> {
         }
     }
 
-
-
     /**
      * 获取消息体
      * @param msg

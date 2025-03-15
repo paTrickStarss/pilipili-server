@@ -11,15 +11,15 @@ import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.DynamicFeignAPI;
+import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
-import com.bubble.pilipili.interact.pojo.entity.CommentStats;
+import com.bubble.pilipili.feign.pojo.entity.CommentStats;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
 import com.bubble.pilipili.interact.repository.CommentInfoRepository;
-import com.bubble.pilipili.interact.repository.CommentStatsRepository;
 import com.bubble.pilipili.interact.repository.UserCommentRepository;
 import com.bubble.pilipili.interact.service.CommentInfoService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +45,10 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     private CommentInfoRepository commentInfoRepository;
     @Autowired
     private UserCommentRepository userCommentRepository;
-    @Autowired
-    private CommentStatsRepository commentStatsRepository;
 
+
+    @Autowired
+    private StatsFeignAPI statsFeignAPI;
     @Autowired
     private DynamicFeignAPI dynamicFeignAPI;
 
@@ -215,7 +216,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
         }
 
         List<Integer> cidList = commentInfoList.stream().map(CommentInfo::getCid).collect(Collectors.toList());
-        Map<Integer, CommentStats> statsMap = commentStatsRepository.getStats(cidList);
+        Map<Integer, CommentStats> statsMap = statsFeignAPI.getCommentStats(cidList).getData().getStatsMap();
 
         List<QueryCommentInfoDTO> dtoList = CommentInfoConverter.getInstance()
                 .copyFieldValueList(commentInfoList, QueryCommentInfoDTO.class);
@@ -263,15 +264,13 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     ) {
         try {
             return InteractStatsAction.updateInteract(
-                    UserComment.class, CommentStats.class,
+                    UserComment.class,
                     cid, uid,
                     UserComment::setCid,
                     userCommentRepository,
-                    interactConsumer,
-                    CommentStats::setCid,
-                    commentStatsRepository,
-                    statsConsumer
+                    interactConsumer
             );
+            // todo: 推送评论统计数据更新信息
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新评论互动关系数据异常");
