@@ -18,7 +18,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DanmakuStatsMessage extends StatsMessage {
-    private Integer danmakuId;
-    private Long favorCount;
-    private Long dewCount;
+    private Integer danmakuId = 0;
+    private Long favorCount = 0L;
+    private Long dewCount = 0L;
+
+    public Integer getDanmakuId() {
+        return danmakuId == null ? 0 : danmakuId;
+    }
+
+    public Long getFavorCount() {
+        return favorCount == null ? 0 : favorCount;
+    }
+
+    public Long getDewCount() {
+        return dewCount == null ? 0 : dewCount;
+    }
 }

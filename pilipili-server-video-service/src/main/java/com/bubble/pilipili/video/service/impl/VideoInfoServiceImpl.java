@@ -29,7 +29,9 @@ import com.bubble.pilipili.video.service.VideoInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -48,6 +50,9 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private VideoInfoRepository videoInfoRepository;
     @Autowired
     private UserVideoRepository userVideoRepository;
+
+    @Autowired
+    private InteractStatsAction interactStatsAction;
 
     @Autowired
     private StatsMQFeignAPI statsMQFeignAPI;
@@ -91,7 +96,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      * @param uid
      * @return
      */
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public Boolean favorVideoInfo(Integer vid, Integer uid) {
         Boolean b = updateVideoInteract(
@@ -99,7 +104,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 uv -> uv.setFavor(1),
                 stats -> stats.setFavorCount(1L)
         );
-        revokeDewVideoInfo(vid, uid);
+//        revokeDewVideoInfo(vid, uid);
         return b;
     }
 
@@ -220,7 +225,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 uv -> uv.setDew(1),
                 stats -> stats.setDewCount(1L)
         );
-        revokeFavorVideoInfo(vid, uid);
+//        revokeFavorVideoInfo(vid, uid);
         return b;
     }
 
@@ -377,7 +382,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             Consumer<VideoStats> statsConsumer
     ) {
         try {
-            Boolean b = InteractStatsAction.updateInteract(
+            Boolean b = interactStatsAction.updateInteract(
                     UserVideo.class,
                     vid, uid,
                     UserVideo::setVid,
@@ -393,8 +398,9 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 req.setVid(vid);
                 statsMQFeignAPI.sendVideoStats(req);
             }
-            return b;
+            return true;
         } catch (Exception e) {
+            e.printStackTrace();
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新视频互动关系数据异常");
         }

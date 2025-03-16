@@ -12,7 +12,9 @@ import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
+import com.bubble.pilipili.feign.pojo.req.SendDynamicStatsReq;
 import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
 import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicAttachDTO;
@@ -55,7 +57,12 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     @Autowired
     private UserDynamicRepository userDynamicRepository;
     @Autowired
+    private InteractStatsAction interactStatsAction;
+
+    @Autowired
     private StatsFeignAPI statsFeignAPI;
+    @Autowired
+    private StatsMQFeignAPI statsMQFeignAPI;
 
     @Autowired
     private ThreadPoolTaskExecutor bubbleThreadPool;
@@ -330,7 +337,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
             Consumer<DynamicStats> statsConsumer
     ) {
         try {
-            return InteractStatsAction.updateInteract(
+            Boolean b = interactStatsAction.updateInteract(
                     UserDynamic.class,
                     did, uid,
                     UserDynamic::setDid,
@@ -338,6 +345,15 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                     interactConsumer
             );
             // todo: 推送动态统计数据更新信息
+            if (b) {
+                DynamicStats stats = new DynamicStats();
+                statsConsumer.accept(stats);
+                SendDynamicStatsReq req =
+                        DynamicInfoConverter.getInstance().copyFieldValue(stats, SendDynamicStatsReq.class);
+                req.setDid(did);
+                statsMQFeignAPI.sendDynamicStats(req);
+            }
+            return b;
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新用户动态互动关系数据异常");

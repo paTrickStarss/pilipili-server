@@ -10,7 +10,9 @@ import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
+import com.bubble.pilipili.feign.pojo.req.SendDanmakuStatsReq;
 import com.bubble.pilipili.interact.pojo.converter.DanmakuInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.*;
@@ -42,6 +44,11 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     private DanmakuInfoRepository danmakuInfoRepository;
     @Autowired
     private UserDanmakuRepository userDanmakuRepository;
+    @Autowired
+    private InteractStatsAction interactStatsAction;
+
+    @Autowired
+    private StatsMQFeignAPI statsMQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
 
@@ -246,7 +253,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
             Consumer<DanmakuStats> statsConsumer
     ) {
         try {
-            return InteractStatsAction.updateInteract(
+            Boolean b = interactStatsAction.updateInteract(
                     UserDanmaku.class,
                     danmakuId, uid,
                     UserDanmaku::setDanmakuId,
@@ -254,6 +261,15 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
                     interactConsumer
             );
             // todo: 推送弹幕统计数据更新信息
+            if (b) {
+                DanmakuStats stats = new DanmakuStats();
+                statsConsumer.accept(stats);
+                SendDanmakuStatsReq req =
+                        DanmakuInfoConverter.getInstance().copyFieldValue(stats, SendDanmakuStatsReq.class);
+                req.setDanmakuId(danmakuId);
+                statsMQFeignAPI.sendDanmakuStats(req);
+            }
+            return b;
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新弹幕互动关系数据异常");

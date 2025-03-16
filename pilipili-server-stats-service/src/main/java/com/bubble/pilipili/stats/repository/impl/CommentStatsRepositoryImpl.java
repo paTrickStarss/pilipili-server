@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.stats.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.feign.pojo.entity.CommentStats;
 import com.bubble.pilipili.stats.mapper.CommentStatsMapper;
 import com.bubble.pilipili.stats.repository.CommentStatsRepository;
@@ -23,6 +23,8 @@ public class CommentStatsRepositoryImpl implements CommentStatsRepository {
 
     @Autowired
     private CommentStatsMapper commentStatsMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存统计数据
@@ -33,7 +35,7 @@ public class CommentStatsRepositoryImpl implements CommentStatsRepository {
     @Override
     public Boolean saveStats(CommentStats entity) {
 //        return commentStatsMapper.insertOrUpdate(entity);
-        return CommonRepoImpl.saveStats(
+        return commonRepository.saveStats(
                 entity,
                 commentStatsMapper,
                 CommentStats::getCid,
@@ -50,6 +52,6 @@ public class CommentStatsRepositoryImpl implements CommentStatsRepository {
      */
     @Override
     public Map<Integer, CommentStats> getStats(List<Integer> idList) {
-        return CommonRepoImpl.getStats(idList, CommentStats::getCid, commentStatsMapper);
+        return commonRepository.getStats(idList, CommentStats::getCid, commentStatsMapper);
     }
 }

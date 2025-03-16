@@ -12,6 +12,8 @@ import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.DynamicFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
+import com.bubble.pilipili.feign.pojo.req.SendCommentStatsReq;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
@@ -45,8 +47,12 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     private CommentInfoRepository commentInfoRepository;
     @Autowired
     private UserCommentRepository userCommentRepository;
+    @Autowired
+    private InteractStatsAction interactStatsAction;
 
 
+    @Autowired
+    private StatsMQFeignAPI statsMQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
     @Autowired
@@ -263,7 +269,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
             Consumer<CommentStats> statsConsumer
     ) {
         try {
-            return InteractStatsAction.updateInteract(
+            Boolean b = interactStatsAction.updateInteract(
                     UserComment.class,
                     cid, uid,
                     UserComment::setCid,
@@ -271,6 +277,15 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                     interactConsumer
             );
             // todo: 推送评论统计数据更新信息
+            if (b) {
+                CommentStats stats = new CommentStats();
+                statsConsumer.accept(stats);
+                SendCommentStatsReq req =
+                        CommentInfoConverter.getInstance().copyFieldValue(stats, SendCommentStatsReq.class);
+                req.setCid(cid);
+                statsMQFeignAPI.sendCommentStats(req);
+            }
+            return b;
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新评论互动关系数据异常");

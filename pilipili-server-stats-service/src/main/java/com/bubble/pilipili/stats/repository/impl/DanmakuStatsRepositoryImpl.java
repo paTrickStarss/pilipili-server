@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.stats.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.stats.mapper.DanmakuStatsMapper;
 import com.bubble.pilipili.stats.repository.DanmakuStatsRepository;
@@ -23,6 +23,8 @@ public class DanmakuStatsRepositoryImpl implements DanmakuStatsRepository {
 
     @Autowired
     private DanmakuStatsMapper danmakuStatsMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存统计数据
@@ -33,7 +35,7 @@ public class DanmakuStatsRepositoryImpl implements DanmakuStatsRepository {
     @Override
     public Boolean saveStats(DanmakuStats entity) {
 //        return danmakuStatsMapper.insertOrUpdate(entity);
-        return CommonRepoImpl.saveStats(
+        return commonRepository.saveStats(
                 entity,
                 danmakuStatsMapper,
                 DanmakuStats::getDanmakuId,
@@ -50,6 +52,6 @@ public class DanmakuStatsRepositoryImpl implements DanmakuStatsRepository {
      */
     @Override
     public Map<Integer, DanmakuStats> getStats(List<Integer> idList) {
-        return CommonRepoImpl.getStats(idList, DanmakuStats::getDanmakuId, danmakuStatsMapper);
+        return commonRepository.getStats(idList, DanmakuStats::getDanmakuId, danmakuStatsMapper);
     }
 }

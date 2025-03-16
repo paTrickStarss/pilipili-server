@@ -6,8 +6,8 @@ package com.bubble.pilipili.user.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.user.mapper.UserRelaMapper;
 import com.bubble.pilipili.user.pojo.entity.UserRela;
@@ -37,17 +37,20 @@ public class UserRelaRepositoryImpl implements UserRelaRepository {
      */
     @Override
     public Boolean saveUserRela(UserRela userRela) {
-        return CommonRepoImpl.save(
-                userRela,
-                UserRela::getFromUid,
-                UserRela::getToUid,
-                (updateWrapper, entity) -> {
-                    if (entity.getSpecial() != null) {
-                        updateWrapper.set(UserRela::getSpecial, entity.getSpecial());
-                    }
-                },
-                userRelaMapper
-        );
+        LambdaQueryWrapper<UserRela> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserRela::getFromUid, userRela.getFromUid());
+        queryWrapper.eq(UserRela::getToUid, userRela.getToUid());
+        boolean exists = userRelaMapper.exists(queryWrapper);
+        if (exists) {
+            LambdaUpdateWrapper<UserRela> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(UserRela::getFromUid, userRela.getFromUid());
+            updateWrapper.eq(UserRela::getToUid, userRela.getToUid());
+            updateWrapper.set(UserRela::getSpecial, userRela.getSpecial());
+
+            return userRelaMapper.update(userRela, updateWrapper) == 1;
+        } else {
+            return userRelaMapper.insert(userRela) == 1;
+        }
     }
 
     /**

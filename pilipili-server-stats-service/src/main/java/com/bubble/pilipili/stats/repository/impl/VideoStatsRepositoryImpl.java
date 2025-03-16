@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.stats.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.stats.mapper.VideoStatsMapper;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
 import com.bubble.pilipili.stats.repository.VideoStatsRepository;
@@ -23,6 +23,8 @@ public class VideoStatsRepositoryImpl implements VideoStatsRepository {
 
     @Autowired
     private VideoStatsMapper videoStatsMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存统计数据
@@ -32,7 +34,7 @@ public class VideoStatsRepositoryImpl implements VideoStatsRepository {
      */
     @Override
     public Boolean saveStats(VideoStats entity) {
-        return CommonRepoImpl.saveStats(
+        return commonRepository.saveStats(
                 entity,
                 videoStatsMapper,
                 VideoStats::getVid,
@@ -54,6 +56,6 @@ public class VideoStatsRepositoryImpl implements VideoStatsRepository {
      */
     @Override
     public Map<Integer, VideoStats> getStats(List<Integer> idList) {
-        return CommonRepoImpl.getStats(idList, VideoStats::getVid, videoStatsMapper);
+        return commonRepository.getStats(idList, VideoStats::getVid, videoStatsMapper);
     }
 }

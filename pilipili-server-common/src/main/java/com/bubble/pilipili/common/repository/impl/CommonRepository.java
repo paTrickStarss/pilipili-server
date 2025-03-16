@@ -10,11 +10,15 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.bubble.pilipili.common.exception.RepositoryException;
+import com.bubble.pilipili.common.pojo.InteractEntity;
 import com.bubble.pilipili.common.pojo.StatsEntity;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.common.util.MyBatisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DeadlockLoserDataAccessException;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -27,7 +31,8 @@ import java.util.stream.Collectors;
  * @date 2025.03.05 21:42
  */
 @Slf4j
-public class CommonRepoImpl {
+@Component
+public class CommonRepository {
 
     /**
      * 保存（新增或更新）复合主键实体类
@@ -39,7 +44,7 @@ public class CommonRepoImpl {
      * @return 是否保存成功
      * @param <T> 实体类
      */
-    public static <T> Boolean save(
+    public <T extends InteractEntity> Boolean saveInteract(
             T entity,
             SFunction<T, Integer> targetIdFunc,
             SFunction<T, Integer> uidFunc,
@@ -56,28 +61,71 @@ public class CommonRepoImpl {
                 .eq(targetIdFunc, targetId)
                 .eq(uidFunc, uid);
 
-        boolean exists = mapper.exists(wrapper);
-        if (exists) {
-            // 更新
-            LambdaUpdateWrapper<T> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(targetIdFunc, targetId);
-            updateWrapper.eq(uidFunc, uid);
+        int maxRetries = 3;
+        int retryTimes = 0;
+        while (retryTimes <= maxRetries) {
+            boolean exists = mapper.exists(wrapper);
+            T one = mapper.selectOne(wrapper);
+            if (one != null) {
+                // 更新
+//                T t = BaseConverter.getInstance().copyUpdateFieldValue(one, entity);
 
-            updateConsumer.accept(updateWrapper, entity);
+                LambdaUpdateWrapper<T> updateWrapper = new LambdaUpdateWrapper<>();
+                updateWrapper.eq(targetIdFunc, targetId);
+                updateWrapper.eq(uidFunc, uid);
+//                updateWrapper.eq(T::getVersion, one.getVersion());
+//                updateWrapper.setSql("version = version + 1");
 
-            int update = mapper.update(updateWrapper);
-            if (update > 1) {
-                throw new RepositoryException("更新数量大于1");
-            }
-            return update == 1;
-        } else {
-            // 新增
-            try {
-                return mapper.insert(entity) == 1;
-            } catch (DataIntegrityViolationException ex) {
-                throw new RepositoryException("新增记录异常");
+                updateConsumer.accept(updateWrapper, entity);
+
+                try {
+                    int update = mapper.update(updateWrapper);
+                    return update == 1;
+//                    if (update == 0) {
+//                        retryTimes++;
+//                        if (retryTimes <= maxRetries) {
+//                            try {
+//                                Thread.sleep((long) Math.pow(2, retryTimes) * 50); // 指数退避
+//                            } catch (InterruptedException e) {
+//                                log.error("InterruptedException:{}", e.getMessage());
+//                                Thread.currentThread().interrupt(); // 处理中断状态
+//                                throw new RuntimeException(e);
+//                            }
+//                            log.warn("乐观锁更新重试第{}次", retryTimes);
+//                        }
+//                    } else if (update == 1) {
+//                        return true;
+//                    }
+                } catch (DeadlockLoserDataAccessException e) {
+                    log.error("更新异常: {}", e.getMessage());
+                    return false;
+                }
+            } else {
+                // 新增
+                try {
+                    return mapper.insert(entity) == 1;
+                } catch (DuplicateKeyException ex) {
+                    log.warn("duplicate key exception:{}", ex.getMessage());
+                    // todo: DuplicateKey 重试
+                    retryTimes++;
+                    if (retryTimes <= maxRetries) {
+                        try {
+                            Thread.sleep((long) Math.pow(2, retryTimes) * 100); // 指数退避
+                        } catch (InterruptedException e) {
+                            log.error("InterruptedException:{}", e.getMessage());
+                            Thread.currentThread().interrupt(); // 处理中断状态
+                            throw new RuntimeException(e);
+                        }
+                        log.warn("插入重试第{}次", retryTimes);
+                    }
+                } catch (DataIntegrityViolationException ex) {
+                    ex.printStackTrace();
+                    throw new RepositoryException("新增记录异常");
+                }
             }
         }
+        log.warn("重试{}次后，仍无法插入", retryTimes-1);
+        return false;
     }
 
     /**
@@ -92,7 +140,7 @@ public class CommonRepoImpl {
      * @param <T> 实体类
      * @param <R> DTO类
      */
-    public static <T, R> List<R> getStatsBatch(
+    public <T, R> List<R> getStatsBatch(
             List<Integer> idList,
             Class<R> resultClz,
             BiConsumer<T, R> mapConsumer,
@@ -136,7 +184,7 @@ public class CommonRepoImpl {
      * @return Map(id, entity)
      * @param <T> 实体类
      */
-    public static <T> Map<Integer, T> getStats(
+    public <T> Map<Integer, T> getStats(
             List<Integer> idList,
             SFunction<T, Integer> idFunc,
             BaseMapper<T> mapper
@@ -157,7 +205,7 @@ public class CommonRepoImpl {
      * @param <T>
      */
     @SafeVarargs
-    public static <T extends StatsEntity> Boolean saveStats(
+    public final <T extends StatsEntity> Boolean saveStats(
             T stats,
             BaseMapper<T> mapper,
             SFunction<T, Integer> idFunc,

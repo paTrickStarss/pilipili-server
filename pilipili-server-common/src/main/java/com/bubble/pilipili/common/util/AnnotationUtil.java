@@ -104,7 +104,7 @@ public class AnnotationUtil {
             }
         }
         String rtPath = getClassAnnotationValue(clz, RequestMapping.class, "value");
-        return rtPath + path;
+        return (rtPath == null? "":rtPath) + path;
     }
 
 

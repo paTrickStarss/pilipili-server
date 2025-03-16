@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.interact.mapper.UserDanmakuMapper;
 import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;
 import com.bubble.pilipili.interact.repository.UserDanmakuRepository;
@@ -20,6 +20,8 @@ public class UserDanmakuRepositoryImpl implements UserDanmakuRepository {
 
     @Autowired
     private UserDanmakuMapper userDanmakuMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存互动数据
@@ -29,7 +31,7 @@ public class UserDanmakuRepositoryImpl implements UserDanmakuRepository {
      */
     @Override
     public Boolean saveInteract(UserDanmaku interactEntity) {
-        return CommonRepoImpl.save(
+        return commonRepository.saveInteract(
                 interactEntity,
                 UserDanmaku::getDanmakuId,
                 UserDanmaku::getUid,

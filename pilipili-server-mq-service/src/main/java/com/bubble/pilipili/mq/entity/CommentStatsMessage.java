@@ -18,7 +18,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentStatsMessage extends StatsMessage {
-    private Integer cid;
-    private Long favorCount;
-    private Long dewCount;
+    private Integer cid = 0;
+    private Long favorCount = 0L;
+    private Long dewCount = 0L;
+
+    public Integer getCid() {
+        return cid == null ? 0 : cid;
+    }
+
+    public Long getFavorCount() {
+        return favorCount == null ? 0 : favorCount;
+    }
+
+    public Long getDewCount() {
+        return dewCount == null ? 0 : dewCount;
+    }
 }

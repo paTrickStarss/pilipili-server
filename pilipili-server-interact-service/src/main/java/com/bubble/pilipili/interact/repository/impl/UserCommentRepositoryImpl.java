@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.interact.mapper.UserCommentMapper;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import com.bubble.pilipili.interact.repository.UserCommentRepository;
@@ -20,6 +20,8 @@ public class UserCommentRepositoryImpl implements UserCommentRepository {
 
     @Autowired
     private UserCommentMapper userCommentMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存互动数据
@@ -29,7 +31,7 @@ public class UserCommentRepositoryImpl implements UserCommentRepository {
      */
     @Override
     public Boolean saveInteract(UserComment interactEntity) {
-        return CommonRepoImpl.save(
+        return commonRepository.saveInteract(
                 interactEntity,
                 UserComment::getCid,
                 UserComment::getUid,

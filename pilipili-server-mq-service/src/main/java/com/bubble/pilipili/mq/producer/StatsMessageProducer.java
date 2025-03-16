@@ -6,15 +6,13 @@ package com.bubble.pilipili.mq.producer;
 
 import com.bubble.pilipili.mq.constant.ExchangeEnum;
 import com.bubble.pilipili.mq.constant.QueueEnum;
-import com.bubble.pilipili.mq.entity.CommentStatsMessage;
-import com.bubble.pilipili.mq.entity.DanmakuStatsMessage;
-import com.bubble.pilipili.mq.entity.DynamicStatsMessage;
-import com.bubble.pilipili.mq.entity.VideoStatsMessage;
+import com.bubble.pilipili.mq.entity.*;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -26,6 +24,27 @@ public class StatsMessageProducer {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    /**
+     * 发送统计数据信息
+     * @param statsMessage
+     */
+    public void sendStatsMessage(StatsMessage statsMessage) {
+        Objects.requireNonNull(statsMessage);
+
+        if (statsMessage instanceof CommentStatsMessage) {
+            sendCommentStats((CommentStatsMessage) statsMessage);
+
+        } else if (statsMessage instanceof DynamicStatsMessage) {
+            sendDynamicStats((DynamicStatsMessage) statsMessage);
+
+        } else if (statsMessage instanceof DanmakuStatsMessage) {
+            sendDanmakuStats((DanmakuStatsMessage) statsMessage);
+
+        } else if (statsMessage instanceof VideoStatsMessage) {
+            sendVideoStats(((VideoStatsMessage) statsMessage));
+        }
+    }
 
     /**
      * 发送评论统计数据消息

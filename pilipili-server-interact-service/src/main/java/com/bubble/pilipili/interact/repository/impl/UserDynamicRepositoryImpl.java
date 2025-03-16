@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.interact.mapper.UserDynamicMapper;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
@@ -20,6 +20,8 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
 
     @Autowired
     private UserDynamicMapper userDynamicMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存互动数据
@@ -29,7 +31,7 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
      */
     @Override
     public Boolean saveInteract(UserDynamic interactEntity) {
-        return CommonRepoImpl.save(
+        return commonRepository.saveInteract(
                 interactEntity,
                 UserDynamic::getDid,
                 UserDynamic::getUid,

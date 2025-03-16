@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.stats.repository.impl;
 
-import com.bubble.pilipili.common.repository.impl.CommonRepoImpl;
+import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
 import com.bubble.pilipili.stats.mapper.DynamicStatsMapper;
 import com.bubble.pilipili.stats.repository.DynamicStatsRepository;
@@ -23,6 +23,8 @@ public class DynamicStatsRepositoryImpl implements DynamicStatsRepository {
 
     @Autowired
     private DynamicStatsMapper dynamicStatsMapper;
+    @Autowired
+    private CommonRepository commonRepository;
 
     /**
      * 保存统计数据
@@ -33,7 +35,7 @@ public class DynamicStatsRepositoryImpl implements DynamicStatsRepository {
     @Override
     public Boolean saveStats(DynamicStats entity) {
 //        return dynamicStatsMapper.insertOrUpdate(commentStats);
-        return CommonRepoImpl.saveStats(
+        return commonRepository.saveStats(
                 entity,
                 dynamicStatsMapper,
                 DynamicStats::getDid,
@@ -51,6 +53,6 @@ public class DynamicStatsRepositoryImpl implements DynamicStatsRepository {
      */
     @Override
     public Map<Integer, DynamicStats> getStats(List<Integer> idList) {
-        return CommonRepoImpl.getStats(idList, DynamicStats::getDid, dynamicStatsMapper);
+        return commonRepository.getStats(idList, DynamicStats::getDid, dynamicStatsMapper);
     }
 }
