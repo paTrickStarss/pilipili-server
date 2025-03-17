@@ -5,6 +5,7 @@
 package com.bubble.pilipili.video.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -53,6 +54,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
 
     @Autowired
     private InteractStatsAction interactStatsAction;
+    @Autowired
+    private EntityConverter entityConverter;
 
     @Autowired
     private StatsMQFeignAPI statsMQFeignAPI;
@@ -67,7 +70,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Transactional
     @Override
     public Boolean saveVideoInfo(CreateVideoInfoReq req) {
-        VideoInfo videoInfo = VideoInfoConverter.getInstance().copyFieldValue(req, VideoInfo.class);
+        VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         return videoInfoRepository.saveVideoInfo(videoInfo);
     }
 
@@ -79,7 +82,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Transactional
     @Override
     public Boolean updateVideoInfo(UpdateVideoInfoReq req) {
-        VideoInfo videoInfo = VideoInfoConverter.getInstance().copyFieldValue(req, VideoInfo.class);
+        VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         if (videoInfo.getVid() == null) {
             throw ServiceOperationException.emptyField("vid");
 //            return false;
@@ -322,7 +325,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public PageDTO<QueryVideoInfoDTO> pageQueryVideoInfo(PageQueryVideoInfoReq req) {
-        QueryVideoInfoParam param = VideoInfoConverter.getInstance().copyFieldValue(req, QueryVideoInfoParam.class);
+        QueryVideoInfoParam param = entityConverter.copyFieldValue(req, QueryVideoInfoParam.class);
         Page<VideoInfo> videoInfoPage =
                 videoInfoRepository.pageQueryVideoInfo(param, req.getPageNo(), req.getPageSize());
 
@@ -340,12 +343,12 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      * @param videoInfoList
      * @return
      */
-    private List<QueryVideoInfoDTO> handleVideoStats(List<VideoInfo> videoInfoList) {
+    List<QueryVideoInfoDTO> handleVideoStats(List<VideoInfo> videoInfoList) {
         if (ListUtil.isEmpty(videoInfoList)) {
             return Collections.emptyList();
         }
         List<QueryVideoInfoDTO> dtoList =
-                VideoInfoConverter.getInstance().copyFieldValueList(
+                entityConverter.copyFieldValueList(
                         videoInfoList, QueryVideoInfoDTO.class);
 
         // 获取视频统计数据
@@ -394,7 +397,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 VideoStats stats = new VideoStats();
                 statsConsumer.accept(stats);
                 SendVideoStatsReq req =
-                        VideoInfoConverter.getInstance().copyFieldValue(stats, SendVideoStatsReq.class);
+                        entityConverter.copyFieldValue(stats, SendVideoStatsReq.class);
                 req.setVid(vid);
                 statsMQFeignAPI.sendVideoStats(req);
             }

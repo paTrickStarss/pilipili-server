@@ -21,6 +21,7 @@ public interface VideoInfoRepository {
     Boolean updateVideoInfo(VideoInfo videoInfo);
     Boolean deleteVideoInfo(Integer vid);
     VideoInfo getVideoInfoById(Integer vid);
+    List<VideoInfo> getVideoInfoById(List<Integer> vidList);
     Page<VideoInfo> pageQueryVideoInfoByUid(Integer uid, Long pageNo, Long pageSize);
 
     /**

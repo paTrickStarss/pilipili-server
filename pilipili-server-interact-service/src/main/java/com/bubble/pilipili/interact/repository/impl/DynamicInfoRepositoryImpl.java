@@ -72,7 +72,7 @@ public class DynamicInfoRepositoryImpl implements DynamicInfoRepository {
         return dynamicInfoMapper.selectPage(page,
                 new LambdaQueryWrapper<DynamicInfo>()
                         .eq(DynamicInfo::getUid, uid)
-                        .eq(DynamicInfo::getRm, 0)
+//                        .eq(DynamicInfo::getRm, 0)  // 全局配置启用了逻辑删除字段，这里会自动加上
                         .orderBy(true, false, DynamicInfo::getCreateTime)
         );
     }

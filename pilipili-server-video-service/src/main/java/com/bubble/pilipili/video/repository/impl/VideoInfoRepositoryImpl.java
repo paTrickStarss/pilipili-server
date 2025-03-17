@@ -7,6 +7,7 @@ package com.bubble.pilipili.video.repository.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.video.mapper.VideoInfoMapper;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
@@ -66,6 +67,21 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
     @Override
     public VideoInfo getVideoInfoById(Integer vid) {
         return videoInfoMapper.selectById(vid);
+    }
+
+    /**
+     * @param vidList
+     * @return
+     */
+    @Override
+    public List<VideoInfo> getVideoInfoById(List<Integer> vidList) {
+        if (ListUtil.isEmpty(vidList)) {
+            return Collections.emptyList();
+        }
+        return videoInfoMapper.selectList(
+                new LambdaQueryWrapper<VideoInfo>()
+                        .in(VideoInfo::getVid, vidList)
+        );
     }
 
     /**
