@@ -11,6 +11,7 @@ import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
+import com.bubble.pilipili.interact.pojo.req.UpdateDynamicInfoReq;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,7 +52,7 @@ public class DynamicController implements Controller {
      */
     @Operation(summary = "更新动态")
     @PutMapping("/update")
-    public SimpleResponse<String> update(@Valid @RequestBody SaveDynamicInfoReq req) {
+    public SimpleResponse<String> update(@Valid @RequestBody UpdateDynamicInfoReq req) {
         Boolean b = dynamicInfoService.updateDynamicInfo(req);
         return SimpleResponse.result(b);
     }

@@ -15,20 +15,19 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 保存动态信息请求参数
  * @author Bubble
- * @date 2025.03.01 16:15
+ * @date 2025.03.18 20:57
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SaveDynamicInfoReq implements Serializable {
+public class UpdateDynamicInfoReq implements Serializable {
 
     /**
-     * 用户ID
+     * 动态ID
      */
-    @NotBlank(message = "用户ID不能为空")
-    private Integer uid;
+    @NotBlank(message = "动态ID不能为空")
+    private Integer did;
     /**
      * 内容
      */
@@ -55,4 +54,8 @@ public class SaveDynamicInfoReq implements Serializable {
      * 附件
      */
     List<SaveDynamicAttachReq> attachList;
+    /**
+     * 删除附件
+     */
+    List<SaveDynamicAttachReq> attachRemoveList;
 }

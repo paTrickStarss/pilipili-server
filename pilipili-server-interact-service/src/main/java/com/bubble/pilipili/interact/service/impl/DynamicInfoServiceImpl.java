@@ -26,6 +26,7 @@ import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicAttachReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
+import com.bubble.pilipili.interact.pojo.req.UpdateDynamicInfoReq;
 import com.bubble.pilipili.interact.repository.DynamicAttachRepository;
 import com.bubble.pilipili.interact.repository.DynamicInfoRepository;
 import com.bubble.pilipili.interact.repository.UserDynamicRepository;
@@ -63,28 +64,26 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     private StatsFeignAPI statsFeignAPI;
     @Autowired
     private StatsMQFeignAPI statsMQFeignAPI;
-
-    @Autowired
-    private ThreadPoolTaskExecutor bubbleThreadPool;
+    
 
     /**
      * 保存动态信息
-     * @param saveDynamicInfoReq
+     * @param req
      * @return
      */
     @Transactional
     @Override
-    public Boolean saveDynamicInfo(SaveDynamicInfoReq saveDynamicInfoReq) {
+    public Boolean saveDynamicInfo(SaveDynamicInfoReq req) {
         DynamicInfo dynamicInfo =
                 DynamicInfoConverter.getInstance()
-                        .copyFieldValue(saveDynamicInfoReq, DynamicInfo.class);
+                        .copyFieldValue(req, DynamicInfo.class);
         try {
             Boolean saveInfo = dynamicInfoRepository.saveDynamicInfo(dynamicInfo);
             if (!saveInfo) {
                 throw new RepositoryException("保存动态主表信息失败");
             }
 
-            List<SaveDynamicAttachReq> attachList = saveDynamicInfoReq.getAttachList();
+            List<SaveDynamicAttachReq> attachList = req.getAttachList();
             List<DynamicAttach> dynamicAttachList =
                     attachList.stream()
                             .map(attach -> {
@@ -99,7 +98,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
             }
 
         } catch (Exception e) {
-            log.error("保存动态信息失败:\n{}\n{}", saveDynamicInfoReq, e.getMessage());
+            log.error("保存动态信息失败:\n{}\n{}", req, e.getMessage());
             return false;
         }
         return true;
@@ -107,21 +106,21 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
 
     /**
      * 更新动态信息
-     * @param saveDynamicInfoReq
+     * @param req
      * @return
      */
     @Transactional
     @Override
-    public Boolean updateDynamicInfo(SaveDynamicInfoReq saveDynamicInfoReq) {
+    public Boolean updateDynamicInfo(UpdateDynamicInfoReq req) {
         DynamicInfo dynamicInfo =
-                DynamicInfoConverter.getInstance().copyFieldValue(saveDynamicInfoReq, DynamicInfo.class);
+                DynamicInfoConverter.getInstance().copyFieldValue(req, DynamicInfo.class);
         try {
             Boolean saveMain = dynamicInfoRepository.updateDynamicInfo(dynamicInfo);
             if (!saveMain) {
                 throw new RepositoryException("更新动态主表信息失败");
             }
 
-            List<SaveDynamicAttachReq> attachRemoveList = saveDynamicInfoReq.getAttachRemoveList();
+            List<SaveDynamicAttachReq> attachRemoveList = req.getAttachRemoveList();
             if (attachRemoveList != null && !attachRemoveList.isEmpty()) {
                 List<String> removeUUIDList = attachRemoveList.stream()
                         .map(SaveDynamicAttachReq::getAttachUUID)
@@ -132,7 +131,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 }
             }
 
-            List<SaveDynamicAttachReq> attachList = saveDynamicInfoReq.getAttachList();
+            List<SaveDynamicAttachReq> attachList = req.getAttachList();
             if (attachList != null && !attachList.isEmpty()) {
                 List<DynamicAttach> dynamicAttachList = attachList.stream()
                         .map(attach -> {
@@ -148,7 +147,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 }
             }
         } catch (Exception e) {
-            log.error("更新动态信息失败:\n{}\n{}", e.getMessage(), saveDynamicInfoReq);
+            log.error("更新动态信息失败:\n{}\n{}", e.getMessage(), req);
             return false;
         }
         return true;
