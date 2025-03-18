@@ -252,10 +252,14 @@ public class UserInfoServiceImpl implements UserInfoService {
                     dto.setFansCount(stats.getFansCount());
                     dto.setLevel(UserInfoUtil.getLevel(userinfo.getExp()));
 
+                    // todo：查询分析用户 有问题
                     String fromUid = follow? originUid.toString(): userinfo.getUid().toString();
                     String toUid = follow? userinfo.getUid().toString(): originUid.toString();
-                    Integer special = userRelaMap.get(String.join("->", fromUid, toUid)).getSpecial();
-                    dto.setSpecial(special == 1);
+                    UserRela userRela = userRelaMap.get(String.join("->", fromUid, toUid));
+                    if (userRela != null) {
+                        Integer special = userRela.getSpecial();
+                        dto.setSpecial(special == 1);
+                    }
                     return dto;
                 })
                 .collect(Collectors.toList());
