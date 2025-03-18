@@ -6,6 +6,7 @@ package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
+import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
@@ -13,6 +14,7 @@ import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.feign.pojo.req.SendDanmakuStatsReq;
+import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.interact.pojo.converter.DanmakuInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
 import com.bubble.pilipili.interact.pojo.entity.*;
@@ -65,6 +67,15 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
         Boolean b = danmakuInfoRepository.saveDanmakuInfo(danmakuInfo);
 
         //todo: 更新视频弹幕统计数据
+        if (b) {
+            SendVideoStatsReq stats = new SendVideoStatsReq();
+            stats.setVid(req.getVid());
+            stats.setDanmakuCount(1L);
+            SimpleResponse<String> response = statsMQFeignAPI.sendVideoStats(stats);
+            if (!response.isSuccess()) {
+                log.warn("FeignAPI sendVideoStats error : {}", response);
+            }
+        }
 
         return b;
     }
