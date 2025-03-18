@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -107,6 +109,15 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
         }
     }
 
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    public void scheduleConsumer() {
+        log.debug("###[{}]scheduled: Current queue size: {}",
+                getClass().getName(), statsQueue.size());
+        if (!statsQueue.isEmpty()) {
+            launchBatchHandle();
+        }
+    }
+
     private void receiveStatsMessage(T message) {
         try {
 //            statsQueue.offer(message);  // 非阻塞方法，队满时返回false，可配置最大等待时间（阻塞等待一段时间）
@@ -124,11 +135,18 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
     private void checkStatsQueue() {
         log.debug("Current queue size: {}", statsQueue.size());
         if (statsQueue.size() >= BATCH_SIZE) {
-            List<T> statsBatchList = new ArrayList<>();
-            statsQueue.drainTo(statsBatchList);
-            handleStatsMessages(statsBatchList);
+            launchBatchHandle();
 //            statsQueue.clear();
         }
+    }
+
+    /**
+     * 启动一次消息批处理
+     */
+    private void launchBatchHandle() {
+        List<T> statsBatchList = new ArrayList<>();
+        statsQueue.drainTo(statsBatchList);
+        handleStatsMessages(statsBatchList);
     }
 
     protected void failFallback(StatsMessage statsMessage, SimpleResponse<String> response) {

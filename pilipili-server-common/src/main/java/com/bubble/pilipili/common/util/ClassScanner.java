@@ -52,11 +52,12 @@ public class ClassScanner {
         Map<String, String> pathMap = new HashMap<>();
         List<Class<? extends Controller>> controllerClzList = scanPackage(packageName, Controller.class);
         for (Class<?> clz : controllerClzList) {
+            String clzName = clz.getSimpleName();
             for (Method method : clz.getMethods()) {
                 for (Class<?> anInterface : method.getReturnType().getInterfaces()) {
                     if (anInterface.equals(Response.class)) {
                         String path = AnnotationUtil.getApiPath(clz, method);
-                        pathMap.put(method.getName(), path);
+                        pathMap.put(String.join(".", clzName, method.getName()), path);
                         break;
                     }
                 }

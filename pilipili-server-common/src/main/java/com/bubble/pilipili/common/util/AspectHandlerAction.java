@@ -33,13 +33,24 @@ public class AspectHandlerAction {
         long l1 = System.currentTimeMillis();
         try {
             Object rt = joinPoint.proceed();
-            LogUtil.apiSuccessLog(clz, pathMap.get(methodName), args, rt, System.currentTimeMillis() - l1);
+            LogUtil.apiSuccessLog(clz, pathMap.get(getMethodName(clz, methodName)),
+                    args, rt, System.currentTimeMillis() - l1);
             return rt;
         } catch (Throwable throwable) {
-            LogUtil.apiFailedLog(clz, pathMap.get(methodName), args, throwable.getMessage(), System.currentTimeMillis() - l1);
+            LogUtil.apiFailedLog(clz, pathMap.get(getMethodName(clz, methodName)), args, throwable.getMessage(), System.currentTimeMillis() - l1);
 //            return ResponseEntity.internalServerError().body(throwable.getMessage());
             throw throwable;
 //            return SimpleResponse.error(throwable.getMessage());
         }
+    }
+
+    /**
+     * 获取限定方法名，例如：Controller.save
+     * @param clz
+     * @param methodSimpleName
+     * @return
+     */
+    public static String getMethodName(Class<?> clz, String methodSimpleName) {
+        return String.join(".", clz.getSimpleName(), methodSimpleName);
     }
 }
