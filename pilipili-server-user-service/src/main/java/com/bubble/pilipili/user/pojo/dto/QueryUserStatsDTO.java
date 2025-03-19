@@ -20,4 +20,5 @@ public class QueryUserStatsDTO {
     private Integer uid;
     private Long followerCount = 0L;
     private Long fansCount = 0L;
+    private Long dynamicCount = 0L;
 }

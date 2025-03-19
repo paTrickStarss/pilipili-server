@@ -14,24 +14,27 @@ import lombok.NoArgsConstructor;
 
 /**
  * @author Bubble
- * @date 2025.03.09 17:53
+ * @date 2025.03.19 22:59
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("comment_stats")
-public class CommentStats extends StatsEntity {
+@TableName("user_stats")
+public class UserStats extends StatsEntity {
 
     @TableId
-    private Integer cid;
+    private Integer uid;
     /**
-     * 点赞数
+     * 关注数
      */
-    private Long favorCount;
+    private Long followerCount;
     /**
-     * 点踩数
+     * 粉丝数
      */
-    private Long dewCount;
-
+    private Long fansCount;
+    /**
+     * 动态数
+     */
+    private Long dynamicCount;
 }

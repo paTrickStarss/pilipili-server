@@ -108,4 +108,8 @@ public class QueryUserInfoDTO implements Serializable {
      * 粉丝数
      */
     private Long fansCount = 0L;
+    /**
+     * 动态数
+     */
+    private Long dynamicCount = 0L;
 }

@@ -6,10 +6,7 @@ package com.bubble.pilipili.feign.api;
 
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
-import com.bubble.pilipili.feign.pojo.entity.CommentStats;
-import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.feign.pojo.entity.*;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -98,4 +95,22 @@ public interface StatsFeignAPI {
     @Operation(summary = "查询评论统计数据")
     @GetMapping("/api/stats/comment")
     SimpleResponse<QueryStatsDTO<CommentStats>> getCommentStats(@Valid @RequestParam List<Integer> idList);
+
+    /**
+     * 保存用户统计数据
+     * @param stats
+     * @return
+     */
+    @Operation(summary = "保存用户统计数据")
+    @PostMapping("/api/stats/user")
+    SimpleResponse<String> saveUserStats(@Valid @RequestBody UserStats stats);
+
+    /**
+     * 查询用户统计数据
+     * @param idList
+     * @return
+     */
+    @Operation(summary = "查询用户统计数据")
+    @GetMapping("/api/stats/user")
+    SimpleResponse<QueryStatsDTO<UserStats>> getUserStats(@Valid @RequestParam List<Integer> idList);
 }

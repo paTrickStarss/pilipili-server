@@ -18,8 +18,28 @@ import java.util.Map;
 @Repository
 public interface UserRelaRepository {
 
+    /**
+     * 保存用户关系
+     * @param userRela
+     * @return
+     */
     Boolean saveUserRela(UserRela userRela);
+
+    /**
+     * 删除用户关系
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
     Boolean deleteUserRela(Integer fromUid, Integer toUid);
+
+    /**
+     * 查询是否存在关系
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    Boolean existUserRela(Integer fromUid, Integer toUid);
 
     /**
      * 批量查询关注数或粉丝数

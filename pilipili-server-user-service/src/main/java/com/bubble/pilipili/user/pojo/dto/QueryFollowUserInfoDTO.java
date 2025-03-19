@@ -19,5 +19,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class QueryFollowUserInfoDTO extends QueryUserInfoDTO {
 
+    /**
+     * 特别关注
+     */
     private Boolean special;
+    /**
+     * 互粉
+     */
+    private Boolean isMutual;
 }

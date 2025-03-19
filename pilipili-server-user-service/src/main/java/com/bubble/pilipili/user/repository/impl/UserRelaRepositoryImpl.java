@@ -37,10 +37,10 @@ public class UserRelaRepositoryImpl implements UserRelaRepository {
      */
     @Override
     public Boolean saveUserRela(UserRela userRela) {
-        LambdaQueryWrapper<UserRela> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserRela::getFromUid, userRela.getFromUid());
-        queryWrapper.eq(UserRela::getToUid, userRela.getToUid());
-        boolean exists = userRelaMapper.exists(queryWrapper);
+        if (userRela.getFromUid() == null || userRela.getToUid() == null) {
+            return false;
+        }
+        Boolean exists = existUserRela(userRela.getFromUid(), userRela.getToUid());
         if (exists) {
             LambdaUpdateWrapper<UserRela> updateWrapper = new LambdaUpdateWrapper<>();
             updateWrapper.eq(UserRela::getFromUid, userRela.getFromUid());
@@ -66,6 +66,24 @@ public class UserRelaRepositoryImpl implements UserRelaRepository {
                         .eq(UserRela::getFromUid, fromUid)
                         .eq(UserRela::getToUid, toUid)
         ) == 1;
+    }
+
+    /**
+     * 查询是否存在关系
+     *
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    @Override
+    public Boolean existUserRela(Integer fromUid, Integer toUid) {
+        if (fromUid == null || toUid == null) {
+            return false;
+        }
+        LambdaQueryWrapper<UserRela> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserRela::getFromUid, fromUid);
+        queryWrapper.eq(UserRela::getToUid, toUid);
+        return userRelaMapper.exists(queryWrapper);
     }
 
     /**

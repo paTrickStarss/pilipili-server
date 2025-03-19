@@ -8,7 +8,6 @@ import com.bubble.pilipili.common.http.Response;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author Bubble
@@ -25,9 +24,9 @@ public class TestMain {
 
 //        String plainText = "This is a test from Bubble!!!";
 //        try {
-//            String encryptText = RSACryptoUtil.encrypt(plainText);
+//            String encryptText = CryptoHelper.encrypt(plainText);
 //            System.out.println("After encrypt: " + encryptText);
-//            String decryptText = RSACryptoUtil.decrypt(encryptText);
+//            String decryptText = CryptoHelper.decrypt(encryptText);
 //            System.out.println("After decrypt: " + decryptText);
 //        } catch (IllegalBlockSizeException | BadPaddingException e) {
 //            throw new RuntimeException(e);

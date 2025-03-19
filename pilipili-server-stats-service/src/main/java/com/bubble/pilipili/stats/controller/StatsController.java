@@ -8,14 +8,8 @@ import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
-import com.bubble.pilipili.feign.pojo.entity.CommentStats;
-import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
-import com.bubble.pilipili.stats.service.CommentStatsService;
-import com.bubble.pilipili.stats.service.DanmakuStatsService;
-import com.bubble.pilipili.stats.service.DynamicStatsService;
-import com.bubble.pilipili.stats.service.VideoStatsService;
+import com.bubble.pilipili.feign.pojo.entity.*;
+import com.bubble.pilipili.stats.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +32,8 @@ public class StatsController implements StatsFeignAPI, Controller {
     private DynamicStatsService dynamicStatsService;
     @Autowired
     private DanmakuStatsService danmakuStatsService;
+    @Autowired
+    private UserStatsService userStatsService;
 
 
     /**
@@ -137,6 +133,30 @@ public class StatsController implements StatsFeignAPI, Controller {
     @GetMapping("/api/stats/comment")
     public SimpleResponse<QueryStatsDTO<CommentStats>> getCommentStats(@Valid @RequestParam List<Integer> idList) {
         QueryStatsDTO<CommentStats> stats = commentStatsService.getStats(idList);
+        return SimpleResponse.success(stats);
+    }
+
+    /**
+     * 保存用户统计数据
+     * @param stats
+     * @return
+     */
+    @Operation(summary = "保存用户统计数据")
+    @PostMapping("/api/stats/user")
+    public SimpleResponse<String> saveUserStats(@Valid @RequestBody UserStats stats) {
+        Boolean b = userStatsService.saveStats(stats);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 查询用户统计数据
+     * @param idList
+     * @return
+     */
+    @Operation(summary = "查询用户统计数据")
+    @GetMapping("/api/stats/user")
+    public SimpleResponse<QueryStatsDTO<UserStats>> getUserStats(@Valid @RequestParam List<Integer> idList) {
+        QueryStatsDTO<UserStats> stats = userStatsService.getStats(idList);
         return SimpleResponse.success(stats);
     }
 }

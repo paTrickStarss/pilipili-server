@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.auth.controller;
 
+import com.bubble.pilipili.common.component.CryptoHelper;
 import com.bubble.pilipili.common.config.SessionManager;
 import com.bubble.pilipili.auth.pojo.dto.LoginDTO;
 import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
@@ -11,7 +12,6 @@ import com.bubble.pilipili.auth.pojo.req.LoginReq;
 import com.bubble.pilipili.auth.util.OAuthUtil;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
-import com.bubble.pilipili.common.util.RSACryptoUtil;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.nimbusds.jose.JWSObject;
 import feign.FeignException;
@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.validation.Valid;
-import java.security.SignatureException;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -42,20 +41,24 @@ public class SessionController implements Controller {
 
     @Autowired
     private SessionManager sessionManager;
+    @Autowired
+    private CryptoHelper cryptoHelper;
 
     @PostMapping("/login")
     public SimpleResponse<LoginDTO> login(@Valid @RequestBody LoginReq req) {
         String username = req.getUsername();
         String passwordEncryptedText = req.getPassword();
-        String signature = req.getSignature();
+//        String signature = req.getSignature();
         String password;
         try {
-            if (RSACryptoUtil.verify(passwordEncryptedText, signature)) {
-                password = RSACryptoUtil.decrypt(passwordEncryptedText);
-            } else {
-                return SimpleResponse.failed("签名验证不通过！");
-            }
-        } catch (SignatureException | IllegalBlockSizeException | BadPaddingException e) {
+            // 放弃签名
+//            if (cryptoHelper.verify(passwordEncryptedText, signature)) {
+//                password = cryptoHelper.decrypt(passwordEncryptedText);
+//            } else {
+//                return SimpleResponse.failed("签名验证不通过！");
+//            }
+            password = cryptoHelper.decrypt(passwordEncryptedText);
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
             log.error(e.getMessage());
             return SimpleResponse.failed("参数解密失败！");
         } catch (Exception e) {
