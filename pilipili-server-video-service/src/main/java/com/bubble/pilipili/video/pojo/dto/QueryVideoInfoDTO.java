@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Bubble
@@ -60,6 +61,7 @@ public class QueryVideoInfoDTO implements Serializable {
      * 视频标签 多标签用半角逗号隔开
      */
     private String tag;
+    private List<String> tagList;
     /**
      * 视频分区主ID
      */

@@ -36,4 +36,5 @@ resource:
 security-config:
   ignore-url-list:
     - /rsa/publicKey
+    - /crypto/**
     - /session/**

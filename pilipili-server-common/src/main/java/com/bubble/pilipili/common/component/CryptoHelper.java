@@ -6,6 +6,7 @@ package com.bubble.pilipili.common.component;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -46,6 +47,8 @@ public class CryptoHelper {
     private static final Encoder BASE64_ENCODER = Base64.getEncoder();
     private static final Decoder BASE64_DECODER = Base64.getDecoder();
 
+    @Getter
+    private String publicKeyStrWrapped;
     private KeyFactory KEY_FACTORY;
     private PrivateKey PRIVATE_KEY;
     private PublicKey PUBLIC_KEY;
@@ -80,7 +83,7 @@ public class CryptoHelper {
             }
         }
         try {
-
+            publicKeyStrWrapped = keyStrArr[1];
 
             String privateKeyStr = keyStrArr[0].substring(
                     keyStrArr[0].indexOf(privateKeyPrefix) + privateKeyPrefix.length(),

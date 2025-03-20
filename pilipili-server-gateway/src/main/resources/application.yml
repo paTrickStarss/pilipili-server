@@ -11,8 +11,9 @@ server:
 security-config:
 #  鉴权访问白名单
   ignore-url-list:
-    - /static/**
+    - /auth/crypto/**
     - /auth/session/**
+    - /static/**
     - /api/user/register
     - /doc.html
     - /webjars/**

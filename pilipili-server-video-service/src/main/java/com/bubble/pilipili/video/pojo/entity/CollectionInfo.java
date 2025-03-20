@@ -41,6 +41,10 @@ public class CollectionInfo {
      */
     private String description;
     /**
+     * 封面链接
+     */
+    private String coverUrl;
+    /**
      * 私密
      */
     private Integer himitsu;

@@ -36,6 +36,10 @@ public class UpdateCollectionInfoReq implements Serializable {
      */
     private String description;
     /**
+     * 封面链接
+     */
+    private String coverUrl;
+    /**
      * 私密
      */
     @Min(value = 0, message = "标志位值为0或1")

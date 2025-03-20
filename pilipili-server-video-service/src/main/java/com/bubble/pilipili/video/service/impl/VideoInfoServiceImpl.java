@@ -11,12 +11,12 @@ import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
-import com.bubble.pilipili.video.pojo.converter.VideoInfoConverter;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.entity.UserVideo;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -367,7 +366,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 dto.setRepostCount(stats.getRepostCount());
                 dto.setDewCount(stats.getDewCount());
             }
+
+            // tag转数组
+            dto.setTagList(getTagList(dto.getTag()));
         });
+
         return dtoList;
     }
 
@@ -407,5 +410,15 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新视频互动关系数据异常");
         }
+    }
+
+    private List<String> getTagList(String tag) {
+        if (StringUtil.isEmpty(tag)) {
+            return Collections.emptyList();
+        }
+        return Arrays
+                .stream(tag.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 }

@@ -27,7 +27,7 @@ public class KeyPairController implements Controller {
     private KeyPair keyPair;
 
     /**
-     * 公钥获取接口
+     * jwt公钥获取接口（gateway需要）
      * @return
      */
     @GetMapping("/rsa/publicKey")

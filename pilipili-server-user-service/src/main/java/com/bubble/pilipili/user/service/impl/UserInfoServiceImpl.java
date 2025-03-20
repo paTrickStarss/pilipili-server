@@ -116,6 +116,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         QueryUserStatsDTO stats = getUserStats(Collections.singletonList(uid)).get(uid);
         dto.setFollowerCount(stats.getFollowerCount());
         dto.setFansCount(stats.getFansCount());
+        dto.setDynamicCount(stats.getDynamicCount());
 
         return dto;
     }
@@ -228,7 +229,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                     if (stats != null) {
                         dto.setFollowerCount(stats.getFollowerCount());
                         dto.setFansCount(stats.getFansCount());
-                        dto.setDynamicCount(stats.getDynamicCount());  // todo: 字段值缺失
+                        dto.setDynamicCount(stats.getDynamicCount());
                     }
                     resultMap.put(uidInt, dto);
                 });
@@ -271,6 +272,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                     QueryUserStatsDTO stats = userStatsMap.get(userinfo.getUid());
                     dto.setFollowerCount(stats.getFollowerCount());
                     dto.setFansCount(stats.getFansCount());
+                    dto.setDynamicCount(stats.getDynamicCount());
                     dto.setLevel(UserInfoUtil.getLevel(userinfo.getExp()));
 
                     // 查询特别关注状态

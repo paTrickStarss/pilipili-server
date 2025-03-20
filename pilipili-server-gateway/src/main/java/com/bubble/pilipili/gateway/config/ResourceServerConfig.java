@@ -64,7 +64,10 @@ public class ResourceServerConfig {
                 .jwtAuthenticationConverter(jwtConverter());
         http.authorizeExchange()
                 // 白名单
+//                .pathMatchers(HttpMethod.GET).permitAll()
                 .pathMatchers(ignoreUrlList.toArray(new String[0])).permitAll()
+//                .pathMatchers(HttpMethod.GET, ignoreUrlList.toArray(new String[0])).permitAll()
+//                .pathMatchers(HttpMethod.POST, ignoreUrlList.toArray(new String[0])).permitAll()
                 // 鉴权管理器
                 .anyExchange().access(authorizationManager)
                 .and().exceptionHandling()

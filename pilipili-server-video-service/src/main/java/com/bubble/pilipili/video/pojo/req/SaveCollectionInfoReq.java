@@ -4,8 +4,6 @@
 
 package com.bubble.pilipili.video.pojo.req;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,6 +36,10 @@ public class SaveCollectionInfoReq implements Serializable {
      * 介绍
      */
     private String description;
+    /**
+     * 封面链接
+     */
+    private String coverUrl;
     /**
      * 私密
      */
