@@ -54,14 +54,25 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
 
     private String getPathPrefix(URI uri) {
         String path = uri.getPath();
-        if (path.startsWith("/") && path.contains("/api")) {
-            String[] split = path.split("/");
-            if (split.length >= 3) {
-                return Arrays.stream(split)
-                        .limit(3)
-                        .collect(Collectors.joining("/"));
+        if (path.startsWith("/")) {
+            if (path.contains("/api")) {
+                String[] split = path.split("/");
+                if (split.length >= 3) {
+                    return Arrays.stream(split)
+                            .limit(3)
+                            .collect(Collectors.joining("/"));
+                }
+                return path.substring(0, path.lastIndexOf('/'));
             }
-            return path.substring(0, path.lastIndexOf('/'));
+            if (path.contains("/ws")) {
+                String[] split = path.split("/");
+                if (split.length >= 3) {
+                    return Arrays.stream(split)
+                            .limit(3)
+                            .collect(Collectors.joining("/"));
+                }
+                return path.substring(0, path.lastIndexOf('/'));
+            }
         }
         return path;
     }

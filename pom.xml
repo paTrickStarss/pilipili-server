@@ -30,6 +30,7 @@
         <module>pilipili-server-feign-api</module>
         <module>pilipili-server-mq-service</module>
         <module>pilipili-server-stats-service</module>
+        <module>pilipili-server-oss-service</module>
     </modules>
 
     <properties>

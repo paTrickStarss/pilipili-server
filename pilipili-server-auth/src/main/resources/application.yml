@@ -32,6 +32,16 @@ resource:
         - ROLE_ADMIN
         - ROLE_USER
         - ROLE_TEST
+    - path: /api/oss
+      role:
+        - ROLE_ADMIN
+        - ROLE_USER
+        - ROLE_TEST
+    - path: /ws/oss
+      role:
+        - ROLE_ADMIN
+        - ROLE_USER
+        - ROLE_TEST
 
 security-config:
   ignore-url-list:

@@ -61,6 +61,15 @@ spring:
           predicates:
             - Path=/api/interact/**
 
+        - id: oss-service
+          uri: lb://oss-service
+          predicates:
+            - Path=/api/oss/**
+        - id: oss-service-websocket
+          uri: lb:ws://oss-service
+          predicates:
+            - Path=/ws/oss/**
+
         - id: mq-service
           uri: lb://mq-service
           predicates:
