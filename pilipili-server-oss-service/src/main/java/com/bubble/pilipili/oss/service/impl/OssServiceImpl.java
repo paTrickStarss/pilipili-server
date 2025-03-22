@@ -37,7 +37,7 @@ public class OssServiceImpl implements OssService {
         if (checkContentType(file, FileContentType.VIDEO)) {
             return contentTypeFallback(FileContentType.VIDEO);
         }
-        return upload(file, OssFileDirectory.VIDEO_CONTENT);
+        return partUpload(file, OssFileDirectory.VIDEO_CONTENT);
     }
 
     /**
@@ -51,7 +51,7 @@ public class OssServiceImpl implements OssService {
         if (checkContentType(file, FileContentType.VIDEO)) {
             return contentTypeFallback(FileContentType.VIDEO);
         }
-        return upload(file, OssFileDirectory.VIDEO_DYNAMIC);
+        return partUpload(file, OssFileDirectory.VIDEO_DYNAMIC);
     }
 
     /**
@@ -138,6 +138,23 @@ public class OssServiceImpl implements OssService {
         try {
 
             String path = ossUploadHelper.doUpload(file, ossFileDirectory.getValue());
+            return OssUploadFileDTO.success(path);
+        } catch (UtilityException e) {
+            return OssUploadFileDTO.failed(e.getMessage());
+        } catch (Exception e) {
+            return OssUploadFileDTO.failed("服务端异常");
+        }
+    }
+    /**
+     * 分片上传文件
+     * @param file
+     * @param ossFileDirectory
+     * @return
+     */
+    public OssUploadFileDTO partUpload(MultipartFile file, OssFileDirectory ossFileDirectory) {
+        try {
+
+            String path = ossUploadHelper.partUpload(file, ossFileDirectory.getValue());
             return OssUploadFileDTO.success(path);
         } catch (UtilityException e) {
             return OssUploadFileDTO.failed(e.getMessage());

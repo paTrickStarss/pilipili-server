@@ -47,11 +47,7 @@ public class OssUploadHelper {
     public String doUpload(MultipartFile file, String path) {
         OSS ossClient = ossClientPool.fetchClient();
 
-        String fileName = OssFileUtil.getFileNameWithExtension(file);
-        String objFullPathName = fileName;
-        if (StringUtil.isNotEmpty(path)) {
-            objFullPathName = String.join("/", path, fileName);
-        }
+        String objFullPathName = getObjectFullPathName(file, path);
         try {
             PutObjectResult result = ossClient.putObject(
                     ossClientPool.getOssClientConfig().getBucketName(),
@@ -83,8 +79,8 @@ public class OssUploadHelper {
      * 分片上传文件
      * @param file
      */
-    public void partUpload(MultipartFile file) {
-        String objectName = OssFileUtil.getFileNameWithExtension(file);
+    public String partUpload(MultipartFile file, String path) {
+        String objectName = getObjectFullPathName(file, path);
 
         OssClientConfig config = ossClientPool.getOssClientConfig();
         String bucketName = config.getBucketName();
@@ -167,5 +163,15 @@ public class OssUploadHelper {
         } finally {
             ossClientPool.releaseClient(ossClient);
         }
+        return objectName;
+    }
+
+    private String getObjectFullPathName(MultipartFile file, String path) {
+        String fileName = OssFileUtil.getFileNameWithExtension(file);
+        String objFullPathName = fileName;
+        if (StringUtil.isNotEmpty(path)) {
+            objFullPathName = String.join("/", path, fileName);
+        }
+        return objFullPathName;
     }
 }

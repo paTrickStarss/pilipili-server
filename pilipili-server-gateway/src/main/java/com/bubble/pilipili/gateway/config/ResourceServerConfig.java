@@ -37,6 +37,9 @@ import java.util.List;
 @EnableWebFluxSecurity
 public class ResourceServerConfig {
 
+//    @Autowired
+//    private CookieServerAuthenticationConverter cookieServerAuthenticationConverter;
+
     @Autowired
     private AuthorizationManager authorizationManager;
 
@@ -60,14 +63,13 @@ public class ResourceServerConfig {
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.oauth2ResourceServer().jwt()
+        http.oauth2ResourceServer()
+//                .bearerTokenConverter(cookieServerAuthenticationConverter)
+                .jwt()
                 .jwtAuthenticationConverter(jwtConverter());
         http.authorizeExchange()
                 // 白名单
-//                .pathMatchers(HttpMethod.GET).permitAll()
                 .pathMatchers(ignoreUrlList.toArray(new String[0])).permitAll()
-//                .pathMatchers(HttpMethod.GET, ignoreUrlList.toArray(new String[0])).permitAll()
-//                .pathMatchers(HttpMethod.POST, ignoreUrlList.toArray(new String[0])).permitAll()
                 // 鉴权管理器
                 .anyExchange().access(authorizationManager)
                 .and().exceptionHandling()

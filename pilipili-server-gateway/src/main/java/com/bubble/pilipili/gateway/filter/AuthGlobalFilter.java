@@ -22,8 +22,11 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 认证全局过滤器
@@ -37,14 +40,32 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     @Autowired
     private SessionManager sessionManager;
 
+    private Set<String> ignorePaths = new HashSet<>();
+
+    @PostConstruct
+    public void init() {
+        ignorePaths.add("/login");
+        ignorePaths.add("/register");
+        ignorePaths.add("/publicKey");
+    }
+
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        if (request.getPath().toString().contains("/login") || request.getPath().toString().contains("/register")) {
+        boolean passed = false;
+        String[] pathBlocks = request.getURI().getPath().split("/");
+        for (String pathBlock : pathBlocks) {
+            if (ignorePaths.contains("/" + pathBlock)) {
+                passed = true;
+                break;
+            }
+        }
+        if (passed) {
             return chain.filter(exchange);
         }
-        // TODO: 请求没带Authorization请求头 会被上级的过滤掉 到不了这里 需要改变鉴权方式（目前是 BearerToken）为 Cookies
+        // TODO: 请求没带Authorization请求头 会被上级的过滤掉 到不了这里 需要改变BearerToken提取方式（目前是从请求头Authorization）为 Cookies
 //        MultiValueMap<String, HttpCookie> cookies = request.getCookies();
 //        log.debug("request cookies: {}", cookies);
 //        HttpCookie accessToken = cookies.getFirst("accessToken");
