@@ -17,6 +17,7 @@ import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.entity.UserVideo;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
@@ -24,6 +25,7 @@ import com.bubble.pilipili.video.pojo.param.QueryVideoInfoParam;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
+import com.bubble.pilipili.video.repository.CategoryRepository;
 import com.bubble.pilipili.video.repository.UserVideoRepository;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
 import com.bubble.pilipili.video.service.VideoInfoService;
@@ -60,6 +62,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private StatsMQFeignAPI statsMQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     /**
      * 新增视频信息
@@ -335,6 +339,21 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 videoInfoPage.getTotal(),
                 dtoList
         );
+    }
+
+    /**
+     * 查询分区列表
+     * @return
+     */
+    @Override
+    public List<QueryCategoryDTO> queryCategoryList() {
+        return categoryRepository.queryAllCategory()
+                .stream()
+                .map(entity ->
+                        new QueryCategoryDTO(
+                                entity.getPrimaryCategoryId(), entity.getName())
+                )
+                .collect(Collectors.toList());
     }
 
     /**

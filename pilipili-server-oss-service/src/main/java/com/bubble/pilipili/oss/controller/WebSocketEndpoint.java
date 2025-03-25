@@ -31,7 +31,7 @@ public class WebSocketEndpoint {
     @OnOpen
     public void onOpen(Session session, @PathParam("uid") String uid) {
         try {
-            log.info("[WebSocketEndpoint] onOpen: {}\n", session.getId());
+            log.info("[WebSocketEndpoint] onOpen: {}", session.getId());
             endpoints.add(session);
             sessions.put(uid, session);
             checkEndpoints();
@@ -81,9 +81,7 @@ public class WebSocketEndpoint {
             log.warn("[WebSocketEndpoint] User session not open: {}", uid);
             return;
         }
-        if (session != null && session.isOpen()) {
-            doSendSingleMessage(session, message);
-        }
+        doSendSingleMessage(session, message);
     }
 
     /**

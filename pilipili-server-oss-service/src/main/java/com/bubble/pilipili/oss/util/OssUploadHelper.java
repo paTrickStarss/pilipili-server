@@ -16,7 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -131,6 +133,12 @@ public class OssUploadHelper {
                 uploadPartRequest.setPartSize(curPartSize);
                 // 设置分片号。每一个上传的分片都有一个分片号，取值范围是1~10000，如果超出此范围，OSS将返回InvalidArgument错误码。
                 uploadPartRequest.setPartNumber(i + 1);
+
+                // todo: 分片上传进度监听器
+                uploadPartRequest.setProgressListener(event -> {
+                    long bytesWritten = event.getBytes();
+//                    event
+                });
                 // 每个分片不需要按顺序上传，甚至可以在不同客户端上传，OSS会按照分片号排序组成完整的文件。
                 UploadPartResult uploadPartResult = ossClient.uploadPart(uploadPartRequest);
                 // 每次上传分片之后，OSS的返回结果包含PartETag。PartETag将被保存在partETags中。
@@ -164,6 +172,34 @@ public class OssUploadHelper {
             ossClientPool.releaseClient(ossClient);
         }
         return objectName;
+    }
+
+    /**
+     * 文件公共访问临时签名
+     * @param objectName
+     * @return
+     */
+    public String getTempSignUrl(String objectName) {
+        OSS ossClient = ossClientPool.fetchClient();
+        String bucketName = ossClientPool.getOssClientConfig().getBucketName();
+        try {
+            // 将图片缩放为固定宽高100 px后，再旋转90°。
+            String style = "image/resize,m_fixed,w_100,h_100/rotate,90";
+            // 指定签名URL过期时间为10分钟。(最长过期时间为32400秒)
+            Date expiration = new Date(new Date().getTime() + 1000 * 60 * 10 );
+            GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
+            req.setExpiration(expiration);
+            req.setProcess(style);
+            URL signedUrl = ossClient.generatePresignedUrl(req);
+            return signedUrl.toExternalForm();
+        } catch (OSSException oe) {
+            log.error("OSS文件上传服务端异常: {}", oe.getMessage());
+        } catch (ClientException ce) {
+            log.error("OSS文件上传客户端异常: \n{}", ce.getMessage());
+        } finally {
+            ossClientPool.releaseClient(ossClient);
+        }
+        return null;
     }
 
     private String getObjectFullPathName(MultipartFile file, String path) {

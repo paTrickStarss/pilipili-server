@@ -8,6 +8,7 @@ import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * 视频管理控制器
@@ -266,5 +268,16 @@ public class VideoController implements Controller {
     ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfo(req);
         return PageResponse.success(dto);
+    }
+
+    /**
+     * 查询视频分区列表
+     * @return
+     */
+    @Operation(summary = "查询视频分区列表")
+    @GetMapping("/categoryList")
+    public SimpleResponse<List<QueryCategoryDTO>> queryCategoryList() {
+        List<QueryCategoryDTO> dtoList = videoInfoService.queryCategoryList();
+        return SimpleResponse.success(dtoList);
     }
 }

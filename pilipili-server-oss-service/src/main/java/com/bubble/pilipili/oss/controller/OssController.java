@@ -10,6 +10,8 @@ import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.JwtPayload;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
+import com.bubble.pilipili.oss.constant.UploadTaskStatus;
+import com.bubble.pilipili.oss.pojo.dto.UploadTaskMessage;
 import com.bubble.pilipili.oss.service.OssService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 /**
  * @author Bubble
@@ -50,17 +53,20 @@ public class OssController implements Controller {
             @RequestParam MultipartFile file, HttpServletRequest request
     ) {
         String jwtPayload = request.getHeader(AuthConstant.JWT_PAYLOAD_HEADER);
-        log.debug("jwtPayload: {}", jwtPayload);
-
         JwtPayload payload = JSON.parseObject(jwtPayload, JwtPayload.class);
-        log.debug("payload: {}", payload);
         String username = payload.getUsername();
         log.debug("username: {}", username);
 
-        webSocketEndpoint.sendSingleMessage(username,
-                "Server hava received a video from you. Video File name: " + file.getOriginalFilename());
+        UploadTaskMessage message = new UploadTaskMessage();
+        message.setTaskId(UUID.randomUUID().toString());
+        message.setUsername(username);
+        message.setStatus(UploadTaskStatus.CREATED.ordinal());
+        message.setProgress(0);
+        message.setMsg("任务已创建！准备开始上传");
+        message.setMsgTime(System.currentTimeMillis());
+        webSocketEndpoint.sendSingleMessage(username, JSON.toJSONString(message));
 
-        return SimpleResponse.failed("test prohibit");
+        return SimpleResponse.success("test prohibit");
 //        OssUploadFileDTO dto = ossService.uploadVideo(file);
 //        return handleDTO(dto);
     }

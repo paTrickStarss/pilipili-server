@@ -5,10 +5,13 @@
 package com.bubble.pilipili.video.service;
 
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
+
+import java.util.List;
 
 /**
  * @author Bubble
@@ -136,4 +139,10 @@ public interface VideoInfoService {
      * @return
      */
     PageDTO<QueryVideoInfoDTO> pageQueryVideoInfo(PageQueryVideoInfoReq req);
+
+    /**
+     * 查询分区列表
+     * @return
+     */
+    List<QueryCategoryDTO> queryCategoryList();
 }
