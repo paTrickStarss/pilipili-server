@@ -12,7 +12,7 @@ import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.DynamicFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
-import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
+import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.pojo.req.SendCommentStatsReq;
 import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
@@ -52,7 +52,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
 
 
     @Autowired
-    private StatsMQFeignAPI statsMQFeignAPI;
+    private MQFeignAPI MQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
     @Autowired
@@ -283,7 +283,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                 SendCommentStatsReq req =
                         CommentInfoConverter.getInstance().copyFieldValue(stats, SendCommentStatsReq.class);
                 req.setCid(cid);
-                statsMQFeignAPI.sendCommentStats(req);
+                MQFeignAPI.sendCommentStats(req);
             }
             return b;
         } catch (Exception e) {

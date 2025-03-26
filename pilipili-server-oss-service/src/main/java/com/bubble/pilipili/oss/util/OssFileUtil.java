@@ -18,6 +18,17 @@ import java.util.UUID;
 @Slf4j
 public class OssFileUtil {
 
+    public static final String TMP_DIR = "T:\\tmp\\oss\\";
+
+    public static String getObjectFullPathName(MultipartFile file, String path) {
+        String fileName = OssFileUtil.getFileNameWithExtension(file);
+        String objFullPathName = fileName;
+        if (StringUtil.isNotEmpty(path)) {
+            objFullPathName = String.join("/", path, fileName);
+        }
+        return objFullPathName;
+    }
+
     /**
      * 生成UUID文件名（带扩展名）
      * @param file

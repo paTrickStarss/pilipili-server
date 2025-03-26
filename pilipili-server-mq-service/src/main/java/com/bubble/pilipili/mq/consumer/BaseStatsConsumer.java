@@ -4,7 +4,6 @@
 
 package com.bubble.pilipili.mq.consumer;
 
-import com.bubble.pilipili.common.exception.MQConsumerException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.StatsEntity;
 import com.bubble.pilipili.common.pojo.converter.BaseConverter;
@@ -15,9 +14,9 @@ import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
 import com.bubble.pilipili.mq.entity.StatsMessage;
-import com.bubble.pilipili.mq.producer.StatsMessageProducer;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bubble.pilipili.mq.producer.MessageProducer;
+import com.bubble.pilipili.mq.util.MessageHelper;
+import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -25,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,21 +47,17 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
     @Autowired
     protected StatsFeignAPI statsFeignAPI;
     @Autowired
-    protected StatsMessageProducer statsMessageProducer;
+    protected MessageProducer messageProducer;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
+    private MessageHelper messageHelper;
 
     /**
      * 消息处理批次大小
      */
     private final static int BATCH_SIZE = 5;
 
-    /**
-     * 消息体类对象缓存Map
-     */
-    private final HashMap<String, Class<?>> clzCacheMap = new HashMap<>();
+
     /**
      * 消息批处理暂存队列
      */
@@ -98,14 +94,21 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
 
 
     @RabbitHandler
-    public void defaultConsumer(Object message) {
+    public void defaultConsumer(Object message, Channel channel) {
         Message msg = (Message) message;
-        Object messageBody = getMessageBody(msg);
+        long deliveryTag = msg.getMessageProperties().getDeliveryTag();
+        Object messageBody = messageHelper.getMessageBody(msg);
         if (getMessageBodyClz().isInstance(messageBody)) {
             // 确认是目标消息类型，下发处理
 //            log.debug("Message body matched, launch handler...");
             T body = getMessageBodyClz().cast(messageBody);
             receiveStatsMessage(body);
+        }
+        try {
+            channel.basicAck(deliveryTag, false);
+        } catch (IOException e) {
+            log.error("消息确认异常");
+            throw new RuntimeException(e);
         }
     }
 
@@ -179,7 +182,7 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
                 // 保存失败，放回MQ
                 T message = statsResultMap.get(getStatsEntityIdGetter().apply(stats));
                 failFallback(message, response);
-                statsMessageProducer.sendStatsMessage(message);
+                messageProducer.sendStatsMessage(message);
             }
         });
     }
@@ -204,34 +207,7 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
     }
 
 
-    /**
-     * 获取消息体
-     * @param msg
-     * @return
-     */
-    private Object getMessageBody(Message msg) {
-        String bodyStr = new String(msg.getBody());
-        String typeId = msg.getMessageProperties().getHeader("__TypeId__");
-        Class<?> bodyClz = getClz(typeId);
-        try {
-            return objectMapper.readValue(bodyStr, bodyClz);
-        } catch (JsonProcessingException e) {
-            log.error("Message body JSON processing error: {}", bodyStr);
-            throw new MQConsumerException(e.getMessage());
-        }
-    }
 
-    private Class<?> getClz(String typeId) {
-        return clzCacheMap.computeIfAbsent(
-                typeId,
-                type -> {
-                    try {
-                        return Class.forName(typeId);
-                    } catch (ClassNotFoundException e) {
-                        log.error("Message body class not found: {}", typeId);
-                        throw new MQConsumerException(e.getMessage());
-                    }
-                }
-        );
-    }
+
+
 }

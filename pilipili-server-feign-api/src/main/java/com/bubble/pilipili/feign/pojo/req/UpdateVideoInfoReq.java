@@ -2,7 +2,7 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.video.pojo.req;
+package com.bubble.pilipili.feign.pojo.req;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

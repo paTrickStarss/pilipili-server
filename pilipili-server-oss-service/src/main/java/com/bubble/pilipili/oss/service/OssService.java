@@ -9,6 +9,8 @@ import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.concurrent.Future;
+
 /**
  * @author Bubble
  * @date 2025.03.21 16:08
@@ -21,14 +23,21 @@ public interface OssService {
      * @param file
      * @return
      */
-    OssUploadFileDTO uploadVideo(MultipartFile file);
+    OssUploadFileDTO uploadVideo(MultipartFile file, String objectName);
+
+    /**
+     * 异步上传视频
+     * @param file
+     * @return
+     */
+    Future<OssUploadFileDTO> asyncUploadVideo(MultipartFile file, String objectName);
 
     /**
      * 上传动态视频
      * @param file
      * @return
      */
-    OssUploadFileDTO uploadDynamicVideo(MultipartFile file);
+    OssUploadFileDTO uploadDynamicVideo(MultipartFile file, String objectName);
 
     /**
      * 上传视频封面

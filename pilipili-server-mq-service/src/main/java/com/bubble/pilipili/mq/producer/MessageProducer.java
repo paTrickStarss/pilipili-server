@@ -20,7 +20,7 @@ import java.util.UUID;
  * @date 2025.03.15 13:55
  */
 @Service
-public class StatsMessageProducer {
+public class MessageProducer {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -90,6 +90,19 @@ public class StatsMessageProducer {
         rabbitTemplate.convertAndSend(
                 ExchangeEnum.EXCHANGE_STATS.getName(),
                 QueueEnum.QUEUE_STATS_VIDEO.getRoutingKey(),
+                message,
+                generateCorrelationData()
+        );
+    }
+
+    /**
+     * 发送视频
+     * @param message
+     */
+    public void sendVideoInfo(VideoInfoMessage message) {
+        rabbitTemplate.convertAndSend(
+                ExchangeEnum.EXCHANGE_INFO.getName(),
+                QueueEnum.QUEUE_INFO_VIDEO.getRoutingKey(),
                 message,
                 generateCorrelationData()
         );

@@ -12,7 +12,7 @@ import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
-import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
+import com.bubble.pilipili.feign.pojo.req.UpdateVideoInfoReq;
 import com.bubble.pilipili.video.service.VideoInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -11,8 +11,8 @@ import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
-import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendDynamicStatsReq;
 import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
@@ -33,7 +33,6 @@ import com.bubble.pilipili.interact.repository.UserDynamicRepository;
 import com.bubble.pilipili.interact.service.DynamicInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +62,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     @Autowired
     private StatsFeignAPI statsFeignAPI;
     @Autowired
-    private StatsMQFeignAPI statsMQFeignAPI;
+    private MQFeignAPI MQFeignAPI;
     
 
     /**
@@ -350,7 +349,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 SendDynamicStatsReq req =
                         DynamicInfoConverter.getInstance().copyFieldValue(stats, SendDynamicStatsReq.class);
                 req.setDid(did);
-                statsMQFeignAPI.sendDynamicStats(req);
+                MQFeignAPI.sendDynamicStats(req);
             }
             return b;
         } catch (Exception e) {

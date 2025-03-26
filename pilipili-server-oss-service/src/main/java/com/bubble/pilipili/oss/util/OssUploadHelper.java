@@ -6,9 +6,9 @@ package com.bubble.pilipili.oss.util;
 
 import com.aliyun.oss.*;
 import com.aliyun.oss.model.*;
-import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.oss.config.OssClientConfig;
 import com.bubble.pilipili.oss.config.OssClientPool;
+import com.bubble.pilipili.oss.service.UploadProgressListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,31 +34,32 @@ public class OssUploadHelper {
     private OssClientPool ossClientPool;
 
     /**
-     * 分片大小 10MB
+     * 分片大小 100MB
      * 用于计算文件有多少个分片。单位为字节。
      * 分片最小值为100 KB，最大值为5 GB。最后一个分片的大小允许小于100 KB。
      */
-    private static final long PART_SIZE = 10 * 1024 * 1024L;
+    public static final long PART_SIZE = 100 * 1024 * 1024L;
+
+    private static final double MEGABYTES_TRANSFER_RATIO = 1.0 / (1024.0 * 1024.0);
+    private static final BigDecimal MEGABYTES_PER_SECOND_TRANSFER_DIVISOR = BigDecimal.valueOf(1024.0 * 1024.0 / 1000);
 
 
     /**
      * 执行上传文件
      * @param file
-     * @param path
+     * @param objectName
      * @return
      */
-    public String doUpload(MultipartFile file, String path) {
+    public String doUpload(MultipartFile file, String objectName) {
         OSS ossClient = ossClientPool.fetchClient();
-
-        String objFullPathName = getObjectFullPathName(file, path);
         try {
             PutObjectResult result = ossClient.putObject(
                     ossClientPool.getOssClientConfig().getBucketName(),
-                    objFullPathName,
+                    objectName,
                     file.getInputStream()
             );
             log.info("OSS文件上传成功: {}", result.getETag());
-            return objFullPathName;
+            return objectName;
 
         } catch (IOException e) {
             log.error("文件流获取失败");
@@ -76,14 +78,13 @@ public class OssUploadHelper {
         }
     }
 
-
     /**
      * 分片上传文件
      * @param file
+     * @param objectName
+     * @return
      */
-    public String partUpload(MultipartFile file, String path) {
-        String objectName = getObjectFullPathName(file, path);
-
+    public String partUpload(MultipartFile file, String objectName) {
         OssClientConfig config = ossClientPool.getOssClientConfig();
         String bucketName = config.getBucketName();
         OSS ossClient = ossClientPool.fetchClient();
@@ -134,17 +135,13 @@ public class OssUploadHelper {
                 // 设置分片号。每一个上传的分片都有一个分片号，取值范围是1~10000，如果超出此范围，OSS将返回InvalidArgument错误码。
                 uploadPartRequest.setPartNumber(i + 1);
 
-                // todo: 分片上传进度监听器
-                uploadPartRequest.setProgressListener(event -> {
-                    long bytesWritten = event.getBytes();
-//                    event
-                });
-                // 每个分片不需要按顺序上传，甚至可以在不同客户端上传，OSS会按照分片号排序组成完整的文件。
+                // 当前分片序号
+                final int partNum = i + 1;
+                // 分片上传进度监听器
+                uploadPartRequest.setProgressListener(new UploadProgressListener(partNum));
                 UploadPartResult uploadPartResult = ossClient.uploadPart(uploadPartRequest);
                 // 每次上传分片之后，OSS的返回结果包含PartETag。PartETag将被保存在partETags中。
                 partETags.add(uploadPartResult.getPartETag());
-
-                // todo: 返回上传进度
 
                 // 关闭流
                 inputStream.close();
@@ -202,12 +199,5 @@ public class OssUploadHelper {
         return null;
     }
 
-    private String getObjectFullPathName(MultipartFile file, String path) {
-        String fileName = OssFileUtil.getFileNameWithExtension(file);
-        String objFullPathName = fileName;
-        if (StringUtil.isNotEmpty(path)) {
-            objFullPathName = String.join("/", path, fileName);
-        }
-        return objFullPathName;
-    }
+
 }

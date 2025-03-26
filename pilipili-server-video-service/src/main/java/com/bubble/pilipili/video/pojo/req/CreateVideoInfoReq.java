@@ -65,7 +65,7 @@ public class CreateVideoInfoReq {
      */
     private Integer secondaryCategoryId;
 //    /**
-//     * 视频状态：0审核中 1审核通过 2审核不通过 3下架
+//     * 视频状态：0上传中 1审核中 2审核通过 3审核不通过 4下架
 //     */
 //    private Integer status;
 //    /**
@@ -80,4 +80,10 @@ public class CreateVideoInfoReq {
      * 发布时间（过审时间/定时发布时间）
      */
     private LocalDateTime publishTime;
+
+
+    /**
+     * 上传任务ID（与vid一对一关系保存到redis）
+     */
+    private String taskId;
 }

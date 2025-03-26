@@ -6,14 +6,15 @@ package com.bubble.pilipili.video.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.component.EntityConverter;
+import com.bubble.pilipili.common.component.RedisHelper;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.common.util.StringUtil;
+import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
-import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
@@ -24,7 +25,7 @@ import com.bubble.pilipili.video.pojo.entity.VideoInfo;
 import com.bubble.pilipili.video.pojo.param.QueryVideoInfoParam;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
-import com.bubble.pilipili.video.pojo.req.UpdateVideoInfoReq;
+import com.bubble.pilipili.feign.pojo.req.UpdateVideoInfoReq;
 import com.bubble.pilipili.video.repository.CategoryRepository;
 import com.bubble.pilipili.video.repository.UserVideoRepository;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
@@ -59,11 +60,14 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private EntityConverter entityConverter;
 
     @Autowired
-    private StatsMQFeignAPI statsMQFeignAPI;
+    private MQFeignAPI MQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private RedisHelper redisHelper;
 
     /**
      * 新增视频信息
@@ -74,7 +78,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Override
     public Boolean saveVideoInfo(CreateVideoInfoReq req) {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
-        return videoInfoRepository.saveVideoInfo(videoInfo);
+        Boolean b = videoInfoRepository.saveVideoInfo(videoInfo);
+        if (b) {
+            redisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
+        }
+        return b;
     }
 
     /**
@@ -421,7 +429,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 SendVideoStatsReq req =
                         entityConverter.copyFieldValue(stats, SendVideoStatsReq.class);
                 req.setVid(vid);
-                statsMQFeignAPI.sendVideoStats(req);
+                MQFeignAPI.sendVideoStats(req);
             }
             return true;
         } catch (Exception e) {

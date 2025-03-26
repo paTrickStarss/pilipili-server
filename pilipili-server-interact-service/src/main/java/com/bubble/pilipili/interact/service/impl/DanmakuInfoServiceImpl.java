@@ -11,7 +11,7 @@ import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
-import com.bubble.pilipili.feign.api.StatsMQFeignAPI;
+import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.feign.pojo.req.SendDanmakuStatsReq;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
@@ -50,7 +50,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     private InteractStatsAction interactStatsAction;
 
     @Autowired
-    private StatsMQFeignAPI statsMQFeignAPI;
+    private MQFeignAPI MQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
 
@@ -71,7 +71,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
             SendVideoStatsReq stats = new SendVideoStatsReq();
             stats.setVid(req.getVid());
             stats.setDanmakuCount(1L);
-            SimpleResponse<String> response = statsMQFeignAPI.sendVideoStats(stats);
+            SimpleResponse<String> response = MQFeignAPI.sendVideoStats(stats);
             if (!response.isSuccess()) {
                 log.warn("FeignAPI sendVideoStats error : {}", response);
             }
@@ -278,7 +278,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
                 SendDanmakuStatsReq req =
                         DanmakuInfoConverter.getInstance().copyFieldValue(stats, SendDanmakuStatsReq.class);
                 req.setDanmakuId(danmakuId);
-                statsMQFeignAPI.sendDanmakuStats(req);
+                MQFeignAPI.sendDanmakuStats(req);
             }
             return b;
         } catch (Exception e) {

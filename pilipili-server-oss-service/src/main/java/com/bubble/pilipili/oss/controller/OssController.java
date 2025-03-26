@@ -9,10 +9,15 @@ import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.JwtPayload;
+import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
+import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import com.bubble.pilipili.oss.constant.UploadTaskStatus;
+import com.bubble.pilipili.oss.pojo.dto.OssAsyncUploadFileDTO;
 import com.bubble.pilipili.oss.pojo.dto.UploadTaskMessage;
 import com.bubble.pilipili.oss.service.OssService;
+import com.bubble.pilipili.oss.service.TempMultipartFile;
+import com.bubble.pilipili.oss.util.OssFileUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Bubble
@@ -42,6 +49,10 @@ public class OssController implements Controller {
     @Autowired
     private WebSocketEndpoint webSocketEndpoint;
 
+    @Autowired
+    private MQFeignAPI mqFeignAPI;
+
+
     /**
      * 上传视频
      * @param file
@@ -49,16 +60,21 @@ public class OssController implements Controller {
      */
     @Operation(summary = "上传视频")
     @PostMapping("/video")
-    public SimpleResponse<OssUploadFileDTO> uploadVideo(
-            @RequestParam MultipartFile file, HttpServletRequest request
+    public SimpleResponse<OssAsyncUploadFileDTO> uploadVideo(
+            @RequestParam MultipartFile file,
+            HttpServletRequest request
     ) {
+        TempMultipartFile tempFile = TempMultipartFile.createTempFile(file);
+
         String jwtPayload = request.getHeader(AuthConstant.JWT_PAYLOAD_HEADER);
         JwtPayload payload = JSON.parseObject(jwtPayload, JwtPayload.class);
         String username = payload.getUsername();
         log.debug("username: {}", username);
 
+        // taskId可以通过ws消息发送给客户端，也可以通过请求响应返回
         UploadTaskMessage message = new UploadTaskMessage();
-        message.setTaskId(UUID.randomUUID().toString());
+        String taskId = UUID.randomUUID().toString();
+        message.setTaskId(taskId);
         message.setUsername(username);
         message.setStatus(UploadTaskStatus.CREATED.ordinal());
         message.setProgress(0);
@@ -66,9 +82,51 @@ public class OssController implements Controller {
         message.setMsgTime(System.currentTimeMillis());
         webSocketEndpoint.sendSingleMessage(username, JSON.toJSONString(message));
 
-        return SimpleResponse.success("test prohibit");
+//        return SimpleResponse.success("test prohibit");
+
+        // 后台创建OSS上传任务，请求接收完前端发送的文件后直接返回响应，最终访问路径为objectName
+        String objectName = OssFileUtil.getObjectFullPathName(file, OssFileDirectory.VIDEO_CONTENT.getValue());
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return ossService.asyncUploadVideo(tempFile, objectName);
+            } catch (Exception e) {
+                log.error("supplyAsync error");
+                throw new RuntimeException(e);
+            }
+        })
+                .thenAccept(future -> {
+            OssUploadFileDTO dto;
+            try {
+                dto = future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("thenAccept error");
+                throw new RuntimeException(e);
+            }
+            tempFile.delete();
+            if (dto.getSuccess()) {
+                // 上传完成，通知前端
+                UploadTaskMessage resultMessage = new UploadTaskMessage();
+                resultMessage.setTaskId(taskId);
+                resultMessage.setUsername(username);
+                resultMessage.setStatus(UploadTaskStatus.COMPLETED.ordinal());
+                resultMessage.setProgress(100);
+                resultMessage.setMsg("上传任务已完成！path: " + dto.getFilePath());
+                resultMessage.setMsgTime(System.currentTimeMillis());
+                webSocketEndpoint.sendSingleMessage(username, JSON.toJSONString(resultMessage));
+
+                // 执行视频信息更新（contentUrl）
+                // 没有必要更新，因为objectName可以先生成返回给前端去保存视频信息，等到视频文件上传OSS任务完成后自然就可以通过objectName访问了
+//                SendVideoInfoReq req = new SendVideoInfoReq();
+//                req.setTaskId(taskId);
+//                req.setContentUrl(dto.getFilePath());
+//                mqFeignAPI.sendVideoInfo(req);
+            }
+        });
+
+        return SimpleResponse.success(new OssAsyncUploadFileDTO(taskId, objectName));
 //        OssUploadFileDTO dto = ossService.uploadVideo(file);
 //        return handleDTO(dto);
+
     }
 
     /**
@@ -79,7 +137,8 @@ public class OssController implements Controller {
     @Operation(summary = "上传动态视频")
     @PostMapping("/video/dynamic")
     public SimpleResponse<OssUploadFileDTO> uploadDynamicVideo(@RequestParam MultipartFile file) {
-        OssUploadFileDTO dto = ossService.uploadDynamicVideo(file);
+        String objectName = OssFileUtil.getObjectFullPathName(file, OssFileDirectory.VIDEO_DYNAMIC.getValue());
+        OssUploadFileDTO dto = ossService.uploadDynamicVideo(file, objectName);
         return handleDTO(dto);
     }
 

@@ -25,6 +25,10 @@ public class BindingConfig {
     DirectExchange statsExchange() {
         return new DirectExchange(ExchangeEnum.EXCHANGE_STATS.getName(), true, false);
     }
+    @Bean
+    DirectExchange infoExchange() {
+        return new DirectExchange(ExchangeEnum.EXCHANGE_INFO.getName(), true, false);
+    }
 
     @Bean
     Queue commentStatsQueue() {
@@ -41,6 +45,10 @@ public class BindingConfig {
     @Bean
     Queue videoStatsQueue() {
         return new Queue(QueueEnum.QUEUE_STATS_VIDEO.getName(), true, false, false);
+    }
+    @Bean
+    Queue videoInfoQueue() {
+        return new Queue(QueueEnum.QUEUE_INFO_VIDEO.getName(), true, false, false);
     }
 
     @Bean
@@ -70,5 +78,13 @@ public class BindingConfig {
                 .bind(videoStatsQueue())
                 .to(statsExchange())
                 .with(QueueEnum.QUEUE_STATS_VIDEO.getRoutingKey());
+    }
+
+    @Bean
+    Binding BindingVideoInfoQueue() {
+        return BindingBuilder
+                .bind(videoInfoQueue())
+                .to(infoExchange())
+                .with(QueueEnum.QUEUE_INFO_VIDEO.getRoutingKey());
     }
 }

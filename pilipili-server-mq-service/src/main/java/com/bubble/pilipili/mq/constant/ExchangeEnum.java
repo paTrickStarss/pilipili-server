@@ -16,7 +16,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ExchangeEnum {
 
-    EXCHANGE_STATS("exchange.direct.pilipili.stats", "direct", "统计数据交换机");
+    EXCHANGE_STATS("exchange.direct.pilipili.stats", "direct", "统计数据交换机"),
+    EXCHANGE_INFO("exchange.direct.pilipili.info", "direct", "实体信息数据交换机"),
+    ;
 
     private final String name;
     private final String type;
