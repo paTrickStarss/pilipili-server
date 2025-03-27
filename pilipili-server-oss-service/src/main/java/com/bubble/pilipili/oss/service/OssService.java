@@ -4,11 +4,13 @@
 
 package com.bubble.pilipili.oss.service;
 
+import com.bubble.pilipili.feign.pojo.dto.OssTempSignDTO;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
 import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.concurrent.Future;
 
 /**
@@ -71,4 +73,10 @@ public interface OssService {
      */
     OssUploadFileDTO uploadImage(MultipartFile file, OssFileDirectory ossFileDirectory);
 
+    /**
+     * 临时访问签名
+     * @param objectNameList
+     * @return
+     */
+    OssTempSignDTO getTempSigns(List<String> objectNameList);
 }

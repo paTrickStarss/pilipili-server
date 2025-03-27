@@ -5,6 +5,8 @@
 package com.bubble.pilipili.oss.service.impl;
 
 import com.bubble.pilipili.common.exception.UtilityException;
+import com.bubble.pilipili.common.util.ListUtil;
+import com.bubble.pilipili.feign.pojo.dto.OssTempSignDTO;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
 import com.bubble.pilipili.oss.constant.FileContentType;
 import com.bubble.pilipili.oss.constant.OssFileDirectory;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.concurrent.Future;
 
 /**
@@ -129,6 +132,20 @@ public class OssServiceImpl implements OssService {
         }
         String objectName = OssFileUtil.getObjectFullPathName(file, ossFileDirectory.getValue());
         return upload(file, objectName);
+    }
+
+    /**
+     * 临时访问签名
+     *
+     * @param objectNameList
+     * @return
+     */
+    @Override
+    public OssTempSignDTO getTempSigns(List<String> objectNameList) {
+        if (ListUtil.isEmpty(objectNameList)) {
+            return OssTempSignDTO.emptyDTO();
+        }
+        return OssTempSignDTO.createDTO(ossUploadHelper.getTempSignUrl(objectNameList));
     }
 
 

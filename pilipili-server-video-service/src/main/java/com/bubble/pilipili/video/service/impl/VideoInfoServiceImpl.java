@@ -14,7 +14,9 @@ import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
+import com.bubble.pilipili.feign.api.OssFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.pojo.dto.OssTempSignDTO;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
@@ -39,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 视频信息业务层
@@ -53,6 +56,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private VideoInfoRepository videoInfoRepository;
     @Autowired
     private UserVideoRepository userVideoRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Autowired
     private InteractStatsAction interactStatsAction;
@@ -64,7 +69,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Autowired
     private StatsFeignAPI statsFeignAPI;
     @Autowired
-    private CategoryRepository categoryRepository;
+    private OssFeignAPI ossFeignAPI;
 
     @Autowired
     private RedisHelper redisHelper;
@@ -79,9 +84,9 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     public Boolean saveVideoInfo(CreateVideoInfoReq req) {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         Boolean b = videoInfoRepository.saveVideoInfo(videoInfo);
-        if (b) {
-            redisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
-        }
+//        if (b) {
+//            redisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
+//        }
         return b;
     }
 
@@ -278,7 +283,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Override
     public QueryVideoInfoDTO getVideoInfoById(Integer vid) {
         VideoInfo videoInfo = videoInfoRepository.getVideoInfoById(vid);
-        List<QueryVideoInfoDTO> dtoList = handleVideoStats(Collections.singletonList(videoInfo));
+        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(Collections.singletonList(videoInfo));
         return ListUtil.isEmpty(dtoList) ? null : dtoList.get(0);
     }
 
@@ -297,7 +302,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                         true, false, Collections.singletonList(VideoInfo::getUploadTime)
                 );
 
-        List<QueryVideoInfoDTO> dtoList = handleVideoStats(videoInfoPage.getRecords());
+        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoPage.getRecords());
         return PageDTO.createPageDTO(
                 videoInfoPage.getCurrent(),
                 videoInfoPage.getSize(),
@@ -320,7 +325,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                         true, false, Collections.singletonList(VideoInfo::getUploadTime)
                 );
 
-        List<QueryVideoInfoDTO> dtoList = handleVideoStats(videoInfoPage.getRecords());
+        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoPage.getRecords());
         return PageDTO.createPageDTO(
                 videoInfoPage.getCurrent(),
                 videoInfoPage.getSize(),
@@ -340,7 +345,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         Page<VideoInfo> videoInfoPage =
                 videoInfoRepository.pageQueryVideoInfo(param, req.getPageNo(), req.getPageSize());
 
-        List<QueryVideoInfoDTO> dtoList = handleVideoStats(videoInfoPage.getRecords());
+        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoPage.getRecords());
         return PageDTO.createPageDTO(
                 videoInfoPage.getCurrent(),
                 videoInfoPage.getSize(),
@@ -365,11 +370,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     }
 
     /**
-     * 获取视频统计数据并返回DTO
+     * 获取视频统计数据、临时访问链接并返回DTO
      * @param videoInfoList
      * @return
      */
-    List<QueryVideoInfoDTO> handleVideoStats(List<VideoInfo> videoInfoList) {
+    List<QueryVideoInfoDTO> handleVideoInfo(List<VideoInfo> videoInfoList) {
         if (ListUtil.isEmpty(videoInfoList)) {
             return Collections.emptyList();
         }
@@ -377,12 +382,29 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 entityConverter.copyFieldValueList(
                         videoInfoList, QueryVideoInfoDTO.class);
 
-        // 获取视频统计数据
+        // feignAPI获取视频统计数据
         List<Integer> vidList = dtoList.stream().map(QueryVideoInfoDTO::getVid).collect(Collectors.toList());
-        // ok: feignAPI获取视频统计数据
-        SimpleResponse<QueryStatsDTO<VideoStats>> response = statsFeignAPI.getVideoStats(vidList);
-        Map<Integer, VideoStats> statsMap = response.getData().getStatsMap();
+        SimpleResponse<QueryStatsDTO<VideoStats>> statsResp = statsFeignAPI.getVideoStats(vidList);
+        Map<Integer, VideoStats> statsMap = statsResp.getData().getStatsMap();
+
+        // 获取临时访问链接
+        List<String> contentUrlList = dtoList.stream()
+                .map(QueryVideoInfoDTO::getContentUrl)
+                .filter(ossUrl -> ossUrl != null && !ossUrl.startsWith("http"))
+                .collect(Collectors.toList());
+        List<String> coverUrlList = dtoList.stream()
+                .map(QueryVideoInfoDTO::getCoverUrl)
+                .filter(ossUrl -> ossUrl != null && !ossUrl.startsWith("http"))
+                .collect(Collectors.toList());
+        List<String> objectNameList =
+                Stream.concat(contentUrlList.stream(), coverUrlList.stream())
+                        .collect(Collectors.toList());
+        SimpleResponse<OssTempSignDTO> signResp = ossFeignAPI.getTempSigns(objectNameList);
+        Map<String, String> urlMap = signResp.getData().getUrlMap();
+
+        // 装填DTO
         dtoList.forEach(dto -> {
+            // 装填统计数据
             VideoStats stats = statsMap.get(dto.getVid());
             if (stats != null) {
                 dto.setViewCount(stats.getViewCount());
@@ -392,6 +414,16 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 dto.setCollectCount(stats.getCollectCount());
                 dto.setRepostCount(stats.getRepostCount());
                 dto.setDewCount(stats.getDewCount());
+            }
+
+            // 装填临时访问链接
+            String contentUrl = urlMap.get(dto.getContentUrl());
+            if (StringUtil.isNotEmpty(contentUrl)) {
+                dto.setContentUrl(contentUrl);
+            }
+            String coverUrl = urlMap.get(dto.getCoverUrl());
+            if (StringUtil.isNotEmpty(coverUrl)) {
+                dto.setCoverUrl(coverUrl);
             }
 
             // tag转数组

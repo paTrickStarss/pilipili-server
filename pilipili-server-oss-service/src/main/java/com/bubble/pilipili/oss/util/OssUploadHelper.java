@@ -6,6 +6,8 @@ package com.bubble.pilipili.oss.util;
 
 import com.aliyun.oss.*;
 import com.aliyun.oss.model.*;
+import com.bubble.pilipili.common.component.RedisHelper;
+import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.oss.config.OssClientConfig;
 import com.bubble.pilipili.oss.config.OssClientPool;
 import com.bubble.pilipili.oss.service.UploadProgressListener;
@@ -18,9 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Bubble
@@ -32,6 +32,8 @@ public class OssUploadHelper {
 
     @Autowired
     private OssClientPool ossClientPool;
+    @Autowired
+    private RedisHelper redisHelper;
 
     /**
      * 分片大小 100MB
@@ -42,7 +44,10 @@ public class OssUploadHelper {
 
     private static final double MEGABYTES_TRANSFER_RATIO = 1.0 / (1024.0 * 1024.0);
     private static final BigDecimal MEGABYTES_PER_SECOND_TRANSFER_DIVISOR = BigDecimal.valueOf(1024.0 * 1024.0 / 1000);
-
+    /**
+     * OSS对象临时访问签名有效期：（分钟）
+     */
+    private static final int EXPIRES_IN_MINUTES = 60;
 
     /**
      * 执行上传文件
@@ -180,13 +185,11 @@ public class OssUploadHelper {
         OSS ossClient = ossClientPool.fetchClient();
         String bucketName = ossClientPool.getOssClientConfig().getBucketName();
         try {
-            // 将图片缩放为固定宽高100 px后，再旋转90°。
-            String style = "image/resize,m_fixed,w_100,h_100/rotate,90";
-            // 指定签名URL过期时间为10分钟。(最长过期时间为32400秒)
-            Date expiration = new Date(new Date().getTime() + 1000 * 60 * 10 );
             GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
-            req.setExpiration(expiration);
-            req.setProcess(style);
+            req.setExpiration(getExpiration());
+            // 图片处理：将图片缩放为固定宽高100 px后，再旋转90°。
+//            String style = "image/resize,m_fixed,w_100,h_100/rotate,90";
+//            req.setProcess(style);
             URL signedUrl = ossClient.generatePresignedUrl(req);
             return signedUrl.toExternalForm();
         } catch (OSSException oe) {
@@ -198,6 +201,69 @@ public class OssUploadHelper {
         }
         return null;
     }
+    /**
+     * 文件公共访问临时签名
+     * @param objectNameList
+     * @return
+     */
+    public Map<String, String> getTempSignUrl(List<String> objectNameList) {
+        Map<String, String> resultMap = new HashMap<>((int) (objectNameList.size() * 0.75));
+        OSS ossClient = ossClientPool.fetchClient();
+        String bucketName = ossClientPool.getOssClientConfig().getBucketName();
+        for (String objectName : objectNameList) {
+            String accessUrl;
+            // 读缓存
+            accessUrl = redisHelper.getOssTempAccessUrl(objectName);
 
+            // 无缓存则执行签名请求，并更新缓存
+            if (StringUtil.isEmpty(accessUrl)) {
+                accessUrl = doGetTempSignUrl(ossClient, bucketName, objectName);
+                updateAccessUrlCache(objectName, accessUrl);
+            }
+            resultMap.put(objectName, accessUrl);
+        }
+        ossClientPool.releaseClient(ossClient);
+        return resultMap;
+    }
 
+    /**
+     * 更新OSS临时访问链接缓存
+     * @param objectName
+     * @param accessUrl
+     */
+    private void updateAccessUrlCache(String objectName, String accessUrl) {
+        if (StringUtil.isEmpty(accessUrl)) {
+            return;
+        }
+        int i = accessUrl.indexOf("Expires=");
+        int i1 = accessUrl.indexOf("&", i);
+        if (i == -1) {
+            return;
+        }
+
+        String expireAtTimeInSeconds = accessUrl.substring(i + 8, i1);
+        redisHelper.saveOssTempAccessUrl(objectName, accessUrl, Long.parseLong(expireAtTimeInSeconds));
+    }
+
+    private String doGetTempSignUrl(
+            OSS ossClient,
+            String bucketName,
+            String objectName
+    ) {
+        try {
+            GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
+            req.setExpiration(getExpiration());
+            URL signedUrl = ossClient.generatePresignedUrl(req);
+            return signedUrl.toExternalForm();
+        } catch (OSSException oe) {
+            log.error("OSS文件临时访问签名服务端异常: {}", oe.getMessage());
+        } catch (ClientException ce) {
+            log.error("OSS文件临时访问签名客户端异常: \n{}", ce.getMessage());
+        }
+        return null;
+    }
+
+    private Date getExpiration() {
+        return new Date(new Date().getTime() + 1000 * 60 * EXPIRES_IN_MINUTES );
+    }
 }

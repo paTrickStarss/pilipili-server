@@ -13,9 +13,6 @@ import com.bubble.pilipili.mq.util.MessageHelper;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitHandler;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
@@ -25,8 +22,8 @@ import java.io.IOException;
  * @date 2025.03.26 17:13
  */
 @Slf4j
-@Service
-@RabbitListener(queues = "queue.pilipili.info.video")
+//@Service
+//@RabbitListener(queues = "queue.pilipili.info.video")
 public class VideoInfoConsumer {
 
     private final MessageHelper messageHelper;
@@ -39,7 +36,7 @@ public class VideoInfoConsumer {
         this.videoFeignAPI = videoFeignAPI;
     }
 
-    @RabbitHandler
+//    @RabbitHandler
     public void receiveMessage(Object message, Channel channel) throws IOException {
         Message msg = (Message) message;
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();

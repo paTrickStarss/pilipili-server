@@ -5,7 +5,6 @@
 package com.bubble.pilipili.video.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
@@ -16,7 +15,6 @@ import com.bubble.pilipili.video.pojo.req.PageQueryCollectionVideoReq;
 import com.bubble.pilipili.video.repository.CollectionVideoRepository;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
 import com.bubble.pilipili.video.service.CollectionVideoService;
-import com.bubble.pilipili.video.service.VideoInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -102,6 +100,6 @@ public class CollectionVideoServiceImpl implements CollectionVideoService {
         List<VideoInfo> videoInfoList = videoInfoRepository.getVideoInfoById(vidList);
 
         // 查询视频统计数据
-        return videoInfoServiceImpl.handleVideoStats(videoInfoList);
+        return videoInfoServiceImpl.handleVideoInfo(videoInfoList);
     }
 }

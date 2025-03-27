@@ -10,10 +10,12 @@ import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.JwtPayload;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
+import com.bubble.pilipili.feign.api.OssFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
 import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import com.bubble.pilipili.oss.constant.UploadTaskStatus;
 import com.bubble.pilipili.oss.pojo.dto.OssAsyncUploadFileDTO;
+import com.bubble.pilipili.feign.pojo.dto.OssTempSignDTO;
 import com.bubble.pilipili.oss.pojo.dto.UploadTaskMessage;
 import com.bubble.pilipili.oss.service.OssService;
 import com.bubble.pilipili.oss.service.TempMultipartFile;
@@ -22,13 +24,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -41,7 +41,7 @@ import java.util.concurrent.ExecutionException;
 @RestController
 @RequestMapping("/api/oss")
 @Tag(name = "OssController", description = "OSS文件上传下载管理接口")
-public class OssController implements Controller {
+public class OssController implements OssFeignAPI, Controller {
 
     @Autowired
     private OssService ossService;
@@ -52,6 +52,18 @@ public class OssController implements Controller {
     @Autowired
     private MQFeignAPI mqFeignAPI;
 
+
+    /**
+     * 临时签名访问
+     * @param objectNameList 待签名对象名列表
+     * @return
+     */
+    @Operation(summary = "临时签名访问")
+    @PostMapping("/tempSign")
+    public SimpleResponse<OssTempSignDTO> getTempSigns(@RequestBody List<String> objectNameList) {
+        OssTempSignDTO dto = ossService.getTempSigns(objectNameList);
+        return SimpleResponse.success(dto);
+    }
 
     /**
      * 上传视频
