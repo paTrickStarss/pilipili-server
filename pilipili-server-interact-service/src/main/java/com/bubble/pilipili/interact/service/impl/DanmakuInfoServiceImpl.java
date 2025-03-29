@@ -5,6 +5,7 @@
 package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -15,8 +16,8 @@ import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
 import com.bubble.pilipili.feign.pojo.req.SendDanmakuStatsReq;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
-import com.bubble.pilipili.interact.pojo.converter.DanmakuInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserDanmakuDTO;
 import com.bubble.pilipili.interact.pojo.entity.*;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDanmakuInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDanmakuInfoReq;
@@ -53,6 +54,8 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     private MQFeignAPI MQFeignAPI;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
+    @Autowired
+    private EntityConverter entityConverter;
 
     /**
      * 保存弹幕信息
@@ -63,7 +66,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     @Override
     public Boolean saveDanmakuInfo(SaveDanmakuInfoReq req) {
         DanmakuInfo danmakuInfo =
-                DanmakuInfoConverter.getInstance().copyFieldValue(req, DanmakuInfo.class);
+                entityConverter.copyFieldValue(req, DanmakuInfo.class);
         Boolean b = danmakuInfoRepository.saveDanmakuInfo(danmakuInfo);
 
         //todo: 更新视频弹幕统计数据
@@ -160,6 +163,17 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
     }
 
     /**
+     * @param danmakuId 
+     * @param uid
+     * @return
+     */
+    @Override
+    public QueryUserDanmakuDTO queryUserDanmaku(Integer danmakuId, Integer uid) {
+        UserDanmaku interact = userDanmakuRepository.getInteract(danmakuId, uid);
+        return entityConverter.copyFieldValue(interact, QueryUserDanmakuDTO.class);
+    }
+
+    /**
      * 分页查询视频弹幕
      * @param req
      * @return
@@ -238,7 +252,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
         List<Integer> idList = danmakuInfoList.stream().map(DanmakuInfo::getDanmakuId).collect(Collectors.toList());
         Map<Integer, DanmakuStats> statsMap = statsFeignAPI.getDanmakuStats(idList).getData().getStatsMap();
         List<QueryDanmakuInfoDTO> dtoList =
-                DanmakuInfoConverter.getInstance().copyFieldValueList(danmakuInfoList, QueryDanmakuInfoDTO.class);
+                entityConverter.copyFieldValueList(danmakuInfoList, QueryDanmakuInfoDTO.class);
         dtoList.forEach(dto -> {
             DanmakuStats stats = statsMap.get(dto.getDanmakuId());
             if (stats != null) {
@@ -276,7 +290,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
                 DanmakuStats stats = new DanmakuStats();
                 statsConsumer.accept(stats);
                 SendDanmakuStatsReq req =
-                        DanmakuInfoConverter.getInstance().copyFieldValue(stats, SendDanmakuStatsReq.class);
+                        entityConverter.copyFieldValue(stats, SendDanmakuStatsReq.class);
                 req.setDanmakuId(danmakuId);
                 MQFeignAPI.sendDanmakuStats(req);
             }

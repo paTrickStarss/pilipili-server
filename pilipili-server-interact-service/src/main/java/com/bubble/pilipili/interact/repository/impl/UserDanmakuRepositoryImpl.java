@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.interact.mapper.UserDanmakuMapper;
 import com.bubble.pilipili.interact.pojo.entity.UserDanmaku;
@@ -46,6 +47,22 @@ public class UserDanmakuRepositoryImpl implements UserDanmakuRepository {
                     }
                 },
                 userDanmakuMapper
+        );
+    }
+
+    /**
+     * 查询互动数据
+     *
+     * @param id
+     * @param uid
+     * @return
+     */
+    @Override
+    public UserDanmaku getInteract(Integer id, Integer uid) {
+        return userDanmakuMapper.selectOne(
+                new LambdaQueryWrapper<UserDanmaku>()
+                        .eq(UserDanmaku::getDanmakuId, id)
+                        .eq(UserDanmaku::getUid, uid)
         );
     }
 }

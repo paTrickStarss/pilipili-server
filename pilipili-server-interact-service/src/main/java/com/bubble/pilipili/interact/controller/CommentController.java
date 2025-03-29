@@ -9,6 +9,7 @@ import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserCommentDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
 import com.bubble.pilipili.interact.service.CommentInfoService;
@@ -121,6 +122,22 @@ public class CommentController implements Controller {
     ) {
         Boolean b = commentInfoService.revokeDewCommentInfo(cid, uid);
         return SimpleResponse.result(b);
+    }
+
+    /**
+     * 查询用户评论互动状态
+     * @param cid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "查询用户评论互动状态")
+    @GetMapping("/getUserComment")
+    public SimpleResponse<QueryUserCommentDTO> queryUserComment(
+            @NotBlank(message = "请传入cid") @RequestParam Integer cid,
+            @NotBlank(message = "请传入uid") @RequestParam Integer uid
+    ) {
+        QueryUserCommentDTO dto = commentInfoService.queryUserCommentInfo(cid, uid);
+        return SimpleResponse.success(dto);
     }
 
     /**

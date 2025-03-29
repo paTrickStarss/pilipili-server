@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.video.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.video.mapper.UserVideoMapper;
 import com.bubble.pilipili.video.pojo.entity.UserVideo;
@@ -61,6 +62,22 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
                 }
             },
             userVideoMapper
+        );
+    }
+
+    /**
+     * 查询互动数据
+     *
+     * @param id
+     * @param uid
+     * @return
+     */
+    @Override
+    public UserVideo getInteract(Integer id, Integer uid) {
+        return userVideoMapper.selectOne(
+                new LambdaQueryWrapper<UserVideo>()
+                        .eq(UserVideo::getVid, id)
+                        .eq(UserVideo::getUid, uid)
         );
     }
 }

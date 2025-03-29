@@ -6,6 +6,7 @@ package com.bubble.pilipili.video.service;
 
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
+import com.bubble.pilipili.video.pojo.dto.QueryUserVideoDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
@@ -74,6 +75,14 @@ public interface VideoInfoService {
     Boolean revokeCollectVideoInfo(Integer vid, Integer uid);
 
     /**
+     * 一键三连
+     * @param vid
+     * @param uid
+     * @return
+     */
+    Boolean tripleInteractVideoInfo(Integer vid, Integer uid);
+
+    /**
      * 转发视频
      * @param vid
      * @param uid
@@ -139,6 +148,14 @@ public interface VideoInfoService {
      * @return
      */
     PageDTO<QueryVideoInfoDTO> pageQueryVideoInfo(PageQueryVideoInfoReq req);
+
+    /**
+     * 查询用户视频互动状态
+     * @param vid
+     * @param uid
+     * @return
+     */
+    QueryUserVideoDTO getUserVideo(Integer vid, Integer uid);
 
     /**
      * 查询分区列表

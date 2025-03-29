@@ -9,6 +9,7 @@ import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
+import com.bubble.pilipili.video.pojo.dto.QueryUserVideoDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.req.CreateVideoInfoReq;
 import com.bubble.pilipili.video.pojo.req.PageQueryVideoInfoReq;
@@ -57,6 +58,22 @@ public class VideoController implements Controller {
     @PutMapping("/update")
     public SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req) {
         Boolean b = videoInfoService.updateVideoInfo(req);
+        return SimpleResponse.result(b);
+    }
+
+    /**
+     * 一键三连视频
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "一键三连视频")
+    @PatchMapping("/triple")
+    public SimpleResponse<String> tripleInteract(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        Boolean b = videoInfoService.tripleInteractVideoInfo(vid, uid);
         return SimpleResponse.result(b);
     }
 
@@ -268,6 +285,22 @@ public class VideoController implements Controller {
     ) {
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfo(req);
         return PageResponse.success(dto);
+    }
+
+    /**
+     * 查询用户视频互动状态
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "查询用户视频互动状态")
+    @GetMapping("/getUserVideo")
+    public SimpleResponse<QueryUserVideoDTO> queryUserVideo(
+            @NotBlank @RequestParam Integer vid,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        QueryUserVideoDTO userVideo = videoInfoService.getUserVideo(vid, uid);
+        return SimpleResponse.success(userVideo);
     }
 
     /**

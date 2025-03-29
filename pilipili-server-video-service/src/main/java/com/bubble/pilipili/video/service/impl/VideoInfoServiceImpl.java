@@ -21,6 +21,7 @@ import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.feign.pojo.entity.VideoStats;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
+import com.bubble.pilipili.video.pojo.dto.QueryUserVideoDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
 import com.bubble.pilipili.video.pojo.entity.UserVideo;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
@@ -71,8 +72,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Autowired
     private OssFeignAPI ossFeignAPI;
 
-    @Autowired
-    private RedisHelper redisHelper;
+//    @Autowired
+//    private RedisHelper redisHelper;
 
     /**
      * 新增视频信息
@@ -192,6 +193,31 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 vid, uid,
                 uv -> uv.setCollect(0),
                 stats -> stats.setCollectCount(-1L)
+        );
+    }
+
+    /**
+     * 一键三连
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean tripleInteractVideoInfo(Integer vid, Integer uid) {
+        return updateVideoInteract(
+                vid, uid,
+                uv -> {
+                    uv.setFavor(1);
+                    uv.setCoin(1);
+                    uv.setCollect(1);
+                },
+                stats -> {
+                    stats.setFavorCount(1L);
+                    stats.setCoinCount(1L);
+                    stats.setCollectCount(1L);
+                }
         );
     }
 
@@ -352,6 +378,19 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 videoInfoPage.getTotal(),
                 dtoList
         );
+    }
+
+    /**
+     * 查询用户视频互动状态
+     *
+     * @param vid
+     * @param uid
+     * @return
+     */
+    @Override
+    public QueryUserVideoDTO getUserVideo(Integer vid, Integer uid) {
+        UserVideo interact = userVideoRepository.getInteract(vid, uid);
+        return entityConverter.copyFieldValue(interact, QueryUserVideoDTO.class);
     }
 
     /**

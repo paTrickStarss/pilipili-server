@@ -6,6 +6,7 @@ package com.bubble.pilipili.interact.service;
 
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserCommentDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
 
@@ -22,6 +23,7 @@ public interface CommentInfoService {
     Boolean revokeFavorCommentInfo(Integer cid, Integer uid);
     Boolean dewCommentInfo(Integer cid, Integer uid);
     Boolean revokeDewCommentInfo(Integer cid, Integer uid);
+    QueryUserCommentDTO queryUserCommentInfo(Integer cid, Integer uid);
 
     QueryCommentInfoDTO queryCommentInfo(Integer cid);
     PageDTO<QueryCommentInfoDTO> pageQueryCommentInfoByRela(PageQueryCommentInfoReq req);

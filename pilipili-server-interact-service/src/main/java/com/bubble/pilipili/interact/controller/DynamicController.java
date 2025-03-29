@@ -9,6 +9,7 @@ import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserDynamicDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.UpdateDynamicInfoReq;
@@ -119,6 +120,22 @@ public class DynamicController implements Controller {
     ) {
         Boolean b = dynamicInfoService.commentDynamicInfo(did, uid);
         return SimpleResponse.result(b);
+    }
+
+    /**
+     * 查询用户动态互动状态
+     * @param did
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "查询用户动态互动状态")
+    @GetMapping("/getUserDynamic")
+    public SimpleResponse<QueryUserDynamicDTO> queryUserDynamic(
+            @Valid @RequestParam Integer did,
+            @Valid @RequestParam Integer uid
+    ) {
+        QueryUserDynamicDTO dto = dynamicInfoService.queryUserDynamic(did, uid);
+        return SimpleResponse.success(dto);
     }
 
     /**

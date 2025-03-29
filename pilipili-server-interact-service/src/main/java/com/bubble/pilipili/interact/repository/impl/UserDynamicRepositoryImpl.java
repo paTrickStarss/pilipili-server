@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.interact.mapper.UserDynamicMapper;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
@@ -46,6 +47,22 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
                     }
                 },
                 userDynamicMapper
+        );
+    }
+
+    /**
+     * 查询互动数据
+     *
+     * @param id
+     * @param uid
+     * @return
+     */
+    @Override
+    public UserDynamic getInteract(Integer id, Integer uid) {
+        return userDynamicMapper.selectOne(
+                new LambdaQueryWrapper<UserDynamic>()
+                        .eq(UserDynamic::getDid, id)
+                        .eq(UserDynamic::getUid, uid)
         );
     }
 }

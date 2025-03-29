@@ -21,4 +21,11 @@ public interface InteractEntityRepository<T extends InteractEntity> {
      */
     Boolean saveInteract(T interactEntity);
 
+    /**
+     * 查询互动数据
+     * @param id
+     * @param uid
+     * @return
+     */
+    T getInteract(Integer id, Integer uid);
 }

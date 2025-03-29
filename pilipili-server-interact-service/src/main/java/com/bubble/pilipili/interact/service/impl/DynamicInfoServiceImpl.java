@@ -5,6 +5,7 @@
 package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.exception.RepositoryException;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
@@ -15,10 +16,9 @@ import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendDynamicStatsReq;
-import com.bubble.pilipili.interact.pojo.converter.DynamicAttachConverter;
-import com.bubble.pilipili.interact.pojo.converter.DynamicInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicAttachDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserDynamicDTO;
 import com.bubble.pilipili.interact.pojo.entity.DynamicAttach;
 import com.bubble.pilipili.interact.pojo.entity.DynamicInfo;
 import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
@@ -63,7 +63,9 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     private StatsFeignAPI statsFeignAPI;
     @Autowired
     private MQFeignAPI MQFeignAPI;
-    
+    @Autowired
+    private EntityConverter entityConverter;
+
 
     /**
      * 保存动态信息
@@ -74,7 +76,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     @Override
     public Boolean saveDynamicInfo(SaveDynamicInfoReq req) {
         DynamicInfo dynamicInfo =
-                DynamicInfoConverter.getInstance()
+                entityConverter
                         .copyFieldValue(req, DynamicInfo.class);
         try {
             Boolean saveInfo = dynamicInfoRepository.saveDynamicInfo(dynamicInfo);
@@ -87,7 +89,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                     attachList.stream()
                             .map(attach -> {
                                 attach.setDid(dynamicInfo.getDid());
-                                return DynamicAttachConverter.getInstance()
+                                return entityConverter
                                         .copyFieldValue(attach, DynamicAttach.class);
                             })
                             .collect(Collectors.toList());
@@ -112,7 +114,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     @Override
     public Boolean updateDynamicInfo(UpdateDynamicInfoReq req) {
         DynamicInfo dynamicInfo =
-                DynamicInfoConverter.getInstance().copyFieldValue(req, DynamicInfo.class);
+                entityConverter.copyFieldValue(req, DynamicInfo.class);
         try {
             Boolean saveMain = dynamicInfoRepository.updateDynamicInfo(dynamicInfo);
             if (!saveMain) {
@@ -134,7 +136,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
             if (attachList != null && !attachList.isEmpty()) {
                 List<DynamicAttach> dynamicAttachList = attachList.stream()
                         .map(attach -> {
-                            DynamicAttach dynamicAttach = DynamicAttachConverter.getInstance()
+                            DynamicAttach dynamicAttach = entityConverter
                                             .copyFieldValue(attach, DynamicAttach.class);
                             dynamicAttach.setDid(dynamicInfo.getDid());
                             return dynamicAttach;
@@ -233,6 +235,17 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
     }
 
     /**
+     * @param did 
+     * @param uid
+     * @return
+     */
+    @Override
+    public QueryUserDynamicDTO queryUserDynamic(Integer did, Integer uid) {
+        UserDynamic interact = userDynamicRepository.getInteract(did, uid);
+        return entityConverter.copyFieldValue(interact, QueryUserDynamicDTO.class);
+    }
+
+    /**
      * 查询指定动态信息
      * @param did
      * @return
@@ -249,13 +262,12 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
 //        查询统计数据
         SimpleResponse<QueryStatsDTO<DynamicStats>> response =
                 statsFeignAPI.getDynamicStats(Collections.singletonList(did));
-        response.getData().getStatsMap().get(0);
         DynamicStats stats = response.getData().getStatsMap().get(0);
 
         QueryDynamicInfoDTO dto =
-                DynamicInfoConverter.getInstance().copyFieldValue(dynamicInfo, QueryDynamicInfoDTO.class);
+                entityConverter.copyFieldValue(dynamicInfo, QueryDynamicInfoDTO.class);
         dto.setAttachList(
-                DynamicAttachConverter.getInstance().copyFieldValueList(attachList, QueryDynamicAttachDTO.class)
+                entityConverter.copyFieldValueList(attachList, QueryDynamicAttachDTO.class)
         );
 
         if (stats != null) {
@@ -300,7 +312,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 dynamicAttachRepository.listDynamicAttachByDid(didList);
 
         List<QueryDynamicInfoDTO> dtoList =
-                DynamicInfoConverter.getInstance().copyFieldValueList(dynamicInfoList, QueryDynamicInfoDTO.class);
+                entityConverter.copyFieldValueList(dynamicInfoList, QueryDynamicInfoDTO.class);
         dtoList.forEach(dto -> {
             DynamicStats stats = statsMap.get(dto.getDid());
             if (stats != null) {
@@ -311,7 +323,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
 
             List<DynamicAttach> dynamicAttachList = attachMap.get(dto.getDid());
             if (ListUtil.isNotEmpty(dynamicAttachList)) {
-                List<QueryDynamicAttachDTO> attachDTOList = DynamicAttachConverter.getInstance()
+                List<QueryDynamicAttachDTO> attachDTOList = entityConverter
                         .copyFieldValueList(dynamicAttachList, QueryDynamicAttachDTO.class);
                 dto.setAttachList(attachDTOList);
             }
@@ -347,7 +359,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
                 DynamicStats stats = new DynamicStats();
                 statsConsumer.accept(stats);
                 SendDynamicStatsReq req =
-                        DynamicInfoConverter.getInstance().copyFieldValue(stats, SendDynamicStatsReq.class);
+                        entityConverter.copyFieldValue(stats, SendDynamicStatsReq.class);
                 req.setDid(did);
                 MQFeignAPI.sendDynamicStats(req);
             }

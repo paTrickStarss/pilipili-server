@@ -6,6 +6,7 @@ package com.bubble.pilipili.interact.service;
 
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserDynamicDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.UpdateDynamicInfoReq;
@@ -23,6 +24,7 @@ public interface DynamicInfoService {
     Boolean revokeFavorDynamicInfo(Integer did, Integer uid);
     Boolean commentDynamicInfo(Integer did, Integer uid);
     Boolean repostDynamicInfo(Integer did, Integer uid);
+    QueryUserDynamicDTO queryUserDynamic(Integer did, Integer uid);
 
     QueryDynamicInfoDTO queryDynamicInfoDTO(Integer did);
     PageDTO<QueryDynamicInfoDTO> pageQueryDynamicInfoByUid(PageQueryDynamicInfoReq req);

@@ -5,6 +5,7 @@
 package com.bubble.pilipili.interact.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -14,8 +15,8 @@ import com.bubble.pilipili.feign.api.DynamicFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.pojo.req.SendCommentStatsReq;
-import com.bubble.pilipili.interact.pojo.converter.CommentInfoConverter;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserCommentDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
 import com.bubble.pilipili.feign.pojo.entity.CommentStats;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
@@ -57,6 +58,8 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     private StatsFeignAPI statsFeignAPI;
     @Autowired
     private DynamicFeignAPI dynamicFeignAPI;
+    @Autowired
+    private EntityConverter entityConverter;
 
     /**
      * @param req
@@ -65,7 +68,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     @Transactional
     @Override
     public Boolean saveCommentInfo(SaveCommentInfoReq req) {
-        CommentInfo commentInfo = CommentInfoConverter.getInstance().copyFieldValue(req, CommentInfo.class);
+        CommentInfo commentInfo = entityConverter.copyFieldValue(req, CommentInfo.class);
         Boolean b = commentInfoRepository.saveCommentInfo(commentInfo);
 
         updateTargetStats(req.getUid(), req.getRelaType(), req.getRelaId());
@@ -154,6 +157,17 @@ public class CommentInfoServiceImpl implements CommentInfoService {
     }
 
     /**
+     * @param cid 
+     * @param uid
+     * @return
+     */
+    @Override
+    public QueryUserCommentDTO queryUserCommentInfo(Integer cid, Integer uid) {
+        UserComment interact = userCommentRepository.getInteract(cid, uid);
+        return entityConverter.copyFieldValue(interact, QueryUserCommentDTO.class);
+    }
+
+    /**
      * @param cid
      * @return
      */
@@ -224,7 +238,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
         List<Integer> cidList = commentInfoList.stream().map(CommentInfo::getCid).collect(Collectors.toList());
         Map<Integer, CommentStats> statsMap = statsFeignAPI.getCommentStats(cidList).getData().getStatsMap();
 
-        List<QueryCommentInfoDTO> dtoList = CommentInfoConverter.getInstance()
+        List<QueryCommentInfoDTO> dtoList = entityConverter
                 .copyFieldValueList(commentInfoList, QueryCommentInfoDTO.class);
 
         dtoList.forEach(dto -> {
@@ -281,7 +295,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
                 CommentStats stats = new CommentStats();
                 statsConsumer.accept(stats);
                 SendCommentStatsReq req =
-                        CommentInfoConverter.getInstance().copyFieldValue(stats, SendCommentStatsReq.class);
+                        entityConverter.copyFieldValue(stats, SendCommentStatsReq.class);
                 req.setCid(cid);
                 MQFeignAPI.sendCommentStats(req);
             }

@@ -9,6 +9,7 @@ import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserDanmakuDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDanmakuInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDanmakuInfoReq;
 import com.bubble.pilipili.interact.service.DanmakuInfoService;
@@ -119,6 +120,22 @@ public class DanmakuController implements Controller {
     ) {
         Boolean b = danmakuInfoService.revokeDewDanmakuInfo(danmakuId, uid);
         return SimpleResponse.result(b);
+    }
+
+    /**
+     * 查询用户弹幕互动状态
+     * @param danmakuId
+     * @param uid
+     * @return
+     */
+    @Operation(summary = "查询用户弹幕互动状态")
+    @GetMapping("/getUserDanmaku")
+    public SimpleResponse<QueryUserDanmakuDTO> queryUserDanmaku(
+            @NotBlank @RequestParam Integer danmakuId,
+            @NotBlank @RequestParam Integer uid
+    ) {
+        QueryUserDanmakuDTO dto = danmakuInfoService.queryUserDanmaku(danmakuId, uid);
+        return SimpleResponse.success(dto);
     }
 
     /**

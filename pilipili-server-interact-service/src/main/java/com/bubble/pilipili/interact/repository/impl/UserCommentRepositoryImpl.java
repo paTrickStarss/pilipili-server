@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.interact.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.interact.mapper.UserCommentMapper;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
@@ -46,6 +47,22 @@ public class UserCommentRepositoryImpl implements UserCommentRepository {
                     }
                 },
                 userCommentMapper
+        );
+    }
+
+    /**
+     * 查询互动数据
+     *
+     * @param id
+     * @param uid
+     * @return
+     */
+    @Override
+    public UserComment getInteract(Integer id, Integer uid) {
+        return userCommentMapper.selectOne(
+                new LambdaQueryWrapper<UserComment>()
+                        .eq(UserComment::getCid, id)
+                        .eq(UserComment::getUid, uid)
         );
     }
 

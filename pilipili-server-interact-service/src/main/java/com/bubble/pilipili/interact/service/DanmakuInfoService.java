@@ -6,6 +6,7 @@ package com.bubble.pilipili.interact.service;
 
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
+import com.bubble.pilipili.interact.pojo.dto.QueryUserDanmakuDTO;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDanmakuInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDanmakuInfoReq;
 
@@ -22,6 +23,7 @@ public interface DanmakuInfoService {
     Boolean revokeFavorDanmakuInfo(Integer danmakuId, Integer uid);
     Boolean dewDanmakuInfo(Integer danmakuId, Integer uid);
     Boolean revokeDewDanmakuInfo(Integer danmakuId, Integer uid);
+    QueryUserDanmakuDTO queryUserDanmaku(Integer danmakuId, Integer uid);
     
     PageDTO<QueryDanmakuInfoDTO> pageQueryDanmakuInfoByVid(PageQueryDanmakuInfoReq req);
     PageDTO<QueryDanmakuInfoDTO> pageQueryDanmakuInfoByUid(PageQueryDanmakuInfoReq req);
