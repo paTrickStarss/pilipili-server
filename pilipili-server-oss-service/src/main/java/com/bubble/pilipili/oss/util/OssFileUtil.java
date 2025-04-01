@@ -104,4 +104,17 @@ public class OssFileUtil {
         }
         return extensionName;
     }
+
+    /**
+     * 去除文件名包含的扩展名
+     * @param fileName
+     * @return
+     */
+    public static String getFileNameWithoutExtension(String fileName) {
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            return fileName.substring(0, i);
+        }
+        return fileName;
+    }
 }

@@ -136,9 +136,6 @@ public class OssController implements OssFeignAPI, Controller {
         });
 
         return SimpleResponse.success(new OssAsyncUploadFileDTO(taskId, objectName));
-//        OssUploadFileDTO dto = ossService.uploadVideo(file);
-//        return handleDTO(dto);
-
     }
 
     /**
