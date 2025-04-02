@@ -19,4 +19,7 @@ public class FFprobeStreamTags {
     private String language;
     private String handler_name;
     private String vendor_id;
+
+    // MOV包含  MPEG-4不包含
+    private String encoder;
 }

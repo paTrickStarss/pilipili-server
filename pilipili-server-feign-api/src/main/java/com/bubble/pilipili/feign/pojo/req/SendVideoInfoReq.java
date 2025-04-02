@@ -26,9 +26,13 @@ public class SendVideoInfoReq implements Serializable {
      */
     private String taskId;
     /**
+     * 视频时长（秒）
+     */
+    private Long duration;
+    /**
      * 视频ID
      */
-    @NotEmpty(message = "请传入视频ID")
+//    @NotEmpty(message = "请传入视频ID")
     private Integer vid;
     /**
      * 视频封面路径

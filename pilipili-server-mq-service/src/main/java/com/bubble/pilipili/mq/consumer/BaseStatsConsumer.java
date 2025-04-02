@@ -103,6 +103,8 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
 //            log.debug("Message body matched, launch handler...");
             T body = getMessageBodyClz().cast(messageBody);
             receiveStatsMessage(body);
+        } else {
+            log.warn("不支持的消息类型: {}", msg);
         }
         try {
             channel.basicAck(deliveryTag, false);

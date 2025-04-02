@@ -22,6 +22,10 @@ public class VideoInfoMessage {
      */
     private String taskId;
     /**
+     * 视频时长（秒）
+     */
+    private Long duration;
+    /**
      * 视频ID
      */
     private Integer vid;

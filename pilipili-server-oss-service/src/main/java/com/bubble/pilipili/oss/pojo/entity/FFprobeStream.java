@@ -7,6 +7,8 @@ package com.bubble.pilipili.oss.pojo.entity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * @author Bubble
  * @date 2025.04.01 15:12
@@ -67,7 +69,10 @@ public class FFprobeStream {
     private Integer initial_padding;
 
     private FFprobeStreamDisposition disposition;
-    
+    private FFprobeStreamTags tags;
+
+    // MOV 包含（旋转角） MPEG-4不包含
+    private List<FFprobeStreamSideData> side_data_list;
 
 
 

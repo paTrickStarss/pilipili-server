@@ -26,4 +26,6 @@ public class FFprobeFormat {
     private String size;
     private String bit_rate;
     private Integer probe_score;
+
+    private FFprobeFormatTags tags;
 }

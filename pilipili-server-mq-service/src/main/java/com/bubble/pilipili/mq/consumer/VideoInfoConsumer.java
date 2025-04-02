@@ -5,6 +5,7 @@
 package com.bubble.pilipili.mq.consumer;
 
 import com.bubble.pilipili.common.component.RedisHelper;
+import com.bubble.pilipili.common.exception.MQConsumerException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.feign.api.VideoFeignAPI;
 import com.bubble.pilipili.feign.pojo.req.UpdateVideoInfoReq;
@@ -13,6 +14,10 @@ import com.bubble.pilipili.mq.util.MessageHelper;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
@@ -22,8 +27,8 @@ import java.io.IOException;
  * @date 2025.03.26 17:13
  */
 @Slf4j
-//@Service
-//@RabbitListener(queues = "queue.pilipili.info.video")
+@Service
+@RabbitListener(queues = "queue.pilipili.info.video")
 public class VideoInfoConsumer {
 
     private final MessageHelper messageHelper;
@@ -36,7 +41,7 @@ public class VideoInfoConsumer {
         this.videoFeignAPI = videoFeignAPI;
     }
 
-//    @RabbitHandler
+    @RabbitHandler
     public void receiveMessage(Object message, Channel channel) throws IOException {
         Message msg = (Message) message;
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
@@ -49,22 +54,43 @@ public class VideoInfoConsumer {
             // todo: 如果用户还没保存视频，这里获取不到taskId对应的vid，考虑等待一段时间重试
             Integer vid = redisHelper.getVideoTaskVid(taskId);
             if (vid == null) {
-                channel.basicNack(deliveryTag, false, true);
+//                channel.basicNack(deliveryTag, false, true);
+                // 由Spring AMQP在消费者实现的重试，只要抛出异常就可以触发，消息不会重新入队
+                throw new MQConsumerException("找不到任务ID对应的vid，进行重试");
             }
-            // 更新视频信息（contentUrl）
+            // 更新视频信息
             UpdateVideoInfoReq req = new UpdateVideoInfoReq();
             req.setVid(vid);
-            req.setContentUrl(body.getContentUrl());
+            if (body.getDuration() != null) {
+                req.setDuration(Integer.valueOf(body.getDuration().toString()));
+            }
+            if (body.getContentUrl() != null) {
+                req.setContentUrl(body.getContentUrl());
+            }
+            if (body.getCoverUrl() != null) {
+                req.setCoverUrl(body.getCoverUrl());
+            }
             SimpleResponse<String> response = videoFeignAPI.update(req);
             if (!response.isSuccess()) {
                 log.warn("视频信息更新失败: {}", response.getMsg());
-                // 重新入队，等待一段时间重试
-                channel.basicNack(deliveryTag, false, true);
+                throw new MQConsumerException("找不到任务ID对应的vid，进行重试");
+                // 重新入队，会立即重试，跟配置文件里的重试配置没有关系
+//                channel.basicNack(deliveryTag, false, true);
 //                    channel.basicReject(deliveryTag, false);
-            } else {
-                channel.basicAck(deliveryTag, false);
             }
+
+        } else {
+            log.warn("不支持的消息类型: {}", msg);
         }
 
+        channel.basicAck(deliveryTag, false);
     }
+
+//    @Recover
+//    public void recover(Exception e, Object message, Channel channel) throws IOException {
+//        Message msg = (Message) message;
+//        long deliveryTag = msg.getMessageProperties().getDeliveryTag();
+//        channel.basicNack(deliveryTag, false, false);
+//        log.warn("消息达到最大重试次数，销毁: msg: {}\nexception: {}", msg, e.getMessage());
+//    }
 }

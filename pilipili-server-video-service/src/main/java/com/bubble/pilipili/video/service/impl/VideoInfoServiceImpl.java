@@ -72,8 +72,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Autowired
     private OssFeignAPI ossFeignAPI;
 
-//    @Autowired
-//    private RedisHelper redisHelper;
+    @Autowired
+    private RedisHelper redisHelper;
 
     /**
      * 新增视频信息
@@ -85,9 +85,9 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     public Boolean saveVideoInfo(CreateVideoInfoReq req) {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         Boolean b = videoInfoRepository.saveVideoInfo(videoInfo);
-//        if (b) {
-//            redisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
-//        }
+        if (b) {
+            redisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
+        }
         return b;
     }
 
@@ -105,7 +105,6 @@ public class VideoInfoServiceImpl implements VideoInfoService {
 //            return false;
         }
 
-        // MybatisPlus中updateById方法是增量字段更新，不是全字段更新，不需要手动获取原数据再填入更新字段（不需要上面的做法）
         return videoInfoRepository.updateVideoInfo(videoInfo);
     }
 

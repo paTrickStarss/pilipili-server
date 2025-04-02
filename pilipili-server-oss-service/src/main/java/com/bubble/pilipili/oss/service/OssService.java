@@ -28,6 +28,14 @@ public interface OssService {
     OssUploadFileDTO uploadVideo(MultipartFile file, String objectName);
 
     /**
+     * 批量上传Hls视频
+     * @param fileDirectory
+     * @param objectName
+     * @return
+     */
+    OssUploadFileDTO batchUploadHlsVideo(String fileDirectory, String objectName);
+
+    /**
      * 异步上传视频
      * @param file
      * @return

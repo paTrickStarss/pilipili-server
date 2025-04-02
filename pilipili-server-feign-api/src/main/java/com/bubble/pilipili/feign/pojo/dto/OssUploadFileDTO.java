@@ -20,7 +20,7 @@ import java.io.Serializable;
 public class OssUploadFileDTO implements Serializable {
 
     private Boolean success;
-    private String filePath;
+    private String objectName;
     private String msg;
 
     public static OssUploadFileDTO success(String filePath) {

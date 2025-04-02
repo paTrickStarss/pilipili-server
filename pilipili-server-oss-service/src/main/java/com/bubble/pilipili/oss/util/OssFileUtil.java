@@ -9,6 +9,7 @@ import com.bubble.pilipili.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 /**
@@ -25,6 +26,20 @@ public class OssFileUtil {
         String objFullPathName = fileName;
         if (StringUtil.isNotEmpty(path)) {
             objFullPathName = String.join("/", path, fileName);
+        }
+        return objFullPathName;
+    }
+
+    /**
+     * 生成Hls视频主播放列表OSS访问对象名<br>
+     * eg: /video/main/UUID...../master.m3u8
+     * @return
+     */
+    public static String generateHlsObjFullPathName(String path) {
+        String hlsFileName = String.join("/", UUID.randomUUID().toString(), FFmpegHelper.HLS_MASTER_PL_NAME);
+        String objFullPathName = hlsFileName;
+        if (StringUtil.isNotEmpty(path)) {
+            objFullPathName = String.join("/", path, hlsFileName);
         }
         return objFullPathName;
     }
@@ -50,6 +65,7 @@ public class OssFileUtil {
         String fileName = UUID.randomUUID().toString();
         return String.join(".", fileName, extension);
     }
+
 
     /**
      * 获取文件扩展名
@@ -111,10 +127,21 @@ public class OssFileUtil {
      * @return
      */
     public static String getFileNameWithoutExtension(String fileName) {
+        return getFileNameWithoutExtension(fileName, "");
+    }
+    /**
+     * 去除文件名包含的扩展名
+     * @param fileName
+     * @return
+     */
+    public static String getFileNameWithoutExtension(String fileName, String postfix) {
         int i = fileName.lastIndexOf('.');
         if (i > 0) {
             return fileName.substring(0, i);
         }
-        return fileName;
+        if (postfix == null) {
+            return fileName;
+        }
+        return fileName + postfix;
     }
 }

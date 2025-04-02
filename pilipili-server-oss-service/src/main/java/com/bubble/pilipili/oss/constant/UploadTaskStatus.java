@@ -11,6 +11,7 @@ package com.bubble.pilipili.oss.constant;
 public enum UploadTaskStatus {
 
     CREATED,
+    TRANSCODING,
     UPLOADING,
     COMPLETED,
     FAILED,

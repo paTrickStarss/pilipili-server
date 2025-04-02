@@ -40,12 +40,15 @@ public class TempMultipartFile implements MultipartFile {
         this.originalFilename = originalFilename;
     }
 
+    /**
+     * 创建一份上传文件的临时文件
+     * <br>由于默认MultipartFile的上传临时文件会在请求结束后被清除，为了异步访问需要另存临时文件
+     * @param multipartFile
+     * @return
+     */
     public static TempMultipartFile createTempFile(MultipartFile multipartFile) {
-        String tmpFileName = multipartFile.getOriginalFilename();
+        String tmpFileName = UUID.randomUUID() + ".tmp";
         String contentType = multipartFile.getContentType();
-        if (StringUtil.isEmpty(tmpFileName)) {
-            tmpFileName = UUID.randomUUID() + ".tmp";
-        }
         // 转移临时文件，用于异步访问
         File tmpFile = new File(OssFileUtil.TMP_DIR, tmpFileName);
         try {
@@ -62,8 +65,16 @@ public class TempMultipartFile implements MultipartFile {
      */
     public void delete() {
         if (!this.file.delete()) {
-            log.error("临时文件删除失败");
+            log.error("临时文件[{}]删除失败", this.file.getName());
         }
+    }
+
+    /**
+     * 获取文件全路径
+     * @return
+     */
+    public String getAbsolutePath() {
+        return this.file.getAbsolutePath();
     }
 
     /**

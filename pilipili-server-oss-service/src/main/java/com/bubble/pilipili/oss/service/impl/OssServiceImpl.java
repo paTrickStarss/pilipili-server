@@ -11,6 +11,7 @@ import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
 import com.bubble.pilipili.oss.constant.FileContentType;
 import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import com.bubble.pilipili.oss.service.OssService;
+import com.bubble.pilipili.oss.util.FFmpegHelper;
 import com.bubble.pilipili.oss.util.OssFileUtil;
 import com.bubble.pilipili.oss.util.OssUploadHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -54,6 +56,92 @@ public class OssServiceImpl implements OssService {
             return contentTypeFallback(FileContentType.VIDEO);
         }
         return partUpload(file, objectName);
+    }
+
+    /**
+     * 批量上传Hls视频
+     *
+     * @param fileDirectory
+     * @param objectName OSS上访问 主播放列表（master.m3u8）的对象名
+     * @return
+     */
+    @Override
+    public OssUploadFileDTO batchUploadHlsVideo(String fileDirectory, String objectName) {
+        File directory = new File(fileDirectory);
+        // 目录不存在
+        if (!directory.exists()) {
+            log.error("directory [{}] does not exist", fileDirectory);
+            return OssUploadFileDTO.failed("fileDirectory does not exist");
+        }
+        // 目标文件不是目录
+        if (!directory.isDirectory()) {
+            log.error("file [{}] is not a directory", fileDirectory);
+            return OssUploadFileDTO.failed("fileDirectory is not a directory");
+        }
+
+        // 获取 主播放列表文件、各个level的目录
+        File masterPlFile = null;
+        List<File> levelDirList = new ArrayList<>();
+        File[] files = directory.listFiles();
+        // 目录下没有文件
+        if (files == null || files.length == 0) {
+            log.error("directory [{}] does not contain any files", fileDirectory);
+            return OssUploadFileDTO.failed("directory does not contain any files");
+        }
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                levelDirList.add(file);
+            } else {
+                if (file.getName().equals(FFmpegHelper.HLS_MASTER_PL_NAME)) {
+                    masterPlFile = file;
+                }
+            }
+        }
+
+        // 主播放列表文件找不到
+        if (masterPlFile == null) {
+            log.error("master play list file does not exist on directory [{}]", directory.getAbsolutePath());
+            return OssUploadFileDTO.failed("master play list file does not exist");
+        }
+        // level目录找不到
+        if (levelDirList.isEmpty()) {
+            log.error("directory [{}] does not contain any level directory", fileDirectory);
+            return OssUploadFileDTO.failed("directory does not contain any level directory");
+        }
+
+        // todo: 上传level目录
+        boolean uploadLevelSuccess = uploadHlsLevelDir(levelDirList, objectName);
+
+        // todo: 上传master（主播放列表）文件
+        boolean uploadMasterPlSuccess = uploadHlsMasterPlFile(masterPlFile, objectName);
+
+
+        return OssUploadFileDTO.success(objectName);
+    }
+
+    /**
+     * 上传level目录
+     * @param levelDirList level目录列表
+     * @param rootObjectName level
+     * @return
+     */
+    private boolean uploadHlsLevelDir(List<File> levelDirList, String rootObjectName) {
+
+
+        return true;
+    }
+
+    /**
+     * 上传master（主播放列表）文件
+     * @param masterPlFile
+     * @param objectName
+     * @return
+     */
+    private boolean uploadHlsMasterPlFile(File masterPlFile, String objectName) {
+
+
+        return true;
     }
 
     /**
