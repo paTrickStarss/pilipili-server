@@ -7,6 +7,7 @@ package com.bubble.pilipili.mq.producer;
 import com.bubble.pilipili.mq.constant.ExchangeEnum;
 import com.bubble.pilipili.mq.constant.QueueEnum;
 import com.bubble.pilipili.mq.entity.*;
+import com.bubble.pilipili.mq.util.MessageHelper;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +105,26 @@ public class MessageProducer {
                 ExchangeEnum.EXCHANGE_INFO.getName(),
                 QueueEnum.QUEUE_INFO_VIDEO.getRoutingKey(),
                 message,
+                generateCorrelationData()
+        );
+    }
+
+    /**
+     * 发送视频信息更新消息（延迟一定时间后消费，用于重试）
+     * @param message
+     * @param delay
+     * @param retryCount
+     */
+    public void sendVideoInfo(VideoInfoMessage message, Integer delay, Integer retryCount) {
+        rabbitTemplate.convertAndSend(
+                ExchangeEnum.EXCHANGE_DELAY.getName(),
+                QueueEnum.QUEUE_DELAY.getRoutingKey(),
+                message,
+                a -> {
+                    a.getMessageProperties().setDelay(delay);
+                    a.getMessageProperties().setHeader(MessageHelper.HEADER_RETRY_COUNT, retryCount);
+                    return a;
+                },
                 generateCorrelationData()
         );
     }

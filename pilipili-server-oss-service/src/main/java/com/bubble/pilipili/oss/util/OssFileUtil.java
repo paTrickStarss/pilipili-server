@@ -7,9 +7,15 @@ package com.bubble.pilipili.oss.util;
 import com.bubble.pilipili.common.exception.UtilityException;
 import com.bubble.pilipili.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotNull;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
 
 /**
@@ -144,4 +150,33 @@ public class OssFileUtil {
         }
         return fileName + postfix;
     }
+
+    /**
+     * 删除目录及其所有子文件
+     * @param directory
+     * @throws IOException
+     */
+    public static void deleteDirectory(Path directory) {
+        try {
+            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+                @NotNull
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @NotNull
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            log.error("目录[{}]删除失败: {}", directory, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -16,12 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author Bubble
@@ -49,28 +51,51 @@ public class OssUploadHelper {
      * OSS对象临时访问签名有效期：（分钟）
      */
     private static final int EXPIRES_IN_MINUTES = 60;
-
     /**
      * 执行上传文件
      * @param file
      * @param objectName
      * @return
      */
-    public String doUpload(MultipartFile file, String objectName) {
+    public void doUpload(File file, String objectName) {
+        try {
+            doUpload(Files.newInputStream(file.toPath()), objectName);
+        } catch (IOException e) {
+            log.error("文件流获取失败");
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 执行上传文件
+     * @param file
+     * @param objectName
+     * @return
+     */
+    public void doUpload(MultipartFile file, String objectName) {
+        try {
+          doUpload(file.getInputStream(), objectName);
+        } catch (IOException e) {
+            log.error("文件流获取失败");
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 执行上传文件
+     * @param inputStream
+     * @param objectName
+     * @return
+     */
+    public void doUpload(InputStream inputStream, String objectName) {
         OSS ossClient = ossClientPool.fetchClient();
         try {
             PutObjectResult result = ossClient.putObject(
                     ossClientPool.getOssClientConfig().getBucketName(),
                     objectName,
-                    file.getInputStream()
+                    inputStream
             );
             log.info("OSS文件上传成功: {}", result.getETag());
-            return objectName;
 
-        } catch (IOException e) {
-            log.error("文件流获取失败");
-            throw new RuntimeException(e);
-        }  catch (OSSException oe) {
+        } catch (OSSException oe) {
             // 上传失败，处理异常
             log.error("OSS文件上传服务端异常: \n{}", oe.getMessage());
             throw oe;
@@ -84,8 +109,74 @@ public class OssUploadHelper {
         }
     }
 
-//    public String batchUpload(File[] file, String objectName) {
-//
+    /**
+     *
+     * @param fileList
+     * @param tempParentDirPath
+     * @param parentDirOssPath /video/main/UUID.../
+     * @return
+     */
+    public void batchUpload(List<File> fileList, String tempParentDirPath, String parentDirOssPath) {
+        Path parentPath = Paths.get(tempParentDirPath);
+        OSS ossClient = ossClientPool.fetchClient();
+        String bucketName = ossClientPool.getOssClientConfig().getBucketName();
+
+        deepFileList(fileList, file -> {
+            Path relativize = parentPath.relativize(file.toPath());
+            String objectName = parentDirOssPath + relativize.toString().replace("\\", "/");
+//            log.debug("upload file: {}, objectName: {}", file.toPath(), objectName);
+            try {
+                PutObjectResult result = ossClient.putObject(
+                        bucketName,
+                        objectName,
+                        Files.newInputStream(file.toPath())
+                );
+                if (result.getETag() == null) {
+                    log.error("OSS文件上传失败，File：{}", file.getAbsolutePath());
+                }
+            } catch (IOException e) {
+                log.error("打开文件输入流异常: {}", e.getMessage());
+                ossClientPool.releaseClient(ossClient);
+                throw new RuntimeException(e);
+            }
+        });
+        log.info("OSS批量上传文件成功: tempDirectory:{}\nrootObjectName{}", tempParentDirPath, parentDirOssPath);
+        ossClientPool.releaseClient(ossClient);
+    }
+
+    private void deepFileList(List<File> fileList, Consumer<File> fileConsumer) {
+        for (File file : fileList) {
+            if (!file.exists()) {
+                log.warn("file [{}] does not exist", file.getAbsolutePath());
+                continue;
+            }
+            if (file.isDirectory()) {
+                File[] levelInnerFileList = file.listFiles();
+                if (levelInnerFileList == null || levelInnerFileList.length == 0) {
+                    continue;
+                }
+                // 只做一层深度遍历
+                for (File levelInnerFile : levelInnerFileList) {
+                    fileConsumer.accept(levelInnerFile);
+                }
+            } else {
+                fileConsumer.accept(file);
+            }
+        }
+    }
+
+//    public static void main(String[] args) {
+//        File rootDir = new File("T:\\Work\\Java\\PiliPili_Project\\test\\input-1");
+//        File[] files = rootDir.listFiles();
+//        if (files == null) {
+//            return;
+//        }
+//        Path rootPath = Paths.get(rootDir.getAbsolutePath());
+//        List<File> fileList = Arrays.stream(files).collect(Collectors.toList());
+//        deepFileList(fileList, file -> {
+//            Path relativize = rootPath.relativize(Paths.get(file.getAbsolutePath()));
+//            log.debug("relativize: {}", relativize);
+//        });
 //    }
 
     /**
@@ -94,7 +185,7 @@ public class OssUploadHelper {
      * @param objectName
      * @return
      */
-    public String partUpload(MultipartFile file, String objectName) {
+    public void partUpload(MultipartFile file, String objectName) {
         OssClientConfig config = ossClientPool.getOssClientConfig();
         String bucketName = config.getBucketName();
         OSS ossClient = ossClientPool.fetchClient();
@@ -178,34 +269,8 @@ public class OssUploadHelper {
         } finally {
             ossClientPool.releaseClient(ossClient);
         }
-        return objectName;
     }
 
-    /**
-     * 文件公共访问临时签名
-     * @param objectName
-     * @return
-     */
-    public String getTempSignUrl(String objectName) {
-        OSS ossClient = ossClientPool.fetchClient();
-        String bucketName = ossClientPool.getOssClientConfig().getBucketName();
-        try {
-            GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
-            req.setExpiration(getExpiration());
-            // 图片处理：将图片缩放为固定宽高100 px后，再旋转90°。
-//            String style = "image/resize,m_fixed,w_100,h_100/rotate,90";
-//            req.setProcess(style);
-            URL signedUrl = ossClient.generatePresignedUrl(req);
-            return signedUrl.toExternalForm();
-        } catch (OSSException oe) {
-            log.error("OSS文件上传服务端异常: {}", oe.getMessage());
-        } catch (ClientException ce) {
-            log.error("OSS文件上传客户端异常: \n{}", ce.getMessage());
-        } finally {
-            ossClientPool.releaseClient(ossClient);
-        }
-        return null;
-    }
     /**
      * 文件公共访问临时签名
      * @param objectNameList
@@ -258,6 +323,10 @@ public class OssUploadHelper {
         try {
             GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
             req.setExpiration(getExpiration());
+            // 针对hls播放列表文件特殊签名处理，以便访问相关的分片文件
+            if (objectName.contains(FFmpegHelper.HLS_MASTER_PL_NAME)) {
+                req.setQueryParameter(Collections.singletonMap("x-oss-process", "hls/sign"));
+            }
             URL signedUrl = ossClient.generatePresignedUrl(req);
             return signedUrl.toExternalForm();
         } catch (OSSException oe) {

@@ -23,6 +23,23 @@ import java.util.HashMap;
 public class MessageHelper {
 
     /**
+     * 记录重试次数的消息头
+     */
+    public static final String HEADER_RETRY_COUNT = "x-retry-count";
+    /**
+     * 最大重试次数
+     */
+    public static final int MAX_RETRY_COUNT = 3;
+    /**
+     * 初始重试间隔
+     */
+    public static final int INIT_DELAY_MS = 3000;
+    /**
+     * 重试间隔倍数
+     */
+    public static final int RETRY_MULTIPLIER = 3;
+
+    /**
      * 消息体类对象缓存Map
      */
     private static final HashMap<String, Class<?>> clzCacheMap = new HashMap<>();

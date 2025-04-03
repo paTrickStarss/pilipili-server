@@ -84,6 +84,19 @@ public class MQController implements MQFeignAPI, Controller {
         return SimpleResponse.success("");
     }
 
+//    /**
+//     * 发送视频信息更新消息
+//     * @param req
+//     * @return
+//     */
+//    @Operation(summary = "发送视频信息更新消息")
+//    @PostMapping("/mq/update/video")
+//    public SimpleResponse<String> sendVideoInfo(@Valid @RequestBody SendVideoInfoReq req) {
+//        VideoInfoMessage message = BaseConverter.getInstance().copyFieldValue(req, VideoInfoMessage.class);
+//        messageProducer.sendVideoInfo(message);
+//        return SimpleResponse.success("");
+//    }
+
     /**
      * 发送视频信息更新消息
      * @param req
@@ -93,7 +106,8 @@ public class MQController implements MQFeignAPI, Controller {
     @PostMapping("/mq/update/video")
     public SimpleResponse<String> sendVideoInfo(@Valid @RequestBody SendVideoInfoReq req) {
         VideoInfoMessage message = BaseConverter.getInstance().copyFieldValue(req, VideoInfoMessage.class);
-        messageProducer.sendVideoInfo(message);
+        // 第一次立即消费，没有延迟
+        messageProducer.sendVideoInfo(message, 0, 0);
         return SimpleResponse.success("");
     }
 

@@ -21,6 +21,7 @@ public enum QueueEnum {
     QUEUE_STATS_DANMAKU("queue.pilipili.stats.danmaku", "danmaku", "弹幕统计数据队列"),
     QUEUE_STATS_VIDEO("queue.pilipili.stats.video", "video", "视频统计数据队列"),
     QUEUE_INFO_VIDEO("queue.pilipili.info.video", "video", "视频实体信息数据队列"),
+    QUEUE_DELAY("queue.pilipili.delay", "routing.key.delay", "延迟消息队列"),
     ;
 
     private final String name;

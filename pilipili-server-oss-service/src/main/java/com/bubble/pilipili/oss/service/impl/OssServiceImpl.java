@@ -61,7 +61,8 @@ public class OssServiceImpl implements OssService {
     /**
      * 批量上传Hls视频
      *
-     * @param fileDirectory
+     * @param fileDirectory 存放转码完成Hls视频临时文件目录<br>
+     *                      该目录下必须有一个 主播放列表（master.m3u8）和若干个level目录（v1080p, v720p...）
      * @param objectName OSS上访问 主播放列表（master.m3u8）的对象名
      * @return
      */
@@ -111,38 +112,38 @@ public class OssServiceImpl implements OssService {
         }
 
         // todo: 上传level目录
-        boolean uploadLevelSuccess = uploadHlsLevelDir(levelDirList, objectName);
+        String parentObjectName = objectName.replace("master.m3u8", "");
+        ossUploadHelper.batchUpload(levelDirList, fileDirectory, parentObjectName);
 
         // todo: 上传master（主播放列表）文件
-        boolean uploadMasterPlSuccess = uploadHlsMasterPlFile(masterPlFile, objectName);
+        ossUploadHelper.doUpload(masterPlFile, objectName);
+
+        // 上传成功后删除临时目录文件
+        OssFileUtil.deleteDirectory(directory.toPath());
 
 
         return OssUploadFileDTO.success(objectName);
     }
 
-    /**
-     * 上传level目录
-     * @param levelDirList level目录列表
-     * @param rootObjectName level
-     * @return
-     */
-    private boolean uploadHlsLevelDir(List<File> levelDirList, String rootObjectName) {
-
-
-        return true;
-    }
-
-    /**
-     * 上传master（主播放列表）文件
-     * @param masterPlFile
-     * @param objectName
-     * @return
-     */
-    private boolean uploadHlsMasterPlFile(File masterPlFile, String objectName) {
-
-
-        return true;
-    }
+//    /**
+//     * 上传level目录
+//     * @param levelDirList level目录列表
+//     * @param rootObjectName level
+//     * @return
+//     */
+//    private void uploadHlsLevelDir(List<File> levelDirList, String fileDirectory, String rootObjectName) {
+//        ossUploadHelper.batchUpload(levelDirList, fileDirectory, rootObjectName);
+//    }
+//
+//    /**
+//     * 上传master（主播放列表）文件
+//     * @param masterPlFile
+//     * @param objectName
+//     * @return
+//     */
+//    private void uploadHlsMasterPlFile(File masterPlFile, String objectName) {
+//        ossUploadHelper.doUpload(masterPlFile, objectName);
+//    }
 
     /**
      * 异步上传视频
@@ -164,6 +165,7 @@ public class OssServiceImpl implements OssService {
      */
     @Override
     public OssUploadFileDTO uploadDynamicVideo(MultipartFile file, String objectName) {
+        // todo: 改为Hls视频的上传方式
         return uploadVideo(file, objectName);
     }
 
@@ -284,8 +286,8 @@ public class OssServiceImpl implements OssService {
     public OssUploadFileDTO upload(MultipartFile file, String objectName) {
         try {
 
-            String path = ossUploadHelper.doUpload(file, objectName);
-            return OssUploadFileDTO.success(path);
+            ossUploadHelper.doUpload(file, objectName);
+            return OssUploadFileDTO.success(objectName);
         } catch (UtilityException e) {
             return OssUploadFileDTO.failed(e.getMessage());
         } catch (Exception e) {
@@ -300,9 +302,8 @@ public class OssServiceImpl implements OssService {
      */
     public OssUploadFileDTO partUpload(MultipartFile file, String objectName) {
         try {
-            String path;
-            path = ossUploadHelper.partUpload(file, objectName);
-            return OssUploadFileDTO.success(path);
+            ossUploadHelper.partUpload(file, objectName);
+            return OssUploadFileDTO.success(objectName);
         } catch (UtilityException e) {
             return OssUploadFileDTO.failed(e.getMessage());
         } catch (Exception e) {

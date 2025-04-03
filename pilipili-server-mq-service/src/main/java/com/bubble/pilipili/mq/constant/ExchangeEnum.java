@@ -18,6 +18,7 @@ public enum ExchangeEnum {
 
     EXCHANGE_STATS("exchange.direct.pilipili.stats", "direct", "统计数据交换机"),
     EXCHANGE_INFO("exchange.direct.pilipili.info", "direct", "实体信息数据交换机"),
+    EXCHANGE_DELAY("exchange.direct.pilipili.delay", "x-delayed-message", "延迟消息交换机"),
     ;
 
     private final String name;

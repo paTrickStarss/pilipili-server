@@ -6,12 +6,12 @@ package com.bubble.pilipili.mq.config;
 
 import com.bubble.pilipili.mq.constant.ExchangeEnum;
 import com.bubble.pilipili.mq.constant.QueueEnum;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MQ交换机、队列及其绑定配置
@@ -28,6 +28,16 @@ public class BindingConfig {
     @Bean
     DirectExchange infoExchange() {
         return new DirectExchange(ExchangeEnum.EXCHANGE_INFO.getName(), true, false);
+    }
+
+    @Bean
+    CustomExchange delayedExchange() {
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-delayed-type", "direct");
+        return new CustomExchange(
+                ExchangeEnum.EXCHANGE_DELAY.getName(),
+                ExchangeEnum.EXCHANGE_DELAY.getType(),
+                true, false, args);
     }
 
     @Bean
@@ -49,6 +59,11 @@ public class BindingConfig {
     @Bean
     Queue videoInfoQueue() {
         return new Queue(QueueEnum.QUEUE_INFO_VIDEO.getName(), true, false, false);
+    }
+
+    @Bean
+    Queue delayQueue() {
+        return new Queue(QueueEnum.QUEUE_DELAY.getName(), true, false, false);
     }
 
     @Bean
@@ -86,5 +101,14 @@ public class BindingConfig {
                 .bind(videoInfoQueue())
                 .to(infoExchange())
                 .with(QueueEnum.QUEUE_INFO_VIDEO.getRoutingKey());
+    }
+
+    @Bean
+    Binding BindingDelayedQueue() {
+        return BindingBuilder
+                .bind(delayQueue())
+                .to(delayedExchange())
+                .with(QueueEnum.QUEUE_DELAY.getRoutingKey())
+                .noargs();
     }
 }
