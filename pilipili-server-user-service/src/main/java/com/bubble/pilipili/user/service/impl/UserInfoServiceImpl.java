@@ -12,10 +12,7 @@ import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.entity.UserStats;
 import com.bubble.pilipili.user.pojo.converter.UserInfoConverter;
-import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
-import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
-import com.bubble.pilipili.user.pojo.dto.QueryUserStatsDTO;
-import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
+import com.bubble.pilipili.user.pojo.dto.*;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
 import com.bubble.pilipili.user.pojo.entity.UserRela;
 import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
@@ -179,6 +176,38 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public Boolean unfollowUser(Integer fromUid, Integer toUid) {
         return userRelaRepository.deleteUserRela(fromUid, toUid);
+    }
+
+    /**
+     * 查询用户关系（需要交叉检查互粉情况）
+     *
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    @Override
+    public QueryUserRelaDTO queryUserRela(Integer fromUid, Integer toUid) {
+        UserRela positiveRela = userRelaRepository.queryUserRela(fromUid, toUid);
+        if (positiveRela == null) {
+            // 没有关注
+            return new QueryUserRelaDTO(
+                    fromUid, toUid,
+                    false, false, false
+            );
+        }
+        UserRela oppositeRela = userRelaRepository.queryUserRela(toUid, fromUid);
+        if (oppositeRela == null) {
+            // 单向关注
+            return new QueryUserRelaDTO(
+                    fromUid, toUid,
+                    true, positiveRela.getSpecial().equals(1), false
+            );
+        }
+        // 互相关注
+        return new QueryUserRelaDTO(
+                fromUid, toUid,
+                true, positiveRela.getSpecial().equals(1), true
+        );
     }
 
     /**

@@ -12,6 +12,7 @@ import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.component.CryptoHelper;
 import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
+import com.bubble.pilipili.user.pojo.dto.QueryUserRelaDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
 import com.bubble.pilipili.user.pojo.req.RegisterReq;
@@ -135,6 +136,22 @@ public class UserController implements Controller {
     ) {
         Boolean b = userInfoService.unfollowUser(fromUid, toUid);
         return SimpleResponse.result(b);
+    }
+
+    /**
+     * 查询用户关系
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    @Operation(summary = "查询用户关系")
+    @GetMapping("/isFollow")
+    public SimpleResponse<QueryUserRelaDTO> queryUserRela(
+            @NotBlank @RequestParam Integer fromUid,
+            @NotBlank @RequestParam Integer toUid
+    ) {
+        QueryUserRelaDTO dto = userInfoService.queryUserRela(fromUid, toUid);
+        return SimpleResponse.success(dto);
     }
 
     /**

@@ -42,6 +42,14 @@ public interface UserRelaRepository {
     Boolean existUserRela(Integer fromUid, Integer toUid);
 
     /**
+     * 查询用户关系数据
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    UserRela queryUserRela(Integer fromUid, Integer toUid);
+
+    /**
      * 批量查询关注数或粉丝数
      * @param uidList
      * @param isToUid false-查询关注数，true-查询粉丝数

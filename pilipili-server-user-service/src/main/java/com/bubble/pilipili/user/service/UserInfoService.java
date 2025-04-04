@@ -7,6 +7,7 @@ package com.bubble.pilipili.user.service;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
+import com.bubble.pilipili.user.pojo.dto.QueryUserRelaDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
@@ -70,6 +71,13 @@ public interface UserInfoService {
      * @return
      */
     Boolean unfollowUser(Integer fromUid, Integer toUid);
+    /**
+     * 查询用户关系（需要交叉检查互粉情况）
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    QueryUserRelaDTO queryUserRela(Integer fromUid, Integer toUid);
 
     /**
      * 查询所有用户信息

@@ -87,6 +87,22 @@ public class UserRelaRepositoryImpl implements UserRelaRepository {
     }
 
     /**
+     * 查询用户关系数据
+     *
+     * @param fromUid
+     * @param toUid
+     * @return
+     */
+    @Override
+    public UserRela queryUserRela(Integer fromUid, Integer toUid) {
+        return userRelaMapper.selectOne(
+                new LambdaQueryWrapper<UserRela>()
+                    .eq(UserRela::getFromUid, fromUid)
+                    .eq(UserRela::getToUid, toUid)
+        );
+    }
+
+    /**
      * 批量查询关注数或粉丝数
      * @param uidList
      * @param isToUid false-查询关注数，true-查询粉丝数
