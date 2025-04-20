@@ -48,12 +48,12 @@ public class UserController implements Controller {
     @Autowired
     private CryptoHelper cryptoHelper;
 
-    @GetMapping("/test")
-    public SimpleResponse<String> test(HttpServletRequest request) {
-        String jwtPayload = request.getHeader(AuthConstant.JWT_PAYLOAD_HEADER);
-        log.debug("jwtPayload:{}", jwtPayload);
-        return SimpleResponse.success("test");
-    }
+//    @GetMapping("/test")
+//    public SimpleResponse<String> test(HttpServletRequest request) {
+//        String jwtPayload = request.getHeader(AuthConstant.JWT_PAYLOAD_HEADER);
+//        log.debug("jwtPayload:{}", jwtPayload);
+//        return SimpleResponse.success("test");
+//    }
 
     /**
      * 注册用户

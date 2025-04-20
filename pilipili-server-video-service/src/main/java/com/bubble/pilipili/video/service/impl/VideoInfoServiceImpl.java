@@ -33,6 +33,7 @@ import com.bubble.pilipili.video.repository.CategoryRepository;
 import com.bubble.pilipili.video.repository.UserVideoRepository;
 import com.bubble.pilipili.video.repository.VideoInfoRepository;
 import com.bubble.pilipili.video.service.VideoInfoService;
+import com.bubble.pilipili.video.util.VideoRedisHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,6 +75,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
 
     @Autowired
     private RedisHelper redisHelper;
+    @Autowired
+    private VideoRedisHelper videoRedisHelper;
 
     /**
      * 新增视频信息
@@ -307,7 +310,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public QueryVideoInfoDTO getVideoInfoById(Integer vid) {
-        VideoInfo videoInfo = videoInfoRepository.getVideoInfoById(vid);
+        VideoInfo videoInfo = videoRedisHelper.getVideoInfo(vid);
+        if (videoInfo == null) {
+            videoInfo = videoInfoRepository.getVideoInfoById(vid);
+            videoRedisHelper.saveVideoInfo(videoInfo);
+        }
         List<QueryVideoInfoDTO> dtoList = handleVideoInfo(Collections.singletonList(videoInfo));
         return ListUtil.isEmpty(dtoList) ? null : dtoList.get(0);
     }
@@ -398,13 +405,19 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public List<QueryCategoryDTO> queryCategoryList() {
-        return categoryRepository.queryAllCategory()
-                .stream()
-                .map(entity ->
-                        new QueryCategoryDTO(
-                                entity.getPrimaryCategoryId(), entity.getName())
-                )
-                .collect(Collectors.toList());
+        List<QueryCategoryDTO> categoryList = videoRedisHelper.getCategoryList();
+        if (categoryList == null) {
+            List<QueryCategoryDTO> dtoList = categoryRepository.queryAllCategory()
+                    .stream()
+                    .map(entity ->
+                            new QueryCategoryDTO(
+                                    entity.getPrimaryCategoryId(), entity.getName())
+                    )
+                    .collect(Collectors.toList());
+            videoRedisHelper.saveCategoryList(dtoList);
+            return dtoList;
+        }
+        return categoryList;
     }
 
     /**

@@ -6,7 +6,6 @@ package com.bubble.pilipili.oss.util;
 
 import com.aliyun.oss.*;
 import com.aliyun.oss.model.*;
-import com.bubble.pilipili.common.component.RedisHelper;
 import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.oss.config.OssClientConfig;
 import com.bubble.pilipili.oss.config.OssClientPool;
@@ -36,7 +35,7 @@ public class OssUploadHelper {
     @Autowired
     private OssClientPool ossClientPool;
     @Autowired
-    private RedisHelper redisHelper;
+    private OssRedisHelper ossRedisHelper;
 
     /**
      * 分片大小 100MB
@@ -283,7 +282,7 @@ public class OssUploadHelper {
         for (String objectName : objectNameList) {
             String accessUrl;
             // 读缓存
-            accessUrl = redisHelper.getOssTempAccessUrl(objectName);
+            accessUrl = ossRedisHelper.getOssTempAccessUrl(objectName);
 
             // 无缓存则执行签名请求，并更新缓存
             if (StringUtil.isEmpty(accessUrl)) {
@@ -312,7 +311,7 @@ public class OssUploadHelper {
         }
 
         String expireAtTimeInSeconds = accessUrl.substring(i + 8, i1);
-        redisHelper.saveOssTempAccessUrl(objectName, accessUrl, Long.parseLong(expireAtTimeInSeconds));
+        ossRedisHelper.saveOssTempAccessUrl(objectName, accessUrl, Long.parseLong(expireAtTimeInSeconds));
     }
 
     private String doGetTempSignUrl(

@@ -204,6 +204,8 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
         } else if (stats instanceof VideoStats) {
             return statsFeignAPI.saveVideoStats((VideoStats) stats);
         }
+        // todo：用户统计数据保存
+
         log.error("Stats not supported: {}", stats);
         return SimpleResponse.failed("Stats type not supported");
     }
