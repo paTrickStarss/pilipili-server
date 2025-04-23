@@ -6,6 +6,7 @@ package com.bubble.pilipili.video;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @date 2024/10/23
  */
 @SpringBootApplication
+@EnableDiscoveryClient
 @ComponentScan(basePackages = {"com.bubble.pilipili.common", "com.bubble.pilipili.feign", "com.bubble.pilipili.video"})
 @EnableFeignClients(basePackages = {"com.bubble.pilipili.feign.api"})
 public class VideoApplication {
