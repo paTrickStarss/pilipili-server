@@ -12,7 +12,6 @@ import com.bubble.pilipili.common.pojo.JwtPayload;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.api.OssFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
-import com.bubble.pilipili.feign.pojo.req.SendVideoInfoReq;
 import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import com.bubble.pilipili.oss.constant.UploadTaskStatus;
 import com.bubble.pilipili.oss.pojo.dto.FFMpegTranscodingDTO;
@@ -108,7 +107,7 @@ public class OssController implements OssFeignAPI, Controller {
         // 创建最终访问对象名
 //        String objectName = OssFileUtil.getObjectFullPathName(file, OssFileDirectory.VIDEO_CONTENT.getValue());
         String objectName = OssFileUtil.generateHlsObjFullPathName(OssFileDirectory.VIDEO_CONTENT.getValue());
-        // todo: 视频转码后上传
+        // 视频转码后上传
         CompletableFuture<FFMpegTranscodingDTO> transcodingCF =
                 CompletableFuture.supplyAsync(() -> {
                     try {
@@ -128,11 +127,12 @@ public class OssController implements OssFeignAPI, Controller {
                     }
                     String fileDirectory = dto.getOutputDirectory();
                     VideoFileAnalyseResult analyseResult = dto.getAnalyseResult();
-                    // todo：MQ更新视频信息
-                    SendVideoInfoReq req = new SendVideoInfoReq();
-                    req.setTaskId(taskId);
-                    req.setDuration(analyseResult.getDuration());
-                    mqFeignAPI.sendVideoInfo(req);
+                    // MQ更新视频信息
+                    // 这里主要是为了更新视频时长信息，但实测发现前端上传视频时可以拿到时长信息，因此这一步可以省略
+//                    SendVideoInfoReq req = new SendVideoInfoReq();
+//                    req.setTaskId(taskId);
+//                    req.setDuration(analyseResult.getDuration());
+//                    mqFeignAPI.sendVideoInfo(req);
 
                     try {
                         return ossService.batchUploadHlsVideo(fileDirectory, objectName);
@@ -143,13 +143,6 @@ public class OssController implements OssFeignAPI, Controller {
                     }
                 });
         uploadCF.thenAccept(dto -> {
-//            OssUploadFileDTO dto;
-//            try {
-//                dto = future.get();
-//            } catch (InterruptedException | ExecutionException e) {
-//                log.error("thenAccept error");
-//                throw new RuntimeException(e);
-//            }
             tempFile.delete();
             if (dto.getSuccess()) {
                 // 上传完成，通知前端

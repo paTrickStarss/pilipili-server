@@ -5,13 +5,13 @@
 package com.bubble.pilipili.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.entity.UserStats;
-import com.bubble.pilipili.user.pojo.converter.UserInfoConverter;
 import com.bubble.pilipili.user.pojo.dto.*;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
 import com.bubble.pilipili.user.pojo.entity.UserRela;
@@ -50,6 +50,9 @@ public class UserInfoServiceImpl implements UserInfoService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private StatsFeignAPI statsFeignAPI;
+    
+    @Autowired
+    private EntityConverter entityConverter;
 
     /**
      * 保存用户信息
@@ -60,9 +63,8 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SaveUserInfoDTO saveUserInfo(SaveUserInfoReq saveUserInfoReq) {
-        UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoReq, UserInfo.class);
+        UserInfo userInfo = entityConverter.copyFieldValue(saveUserInfoReq, UserInfo.class);
 
-        userInfo.setUuid(UUID.randomUUID().toString());
         Boolean saveSuccess = Boolean.FALSE;
         SaveUserInfoDTO dto = new SaveUserInfoDTO();
         try {
@@ -92,7 +94,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SaveUserInfoDTO updateUserInfo(SaveUserInfoReq saveUserInfoReq) {
-        UserInfo userInfo = UserInfoConverter.getInstance().copyFieldValue(saveUserInfoReq, UserInfo.class);
+        UserInfo userInfo = entityConverter.copyFieldValue(saveUserInfoReq, UserInfo.class);
         Boolean success = userInfoRepository.updateUserInfo(userInfo);
         return new SaveUserInfoDTO(success? Boolean.TRUE:Boolean.FALSE, null);
     }
@@ -106,7 +108,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public QueryUserInfoDTO getUserInfoByUid(Integer uid) {
         UserInfo userInfo = userInfoRepository.findUserInfoByUid(uid);
-        QueryUserInfoDTO dto = UserInfoConverter.getInstance().copyFieldValue(userInfo, QueryUserInfoDTO.class);
+        QueryUserInfoDTO dto = entityConverter.copyFieldValue(userInfo, QueryUserInfoDTO.class);
         dto.setLevel(UserInfoUtil.getLevel(dto.getExp()));
 
         // 获取关注粉丝数据
@@ -220,7 +222,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         List<UserInfo> userInfoList = userInfoRepository.listUserInfo();
         List<QueryUserInfoDTO> queryUserInfoDTOList = new ArrayList<>();
         for (UserInfo userInfo : userInfoList) {
-            QueryUserInfoDTO queryUserInfoDTO = UserInfoConverter.getInstance().copyFieldValue(userInfo, QueryUserInfoDTO.class);
+            QueryUserInfoDTO queryUserInfoDTO = entityConverter.copyFieldValue(userInfo, QueryUserInfoDTO.class);
             queryUserInfoDTOList.add(queryUserInfoDTO);
         }
 
@@ -296,7 +298,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         List<QueryFollowUserInfoDTO> dtoList = userInfoList.stream()
                 .map(userinfo -> {
                     QueryFollowUserInfoDTO dto =
-                            UserInfoConverter.getInstance().copyFieldValue(
+                            entityConverter.copyFieldValue(
                                     userinfo, QueryFollowUserInfoDTO.class);
                     QueryUserStatsDTO stats = userStatsMap.get(userinfo.getUid());
                     dto.setFollowerCount(stats.getFollowerCount());

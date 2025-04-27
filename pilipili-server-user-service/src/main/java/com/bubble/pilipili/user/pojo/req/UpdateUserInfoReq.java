@@ -25,10 +25,6 @@ public class UpdateUserInfoReq implements Serializable {
      */
     private Integer uid;
     /**
-     * UUID
-     */
-    private String uuid;
-    /**
      * 昵称
      */
     private String nickname;

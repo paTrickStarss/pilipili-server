@@ -114,6 +114,9 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
         }
     }
 
+    /**
+     * 定时任务固定时间间隔检查一下暂存队列，若有消息则直接开启一次批处理，即使未满批处理数量
+     */
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void scheduleConsumer() {
         log.debug("###[{}]scheduled: Current queue size: {}",

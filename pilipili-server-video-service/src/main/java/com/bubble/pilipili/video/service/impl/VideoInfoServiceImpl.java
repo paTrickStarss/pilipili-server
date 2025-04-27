@@ -506,6 +506,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                     interactConsumer
             );
             if (b) {
+                // todo：更新统计数据Redis缓存
+
                 // 推送统计数据更新消息
                 VideoStats stats = new VideoStats();
                 statsConsumer.accept(stats);

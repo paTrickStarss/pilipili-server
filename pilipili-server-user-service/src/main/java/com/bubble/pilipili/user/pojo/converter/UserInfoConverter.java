@@ -29,7 +29,6 @@ public class UserInfoConverter extends BaseConverter {
     public UserInfo fromUpdateRequest(UpdateUserInfoReq updateUserInfoReq) {
         UserInfo userInfo = new UserInfo();
         userInfo.setUid(updateUserInfoReq.getUid());
-        userInfo.setUuid(updateUserInfoReq.getUuid());
         userInfo.setNickname(updateUserInfoReq.getNickname());
 
         return userInfo;
