@@ -9,10 +9,10 @@ import com.bubble.pilipili.common.pojo.StatsEntity;
 import com.bubble.pilipili.common.pojo.converter.BaseConverter;
 import com.bubble.pilipili.common.util.function.TriConsumer;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
-import com.bubble.pilipili.feign.pojo.entity.CommentStats;
-import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.common.pojo.CommentStats;
+import com.bubble.pilipili.common.pojo.DanmakuStats;
+import com.bubble.pilipili.common.pojo.DynamicStats;
+import com.bubble.pilipili.common.pojo.VideoStats;
 import com.bubble.pilipili.mq.entity.StatsMessage;
 import com.bubble.pilipili.mq.producer.MessageProducer;
 import com.bubble.pilipili.mq.util.MessageHelper;
@@ -54,6 +54,7 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
 
     /**
      * 消息处理批次大小
+     * todo: 考虑从配置文件中读取，方便动态修改该参数
      */
     private final static int BATCH_SIZE = 5;
 
@@ -115,9 +116,11 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
     }
 
     /**
-     * 定时任务固定时间间隔检查一下暂存队列，若有消息则直接开启一次批处理，即使未满批处理数量
+     * 定时任务固定时间间隔检查一下暂存队列，若有消息则直接开启一次批处理，即使未满批处理数量<br>
+     * 时间间隔：10秒<br>
+     * todo: 考虑从配置文件中读取，方便动态修改该参数
      */
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
     public void scheduleConsumer() {
         log.debug("###[{}]scheduled: Current queue size: {}",
                 getClass().getName(), statsQueue.size());

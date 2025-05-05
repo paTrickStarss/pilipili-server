@@ -6,7 +6,7 @@ package com.bubble.pilipili.stats.repository.impl;
 
 import com.bubble.pilipili.common.repository.impl.CommonRepository;
 import com.bubble.pilipili.stats.mapper.VideoStatsMapper;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.common.pojo.VideoStats;
 import com.bubble.pilipili.stats.repository.VideoStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

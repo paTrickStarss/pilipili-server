@@ -26,6 +26,7 @@ import redis.clients.jedis.JedisPoolConfig;
 import java.time.Duration;
 
 /**
+ * Redis配置类
  * @author liweixin@hcrc1.wecom.work
  * @date 2024/10/24
  */

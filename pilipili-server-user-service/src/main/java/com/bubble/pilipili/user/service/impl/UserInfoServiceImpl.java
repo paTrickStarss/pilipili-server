@@ -11,7 +11,7 @@ import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
-import com.bubble.pilipili.feign.pojo.entity.UserStats;
+import com.bubble.pilipili.common.pojo.UserStats;
 import com.bubble.pilipili.user.pojo.dto.*;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
 import com.bubble.pilipili.user.pojo.entity.UserRela;

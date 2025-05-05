@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.stats.service;
 
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
+import com.bubble.pilipili.common.pojo.DynamicStats;
 
 /**
  * @author Bubble

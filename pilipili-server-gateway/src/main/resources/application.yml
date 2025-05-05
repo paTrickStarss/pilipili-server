@@ -1,6 +1,3 @@
-server:
-  port: 8000
-
 security-config:
 #  鉴权访问白名单
   ignore-url-list:

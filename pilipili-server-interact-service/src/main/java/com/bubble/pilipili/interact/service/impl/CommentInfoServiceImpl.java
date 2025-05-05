@@ -18,7 +18,7 @@ import com.bubble.pilipili.feign.pojo.req.SendCommentStatsReq;
 import com.bubble.pilipili.interact.pojo.dto.QueryCommentInfoDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryUserCommentDTO;
 import com.bubble.pilipili.interact.pojo.entity.CommentInfo;
-import com.bubble.pilipili.feign.pojo.entity.CommentStats;
+import com.bubble.pilipili.common.pojo.CommentStats;
 import com.bubble.pilipili.interact.pojo.entity.UserComment;
 import com.bubble.pilipili.interact.pojo.req.PageQueryCommentInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveCommentInfoReq;
@@ -163,7 +163,7 @@ public class CommentInfoServiceImpl implements CommentInfoService {
      */
     @Override
     public QueryUserCommentDTO queryUserCommentInfo(Integer cid, Integer uid) {
-        UserComment interact = userCommentRepository.getInteract(cid, uid);
+        UserComment interact = userCommentRepository.getInteract(uid, cid);
         return entityConverter.copyFieldValue(interact, QueryUserCommentDTO.class);
     }
 

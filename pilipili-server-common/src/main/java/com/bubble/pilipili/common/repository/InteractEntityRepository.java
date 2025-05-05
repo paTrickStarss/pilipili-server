@@ -23,9 +23,9 @@ public interface InteractEntityRepository<T extends InteractEntity> {
 
     /**
      * 查询互动数据
-     * @param id
      * @param uid
+     * @param id
      * @return
      */
-    T getInteract(Integer id, Integer uid);
+    T getInteract(Integer uid, Integer id);
 }

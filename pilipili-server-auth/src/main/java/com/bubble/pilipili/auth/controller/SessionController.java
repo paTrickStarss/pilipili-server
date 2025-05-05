@@ -44,8 +44,9 @@ public class SessionController implements Controller {
     @Autowired
     private CryptoHelper cryptoHelper;
 
-    @PostMapping("/login")
-    public SimpleResponse<LoginDTO> login(@Valid @RequestBody LoginReq req) {
+//    @PostMapping("/login")
+    @GetMapping("/login")
+    public SimpleResponse<LoginDTO> login(@Valid @ModelAttribute LoginReq req) {
         String username = req.getUsername();
         String passwordEncryptedText = req.getPassword();
 //        String signature = req.getSignature();
@@ -87,7 +88,8 @@ public class SessionController implements Controller {
             if (e.getMessage().contains("invalid_grant")) {
                 return SimpleResponse.failed("用户名或密码错误");
             }
-            return SimpleResponse.error("服务端异常");
+            throw new RuntimeException("Token获取异常");
+//            return SimpleResponse.error("服务端异常");
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

@@ -5,7 +5,7 @@
 package com.bubble.pilipili.stats.repository;
 
 import com.bubble.pilipili.common.repository.StatsEntityRepository;
-import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
+import com.bubble.pilipili.common.pojo.DanmakuStats;
 import org.springframework.stereotype.Repository;
 
 /**

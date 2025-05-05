@@ -5,7 +5,7 @@
 package com.bubble.pilipili.mq.consumer;
 
 import com.bubble.pilipili.common.util.function.TriConsumer;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.common.pojo.VideoStats;
 import com.bubble.pilipili.mq.entity.VideoStatsMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

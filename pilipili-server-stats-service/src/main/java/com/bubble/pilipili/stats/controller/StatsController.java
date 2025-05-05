@@ -6,9 +6,9 @@ package com.bubble.pilipili.stats.controller;
 
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
+import com.bubble.pilipili.common.pojo.*;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
-import com.bubble.pilipili.feign.pojo.entity.*;
 import com.bubble.pilipili.stats.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;

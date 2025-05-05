@@ -21,7 +21,7 @@ import com.bubble.pilipili.interact.pojo.dto.QueryDynamicInfoDTO;
 import com.bubble.pilipili.interact.pojo.dto.QueryUserDynamicDTO;
 import com.bubble.pilipili.interact.pojo.entity.DynamicAttach;
 import com.bubble.pilipili.interact.pojo.entity.DynamicInfo;
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
+import com.bubble.pilipili.common.pojo.DynamicStats;
 import com.bubble.pilipili.interact.pojo.entity.UserDynamic;
 import com.bubble.pilipili.interact.pojo.req.PageQueryDynamicInfoReq;
 import com.bubble.pilipili.interact.pojo.req.SaveDynamicAttachReq;
@@ -241,7 +241,7 @@ public class DynamicInfoServiceImpl implements DynamicInfoService {
      */
     @Override
     public QueryUserDynamicDTO queryUserDynamic(Integer did, Integer uid) {
-        UserDynamic interact = userDynamicRepository.getInteract(did, uid);
+        UserDynamic interact = userDynamicRepository.getInteract(uid, did);
         return entityConverter.copyFieldValue(interact, QueryUserDynamicDTO.class);
     }
 

@@ -5,7 +5,7 @@
 package com.bubble.pilipili.stats.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
+import com.bubble.pilipili.common.pojo.DynamicStats;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

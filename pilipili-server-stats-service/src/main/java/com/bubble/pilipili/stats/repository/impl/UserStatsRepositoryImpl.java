@@ -5,7 +5,7 @@
 package com.bubble.pilipili.stats.repository.impl;
 
 import com.bubble.pilipili.common.repository.impl.CommonRepository;
-import com.bubble.pilipili.feign.pojo.entity.UserStats;
+import com.bubble.pilipili.common.pojo.UserStats;
 import com.bubble.pilipili.stats.mapper.UserStatsMapper;
 import com.bubble.pilipili.stats.repository.UserStatsRepository;
 import org.springframework.beans.factory.annotation.Autowired;

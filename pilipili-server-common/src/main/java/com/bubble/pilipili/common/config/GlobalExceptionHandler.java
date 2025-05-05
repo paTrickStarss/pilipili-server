@@ -4,12 +4,13 @@
 
 package com.bubble.pilipili.common.config;
 
+import com.bubble.pilipili.common.exception.BadRequestException;
+import com.bubble.pilipili.common.http.SimpleResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
@@ -23,7 +24,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errorMap = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error ->
@@ -32,5 +32,18 @@ public class GlobalExceptionHandler {
                     error.getDefaultMessage())
         );
         return ResponseEntity.badRequest().body(errorMap);
+    }
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<SimpleResponse<String>> handleBadRequestException(BadRequestException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(SimpleResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<SimpleResponse<String>> handleException(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(SimpleResponse.error(ex.getMessage()));
     }
 }

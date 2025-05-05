@@ -5,7 +5,7 @@
 package com.bubble.pilipili.stats.service.impl;
 
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
-import com.bubble.pilipili.feign.pojo.entity.DynamicStats;
+import com.bubble.pilipili.common.pojo.DynamicStats;
 import com.bubble.pilipili.stats.repository.DynamicStatsRepository;
 import com.bubble.pilipili.stats.service.DynamicStatsService;
 import org.springframework.beans.factory.annotation.Autowired;

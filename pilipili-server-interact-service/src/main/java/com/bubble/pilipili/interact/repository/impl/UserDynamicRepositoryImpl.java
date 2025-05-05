@@ -53,12 +53,12 @@ public class UserDynamicRepositoryImpl implements UserDynamicRepository {
     /**
      * 查询互动数据
      *
-     * @param id
      * @param uid
+     * @param id
      * @return
      */
     @Override
-    public UserDynamic getInteract(Integer id, Integer uid) {
+    public UserDynamic getInteract(Integer uid, Integer id) {
         return userDynamicMapper.selectOne(
                 new LambdaQueryWrapper<UserDynamic>()
                         .eq(UserDynamic::getDid, id)

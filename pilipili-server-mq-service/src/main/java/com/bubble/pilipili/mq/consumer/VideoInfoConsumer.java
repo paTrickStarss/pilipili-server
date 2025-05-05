@@ -4,12 +4,12 @@
 
 package com.bubble.pilipili.mq.consumer;
 
-import com.bubble.pilipili.common.component.RedisHelper;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.feign.api.VideoFeignAPI;
 import com.bubble.pilipili.feign.pojo.req.UpdateVideoInfoReq;
 import com.bubble.pilipili.mq.entity.VideoInfoMessage;
 import com.bubble.pilipili.mq.producer.MessageProducer;
+import com.bubble.pilipili.mq.util.MQRedisHelper;
 import com.bubble.pilipili.mq.util.MessageHelper;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +32,13 @@ import java.io.IOException;
 public class VideoInfoConsumer {
 
     private final MessageHelper messageHelper;
-    private final RedisHelper redisHelper;
+    private final MQRedisHelper mqRedisHelper;
     private final VideoFeignAPI videoFeignAPI;
     private final MessageProducer messageProducer;
 
-    public VideoInfoConsumer(MessageHelper messageHelper, RedisHelper redisHelper, VideoFeignAPI videoFeignAPI, MessageProducer messageProducer) {
+    public VideoInfoConsumer(MessageHelper messageHelper, MQRedisHelper mqRedisHelper, VideoFeignAPI videoFeignAPI, MessageProducer messageProducer) {
         this.messageHelper = messageHelper;
-        this.redisHelper = redisHelper;
+        this.mqRedisHelper = mqRedisHelper;
         this.videoFeignAPI = videoFeignAPI;
         this.messageProducer = messageProducer;
     }
@@ -53,7 +53,7 @@ public class VideoInfoConsumer {
             VideoInfoMessage body = (VideoInfoMessage) messageBody;
             String taskId = body.getTaskId();
 
-            Integer vid = redisHelper.getVideoTaskVid(taskId);
+            Integer vid = mqRedisHelper.getVideoTaskVid(taskId);
             // 如果用户还没保存视频，这里获取不到taskId对应的vid，等待一段时间重试
             if (vid == null) {
 //                channel.basicNack(deliveryTag, false, true);

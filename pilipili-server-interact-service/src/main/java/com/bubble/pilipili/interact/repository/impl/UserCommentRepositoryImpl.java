@@ -53,12 +53,12 @@ public class UserCommentRepositoryImpl implements UserCommentRepository {
     /**
      * 查询互动数据
      *
-     * @param id
      * @param uid
+     * @param id
      * @return
      */
     @Override
-    public UserComment getInteract(Integer id, Integer uid) {
+    public UserComment getInteract(Integer uid, Integer id) {
         return userCommentMapper.selectOne(
                 new LambdaQueryWrapper<UserComment>()
                         .eq(UserComment::getCid, id)

@@ -6,7 +6,7 @@ package com.bubble.pilipili.video.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.component.EntityConverter;
-import com.bubble.pilipili.common.component.RedisHelper;
+import com.bubble.pilipili.common.constant.RedisKey;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -19,7 +19,7 @@ import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.OssTempSignDTO;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.common.pojo.VideoStats;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryUserVideoDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
@@ -74,8 +74,6 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     private OssFeignAPI ossFeignAPI;
 
     @Autowired
-    private RedisHelper redisHelper;
-    @Autowired
     private VideoRedisHelper videoRedisHelper;
 
     /**
@@ -89,7 +87,10 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         Boolean b = videoInfoRepository.saveVideoInfo(videoInfo);
         if (b) {
-            redisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
+            // 清除视频信息缓存（若之前缓存过空值，几乎不可能）
+            videoRedisHelper.removeCache(RedisKey.VIDEO_INFO, videoInfo.getVid());
+
+            videoRedisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
         }
         return b;
     }
@@ -105,10 +106,13 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         if (videoInfo.getVid() == null) {
             throw ServiceOperationException.emptyField("vid");
-//            return false;
         }
 
-        return videoInfoRepository.updateVideoInfo(videoInfo);
+        Boolean b = videoInfoRepository.updateVideoInfo(videoInfo);
+        if (b) {
+            videoRedisHelper.removeCache(RedisKey.VIDEO_INFO, videoInfo.getVid());
+        }
+        return b;
     }
 
     /**
@@ -301,7 +305,11 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Transactional
     @Override
     public Boolean deleteVideoInfo(Integer vid) {
-        return videoInfoRepository.deleteVideoInfo(vid);
+        Boolean b = videoInfoRepository.deleteVideoInfo(vid);
+        if (b) {
+            videoRedisHelper.removeCache(RedisKey.VIDEO_INFO, vid);
+        }
+        return b;
     }
 
     /**
@@ -310,11 +318,12 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public QueryVideoInfoDTO getVideoInfoById(Integer vid) {
-        VideoInfo videoInfo = videoRedisHelper.getVideoInfo(vid);
-        if (videoInfo == null) {
-            videoInfo = videoInfoRepository.getVideoInfoById(vid);
-            videoRedisHelper.saveVideoInfo(videoInfo);
-        }
+        VideoInfo videoInfo = videoRedisHelper.queryViaCache(vid,
+                RedisKey.VIDEO_INFO,
+                videoInfoRepository::getVideoInfoById,
+                VideoInfo.class
+        );
+
         List<QueryVideoInfoDTO> dtoList = handleVideoInfo(Collections.singletonList(videoInfo));
         return ListUtil.isEmpty(dtoList) ? null : dtoList.get(0);
     }
@@ -326,6 +335,15 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public PageDTO<QueryVideoInfoDTO> pageQueryVideoInfoByUid(PageQueryVideoInfoReq req) {
+        List<Integer> vidList = videoRedisHelper.getUserVideoIdList(
+                req.getUid(), req.getPageNo().intValue(), req.getPageSize().intValue());
+        List<VideoInfo> videoInfoList = new ArrayList<>();
+        if (ListUtil.isEmpty(vidList)) {
+            // todo: 缓存未命中，查询数据库得到用户视频信息，缓存最新用户视频id列表，以及各个视频信息
+
+        } else {
+            // todo: 缓存命中，根据vid列表查询视频信息
+        }
 
         // 查询结果按投稿时间降序排序
         Page<VideoInfo> videoInfoPage =
@@ -334,7 +352,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                         true, false, Collections.singletonList(VideoInfo::getUploadTime)
                 );
 
-        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoPage.getRecords());
+        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoList);
         return PageDTO.createPageDTO(
                 videoInfoPage.getCurrent(),
                 videoInfoPage.getSize(),
@@ -395,8 +413,13 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public QueryUserVideoDTO getUserVideo(Integer vid, Integer uid) {
-        UserVideo interact = userVideoRepository.getInteract(vid, uid);
-        return entityConverter.copyFieldValue(interact, QueryUserVideoDTO.class);
+        UserVideo userVideo = videoRedisHelper.queryViaCache2(
+                uid, vid,
+                RedisKey.USER_VIDEO,
+                userVideoRepository::getInteract,
+                UserVideo.class
+        );
+        return entityConverter.copyFieldValue(userVideo, QueryUserVideoDTO.class);
     }
 
     /**
@@ -506,11 +529,30 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                     interactConsumer
             );
             if (b) {
-                // todo：更新统计数据Redis缓存
+                // 删除用户视频互动状态缓存
+                videoRedisHelper.removeCache(RedisKey.USER_VIDEO, uid, vid);
 
-                // 推送统计数据更新消息
                 VideoStats stats = new VideoStats();
                 statsConsumer.accept(stats);
+
+                // 这里不做统计数据的缓存，该部分缓存由统计数据管理服务去做，不需要保证统计数据更新的实时一致性
+//                // 更新统计数据Redis缓存
+//                VideoStats cacheStats = videoRedisHelper.getVideoStats(vid);
+//                if (cacheStats == null) {
+//                    SimpleResponse<QueryStatsDTO<VideoStats>> resp =
+//                            statsFeignAPI.getVideoStats(Collections.singletonList(vid));
+//                    if (resp.isSuccess()) {
+//                        Map<Integer, VideoStats> statsMap = resp.getData().getStatsMap();
+//                        VideoStats oldStats = statsMap.get(vid);
+//                        VideoStats newStats = updateStatsValue(oldStats, stats);
+//                        videoRedisHelper.saveVideoStats(newStats);
+//                    }
+//                } else {
+//                    VideoStats newStats = updateStatsValue(cacheStats, stats);
+//                    videoRedisHelper.saveVideoStats(newStats);
+//                }
+
+                // 推送统计数据更新消息
                 SendVideoStatsReq req =
                         entityConverter.copyFieldValue(stats, SendVideoStatsReq.class);
                 req.setVid(vid);
@@ -522,6 +564,35 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             log.warn(e.getMessage());
             throw new ServiceOperationException("更新视频互动关系数据异常");
         }
+    }
+
+    private VideoStats updateStatsValue(VideoStats oldStats, VideoStats stats) {
+        VideoStats newStats = new VideoStats();
+        if (stats.getViewCount() != null) {
+            newStats.setViewCount(oldStats.getViewCount() + stats.getViewCount());
+        }
+        if (stats.getDanmakuCount() != null) {
+            newStats.setDanmakuCount(oldStats.getDanmakuCount() + stats.getDanmakuCount());
+        }
+        if (stats.getCommentCount() != null) {
+            newStats.setCommentCount(oldStats.getCommentCount() + stats.getCommentCount());
+        }
+        if (stats.getFavorCount() != null) {
+            newStats.setFavorCount(oldStats.getFavorCount() + stats.getFavorCount());
+        }
+        if (stats.getCoinCount() != null) {
+            newStats.setCoinCount(oldStats.getCoinCount() + stats.getCoinCount());
+        }
+        if (stats.getCollectCount() != null) {
+            newStats.setCollectCount(oldStats.getCollectCount() + stats.getCollectCount());
+        }
+        if (stats.getRepostCount() != null) {
+            newStats.setRepostCount(oldStats.getRepostCount() + stats.getRepostCount());
+        }
+        if (stats.getDewCount() != null) {
+            newStats.setDewCount(oldStats.getDewCount() + stats.getDewCount());
+        }
+        return newStats;
     }
 
     private List<String> getTagList(String tag) {

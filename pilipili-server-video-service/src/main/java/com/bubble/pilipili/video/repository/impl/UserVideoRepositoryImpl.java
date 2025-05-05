@@ -68,12 +68,12 @@ public class UserVideoRepositoryImpl implements UserVideoRepository {
     /**
      * 查询互动数据
      *
-     * @param id
      * @param uid
+     * @param id
      * @return
      */
     @Override
-    public UserVideo getInteract(Integer id, Integer uid) {
+    public UserVideo getInteract(Integer uid, Integer id) {
         return userVideoMapper.selectOne(
                 new LambdaQueryWrapper<UserVideo>()
                         .eq(UserVideo::getVid, id)

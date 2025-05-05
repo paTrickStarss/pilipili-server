@@ -13,7 +13,7 @@ import com.bubble.pilipili.common.service.InteractStatsAction;
 import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
-import com.bubble.pilipili.feign.pojo.entity.DanmakuStats;
+import com.bubble.pilipili.common.pojo.DanmakuStats;
 import com.bubble.pilipili.feign.pojo.req.SendDanmakuStatsReq;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.interact.pojo.dto.QueryDanmakuInfoDTO;
@@ -169,7 +169,7 @@ public class DanmakuInfoServiceImpl implements DanmakuInfoService {
      */
     @Override
     public QueryUserDanmakuDTO queryUserDanmaku(Integer danmakuId, Integer uid) {
-        UserDanmaku interact = userDanmakuRepository.getInteract(danmakuId, uid);
+        UserDanmaku interact = userDanmakuRepository.getInteract(uid, danmakuId);
         return entityConverter.copyFieldValue(interact, QueryUserDanmakuDTO.class);
     }
 

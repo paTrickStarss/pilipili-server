@@ -53,12 +53,12 @@ public class UserDanmakuRepositoryImpl implements UserDanmakuRepository {
     /**
      * 查询互动数据
      *
-     * @param id
      * @param uid
+     * @param id
      * @return
      */
     @Override
-    public UserDanmaku getInteract(Integer id, Integer uid) {
+    public UserDanmaku getInteract(Integer uid, Integer id) {
         return userDanmakuMapper.selectOne(
                 new LambdaQueryWrapper<UserDanmaku>()
                         .eq(UserDanmaku::getDanmakuId, id)

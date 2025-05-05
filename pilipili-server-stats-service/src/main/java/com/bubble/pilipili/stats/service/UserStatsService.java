@@ -4,7 +4,7 @@
 
 package com.bubble.pilipili.stats.service;
 
-import com.bubble.pilipili.feign.pojo.entity.UserStats;
+import com.bubble.pilipili.common.pojo.UserStats;
 import org.springframework.stereotype.Service;
 
 /**

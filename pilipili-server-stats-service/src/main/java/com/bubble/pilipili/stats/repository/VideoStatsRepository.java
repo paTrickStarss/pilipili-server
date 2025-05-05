@@ -5,7 +5,7 @@
 package com.bubble.pilipili.stats.repository;
 
 import com.bubble.pilipili.common.repository.StatsEntityRepository;
-import com.bubble.pilipili.feign.pojo.entity.VideoStats;
+import com.bubble.pilipili.common.pojo.VideoStats;
 import org.springframework.stereotype.Repository;
 
 /**

@@ -5,8 +5,8 @@
 package com.bubble.pilipili.feign.api;
 
 import com.bubble.pilipili.common.http.SimpleResponse;
+import com.bubble.pilipili.common.pojo.*;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
-import com.bubble.pilipili.feign.pojo.entity.*;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

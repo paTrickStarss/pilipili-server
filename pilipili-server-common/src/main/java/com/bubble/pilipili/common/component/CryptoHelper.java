@@ -52,10 +52,21 @@ public class CryptoHelper {
     private KeyFactory KEY_FACTORY;
     private PrivateKey PRIVATE_KEY;
     private PublicKey PUBLIC_KEY;
-    private Cipher CIPHER_INSTANCE_ENCRYPT;
-    private Cipher CIPHER_INSTANCE_DECRYPT;
+//    private Cipher CIPHER_INSTANCE_ENCRYPT;
+//    private Cipher CIPHER_INSTANCE_DECRYPT;
     private Signature SIGNATURE_INSTANCE_SIGN;
     private Signature SIGNATURE_INSTANCE_VERIFY;
+
+    private final ThreadLocal<Cipher> DecryptCipherThreadLocal = ThreadLocal.withInitial(() -> {
+        try {
+            Cipher instance = Cipher.getInstance(CRYPTO_ALGORITHM);
+            instance.init(Cipher.DECRYPT_MODE, PRIVATE_KEY);
+            return instance;
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("[{}]初始化异常", getClass().getCanonicalName());
+            throw new RuntimeException(e);
+        }
+    });
 
     /**
      * 读取密钥文件，构建密钥对象
@@ -110,12 +121,12 @@ public class CryptoHelper {
         try {
             readKeyStrFromFile();
 
-            Cipher encryptCipher = Cipher.getInstance(CRYPTO_ALGORITHM);
-            encryptCipher.init(Cipher.ENCRYPT_MODE, PUBLIC_KEY);
-            CIPHER_INSTANCE_ENCRYPT = encryptCipher;
-            Cipher decryptCipher = Cipher.getInstance(CRYPTO_ALGORITHM);
-            decryptCipher.init(Cipher.DECRYPT_MODE, PRIVATE_KEY);
-            CIPHER_INSTANCE_DECRYPT = decryptCipher;
+//            Cipher encryptCipher = Cipher.getInstance(CRYPTO_ALGORITHM);
+//            encryptCipher.init(Cipher.ENCRYPT_MODE, PUBLIC_KEY);
+//            CIPHER_INSTANCE_ENCRYPT = encryptCipher;
+//            Cipher decryptCipher = Cipher.getInstance(CRYPTO_ALGORITHM);
+//            decryptCipher.init(Cipher.DECRYPT_MODE, PRIVATE_KEY);
+//            CIPHER_INSTANCE_DECRYPT = decryptCipher;
 
             Signature instanceSign = Signature.getInstance(SIGNATURE_ALGORITHM);
             instanceSign.initSign(PRIVATE_KEY);
@@ -124,7 +135,7 @@ public class CryptoHelper {
             instanceVerify.initVerify(PUBLIC_KEY);
             SIGNATURE_INSTANCE_VERIFY = instanceVerify;
 
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("[{}]初始化异常", getClass().getCanonicalName());
             throw new RuntimeException(e);
         }
@@ -153,8 +164,11 @@ public class CryptoHelper {
      * @param plainText
      * @return
      */
-    public String encrypt(String plainText) throws IllegalBlockSizeException, BadPaddingException {
-        byte[] encryptedBytes = CIPHER_INSTANCE_ENCRYPT.doFinal(plainText.getBytes(DEFAULT_CHARSET));
+    public String encrypt(String plainText) throws IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+//        byte[] encryptedBytes = CIPHER_INSTANCE_ENCRYPT.doFinal(plainText.getBytes(DEFAULT_CHARSET));
+        Cipher encryptCipher = Cipher.getInstance(CRYPTO_ALGORITHM);
+        encryptCipher.init(Cipher.ENCRYPT_MODE, PUBLIC_KEY);
+        byte[] encryptedBytes = encryptCipher.doFinal(plainText.getBytes(DEFAULT_CHARSET));
 
         return BASE64_ENCODER.encodeToString(encryptedBytes);
     }
@@ -166,7 +180,16 @@ public class CryptoHelper {
      */
     public String decrypt(String encryptedText) throws IllegalBlockSizeException, BadPaddingException {
         byte[] encryptedBytes = BASE64_DECODER.decode(encryptedText);
-        byte[] decryptedBytes = CIPHER_INSTANCE_DECRYPT.doFinal(encryptedBytes);
+        // error: Cipher线程不安全，高并发情况下会抛出异常IllegalBlockSizeException：Data must not be longer than 256 bytes
+//        byte[] decryptedBytes = CIPHER_INSTANCE_DECRYPT.doFinal(encryptedBytes);
+        // 改为每次创建新的Cipher对象
+//        Cipher decryptCipher = Cipher.getInstance(CRYPTO_ALGORITHM);
+//        decryptCipher.init(Cipher.DECRYPT_MODE, PRIVATE_KEY);
+//        byte[] decryptedBytes = decryptCipher.doFinal(encryptedBytes);
+
+        // 通过ThreadLocal实现
+        Cipher cipher = DecryptCipherThreadLocal.get();
+        byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
 
         return new String(decryptedBytes, DEFAULT_CHARSET);
     }

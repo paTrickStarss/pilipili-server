@@ -2,11 +2,10 @@
  * Copyright (c) 2025. Bubble
  */
 
-package com.bubble.pilipili.feign.pojo.entity;
+package com.bubble.pilipili.common.pojo;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.bubble.pilipili.common.pojo.StatsEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
