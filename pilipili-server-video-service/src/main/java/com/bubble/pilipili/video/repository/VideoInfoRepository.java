@@ -51,4 +51,11 @@ public interface VideoInfoRepository {
             Integer uid, Long pageNo, Long pageSize,
             boolean applyOrder, boolean isAsc, List<SFunction<VideoInfo, ?>> columnFuncList);
     Page<VideoInfo> pageQueryVideoInfo(QueryVideoInfoParam param, Long pageNo, Long pageSize);
+
+    /**
+     * 查询用户视频数量
+     * @param uid
+     * @return
+     */
+    Long getUserVideoCount(Integer uid);
 }

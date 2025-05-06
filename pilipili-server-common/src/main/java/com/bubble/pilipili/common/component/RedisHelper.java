@@ -12,10 +12,14 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.redisson.spring.cache.NullValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -233,6 +237,21 @@ public abstract class RedisHelper {
 
     public void removeCache(RedisKey cacheRootKey, Integer... ids) {
         redisTemplate.delete(concatKey(cacheRootKey.getKey(), ids));
+    }
+
+    public void removeCacheByKeyPattern(RedisKey cacheRootKey, Integer... ids) {
+        String pattern = concatKey(cacheRootKey.getKey(), ids) + "*";
+        // keys方法时阻塞的，慎用。
+//        Set<String> keys = redisTemplate.keys(pattern);
+
+        ScanOptions scanOptions = ScanOptions.scanOptions().match(pattern).build();
+        Set<String> keys = new HashSet<>();
+        try (Cursor<String> scan = redisTemplate.scan(scanOptions)) {
+            while (scan.hasNext()) {
+                keys.add(scan.next());
+            }
+        }
+        redisTemplate.delete(keys);
     }
 
     protected Object getCache(String key) {

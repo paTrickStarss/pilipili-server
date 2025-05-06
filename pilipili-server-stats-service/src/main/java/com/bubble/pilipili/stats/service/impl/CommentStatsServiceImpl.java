@@ -4,10 +4,12 @@
 
 package com.bubble.pilipili.stats.service.impl;
 
+import com.bubble.pilipili.common.constant.RedisKey;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.common.pojo.CommentStats;
 import com.bubble.pilipili.stats.repository.CommentStatsRepository;
 import com.bubble.pilipili.stats.service.CommentStatsService;
+import com.bubble.pilipili.stats.util.StatsRedisHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ public class CommentStatsServiceImpl implements CommentStatsService {
 
     @Autowired
     private CommentStatsRepository commentStatsRepository;
+    @Autowired
+    private StatsRedisHelper statsRedisHelper;
 
     /**
      * 保存统计数据
@@ -32,7 +36,11 @@ public class CommentStatsServiceImpl implements CommentStatsService {
      */
     @Override
     public Boolean saveStats(CommentStats entity) {
-        return commentStatsRepository.saveStats(entity);
+        Boolean b = commentStatsRepository.saveStats(entity);
+        if (b) {
+            statsRedisHelper.removeCache(RedisKey.COMMENT_STATS, entity.getCid());
+        }
+        return b;
     }
 
     /**
@@ -43,7 +51,13 @@ public class CommentStatsServiceImpl implements CommentStatsService {
      */
     @Override
     public QueryStatsDTO<CommentStats> getStats(List<Integer> idList) {
-        Map<Integer, CommentStats> stats = commentStatsRepository.getStats(idList);
-        return new QueryStatsDTO<>(stats);
+//        Map<Integer, CommentStats> stats = commentStatsRepository.getStats(idList);
+        Map<Integer, CommentStats> statsMap = statsRedisHelper.queryStatsMapViaCache(
+                idList,
+                RedisKey.COMMENT_STATS,
+                commentStatsRepository::getStats,
+                CommentStats.class
+        );
+        return new QueryStatsDTO<>(statsMap);
     }
 }

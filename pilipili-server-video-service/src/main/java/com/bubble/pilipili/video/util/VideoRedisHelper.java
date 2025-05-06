@@ -56,10 +56,12 @@ public class VideoRedisHelper extends RedisHelper {
     /**
      * 缓存用户视频id列表
      * @param uid
+     * @param pageNo
+     * @param pageSize
      * @param vidList
      */
-    public void saveUserVideoIdList(Integer uid, List<Integer> vidList) {
-        saveCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid), vidList);
+    public void saveUserVideoIdList(Integer uid, Integer pageNo, Integer pageSize, List<Integer> vidList) {
+        saveCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, pageSize, pageNo), vidList);
     }
 
     /**
@@ -70,7 +72,7 @@ public class VideoRedisHelper extends RedisHelper {
      * @return
      */
     public List<Integer> getUserVideoIdList(Integer uid, Integer pageNo, Integer pageSize) {
-        Object cache = getCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, pageNo, pageSize));
+        Object cache = getCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, pageSize, pageNo));
         if (cache == null || cache instanceof NullValue) {
             return Collections.emptyList();
         }
@@ -93,6 +95,11 @@ public class VideoRedisHelper extends RedisHelper {
         Object cache = getCache(concatKey(RedisKey.USER_VIDEO_COUNT.getKey(), uid));
         if (cache == null || cache instanceof NullValue) {
             return null;
+        }
+        if (cache instanceof Integer) {
+            // 上面的saveUserVideoCount方法保存的值是Long类型，
+            // 序列化为string后没有记录类型信息，反序列化时数值在int范围内会封装为Integer对象
+            return ((Integer) cache).longValue();
         }
         return (Long) cache;
     }

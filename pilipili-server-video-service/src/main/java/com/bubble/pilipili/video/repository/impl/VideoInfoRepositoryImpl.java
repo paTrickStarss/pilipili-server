@@ -161,6 +161,19 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
         return videoInfoMapper.selectPage(page, queryWrapper);
     }
 
+    /**
+     * 查询用户视频数量
+     * @param uid
+     * @return
+     */
+    @Override
+    public Long getUserVideoCount(Integer uid) {
+        return videoInfoMapper.selectCount(
+                new LambdaQueryWrapper<VideoInfo>()
+                        .eq(VideoInfo::getUid, uid)
+        );
+    }
+
     private LambdaQueryWrapper<VideoInfo> getQueryWrapper(QueryVideoInfoParam param) {
         LambdaQueryWrapper<VideoInfo> queryWrapper = new LambdaQueryWrapper<>();
 

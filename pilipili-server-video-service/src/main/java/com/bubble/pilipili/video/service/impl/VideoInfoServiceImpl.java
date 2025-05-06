@@ -89,6 +89,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         if (b) {
             // 清除视频信息缓存（若之前缓存过空值，几乎不可能）
             videoRedisHelper.removeCache(RedisKey.VIDEO_INFO, videoInfo.getVid());
+            // 清除用户视频vid列表缓存
+            videoRedisHelper.removeCacheByKeyPattern(RedisKey.USER_VIDEO_ID_LIST, videoInfo.getUid());
 
             videoRedisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
         }
@@ -338,25 +340,71 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         List<Integer> vidList = videoRedisHelper.getUserVideoIdList(
                 req.getUid(), req.getPageNo().intValue(), req.getPageSize().intValue());
         List<VideoInfo> videoInfoList = new ArrayList<>();
+        long total;
         if (ListUtil.isEmpty(vidList)) {
-            // todo: 缓存未命中，查询数据库得到用户视频信息，缓存最新用户视频id列表，以及各个视频信息
+            // 缓存未命中，查询数据库得到用户视频信息，缓存最新用户视频id列表，以及各个视频信息
+            // 查询结果按投稿时间降序排序
+            Page<VideoInfo> videoInfoPage =
+                    videoInfoRepository.pageQueryVideoInfoByUid(
+                            req.getUid(), req.getPageNo(), req.getPageSize(),
+                            true, false, Collections.singletonList(VideoInfo::getUploadTime)
+                    );
+            List<VideoInfo> records = videoInfoPage.getRecords();
+            videoInfoList.addAll(records);
+
+            // 缓存最新的用户vid列表
+            List<Integer> vidListNew = records.stream().map(VideoInfo::getVid).collect(Collectors.toList());
+            videoRedisHelper.saveUserVideoIdList(
+                    req.getUid(), req.getPageNo().intValue(), req.getPageSize().intValue(),
+                    vidListNew
+            );
+            // 缓存最新用户视频数量
+            videoRedisHelper.saveUserVideoCount(req.getUid(), videoInfoPage.getTotal());
+            total = videoInfoPage.getTotal();
+            // 缓存查询到的视频信息
+            records.forEach(videoInfo -> videoRedisHelper.saveVideoInfo(videoInfo.getVid(), videoInfo));
 
         } else {
-            // todo: 缓存命中，根据vid列表查询视频信息
-        }
+            // 缓存命中，根据vid列表查询视频信息
+            List<Integer> queryRepoVidList = new ArrayList<>();
+            for (Integer vid : vidList) {
+                VideoInfo videoInfo = videoRedisHelper.getVideoInfo(vid);
+                if (videoInfo == null) {
+                    // 缓存为空，则查询数据库。这里不做缓存空值判断，因为用户视频vid一定是已存在的视频
+                    queryRepoVidList.add(vid);
+                } else {
+                    // 缓存命中
+                    videoInfoList.add(videoInfo);
+                }
+            }
 
-        // 查询结果按投稿时间降序排序
-        Page<VideoInfo> videoInfoPage =
-                videoInfoRepository.pageQueryVideoInfoByUid(
-                        req.getUid(), req.getPageNo(), req.getPageSize(),
-                        true, false, Collections.singletonList(VideoInfo::getUploadTime)
-                );
+            // 查询未命中的vid视频信息
+            if (!queryRepoVidList.isEmpty()) {
+                List<VideoInfo> queryRepoVideoInfoList = videoInfoRepository.getVideoInfoById(queryRepoVidList);
+                queryRepoVideoInfoList.forEach(videoInfo -> {
+                    videoInfoList.add(videoInfo);
+                    // 缓存最新的视频信息
+                    videoRedisHelper.saveVideoInfo(videoInfo.getVid(), videoInfo);
+                });
+            }
+            // 获取用户视频数量缓存值
+            Long userVideoCount = videoRedisHelper.getUserVideoCount(req.getUid());
+            if (userVideoCount == null) {  // 这条分支不太可能会走，理想情况下，有缓存用户视频vid列表就一定会有缓存用户视频数量
+                // 查询数据库获取用户视频数量
+                Long queryRepoUserVideoCount = videoInfoRepository.getUserVideoCount(req.getUid());
+                total = queryRepoUserVideoCount == null ? 0L : queryRepoUserVideoCount;
+                // 缓存最新的用户视频数量
+                videoRedisHelper.saveUserVideoCount(req.getUid(), queryRepoUserVideoCount);
+            } else {
+                total = userVideoCount;
+            }
+        }
 
         List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoList);
         return PageDTO.createPageDTO(
-                videoInfoPage.getCurrent(),
-                videoInfoPage.getSize(),
-                videoInfoPage.getTotal(),
+                req.getPageNo(),
+                req.getPageSize(),
+                total,
                 dtoList
         );
     }
