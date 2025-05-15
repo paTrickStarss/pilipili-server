@@ -7,6 +7,8 @@ package com.bubble.pilipili.video.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.constant.RedisKey;
+import com.bubble.pilipili.common.constant.UserVideoLevel;
+import com.bubble.pilipili.common.constant.VideoStatus;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -38,10 +40,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,6 +89,15 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Override
     public Boolean saveVideoInfo(CreateVideoInfoReq req) {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
+        boolean videoTaskUploadSuccess = videoRedisHelper.isVideoTaskUploadSuccess(req.getTaskId());
+        if (videoTaskUploadSuccess) {
+            // OSS已经上传好了，状态设为上传完成审核中 1
+            videoInfo.setStatus(VideoStatus.AUDITING.getValue());
+        } else {
+            // OSS还没处理好，状态设为上传中 0
+            videoInfo.setStatus(VideoStatus.UPLOADING.getValue());
+        }
+
         Boolean b = videoInfoRepository.saveVideoInfo(videoInfo);
         if (b) {
             // 清除视频信息缓存（若之前缓存过空值，几乎不可能）
@@ -92,7 +105,26 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             // 清除用户视频vid列表缓存
             videoRedisHelper.removeCacheByKeyPattern(RedisKey.USER_VIDEO_ID_LIST, videoInfo.getUid());
 
-            videoRedisHelper.saveVideoTask(videoInfo.getVid(), req.getTaskId());
+            if (videoTaskUploadSuccess) {
+                // OSS已经上传好了，删除缓存的任务ID
+                videoRedisHelper.removeVideoTask(req.getTaskId());
+            } else {
+                // OSS视频上传任务还没完成，缓存任务ID对应的vid，用于更新视频状态
+//                videoRedisHelper.saveVideoTask(req.getTaskId(), videoInfo.getVid());
+                videoRedisHelper.saveVideoTaskIdWithRLockTask(
+                        req.getTaskId(), videoInfo.getVid(),
+                        (cache) -> {
+                            // 双重检查发现已被缓存，说明这段期间OSS任务完成了，删除缓存的任务ID
+                            videoRedisHelper.removeVideoTask(req.getTaskId());
+                            // 更新视频状态为审核中。
+                            UpdateVideoInfoReq updateReq = new UpdateVideoInfoReq();
+                            updateReq.setVid(videoInfo.getVid());
+                            updateReq.setStatus(VideoStatus.AUDITING.getValue());
+                            // 这里开启新事务
+                            updateVideoInfo(updateReq);
+                        }
+                );
+            }
         }
         return b;
     }
@@ -102,7 +134,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      * @param req
      * @return
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public Boolean updateVideoInfo(UpdateVideoInfoReq req) {
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
@@ -330,25 +362,91 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         return ListUtil.isEmpty(dtoList) ? null : dtoList.get(0);
     }
 
+
     /**
-     * 分页查询用户视频
+     * 分页查询用户所有视频（用户个人空间用，上传中、审核中、审核通过状态的视频）
      * @param req
      * @return
      */
     @Override
     public PageDTO<QueryVideoInfoDTO> pageQueryVideoInfoByUid(PageQueryVideoInfoReq req) {
+        List<VideoStatus> statusList = Arrays.asList(
+                VideoStatus.UPLOADING,
+                VideoStatus.AUDITING,
+                VideoStatus.AUDIT_PASSED
+        );
+        return doPageQueryVideoInfoByUid(req,
+                (req1) ->
+                    videoInfoRepository.pageQueryVideoInfoByUid(
+                        req1.getUid(), req1.getPageNo(), req1.getPageSize(), statusList,
+                            true, false, Collections.singletonList(VideoInfo::getUploadTime)
+                    ),
+                (uid) -> videoInfoRepository.getUserVideoCount(uid, statusList),
+                UserVideoLevel.LEVEL_USER
+        );
+    }
+
+    /**
+     * 分页查询用户所有视频（管理员用，所有状态的视频）
+     *
+     * @param req
+     * @return
+     */
+    @Override
+    public PageDTO<QueryVideoInfoDTO> pageQueryAllVideoInfoByUid(PageQueryVideoInfoReq req) {
+        return doPageQueryVideoInfoByUid(req, (req1) ->
+                        videoInfoRepository.pageQueryVideoInfoByUid(
+                                req1.getUid(), req1.getPageNo(), req1.getPageSize(),
+                                null,
+                                true, false, Collections.singletonList(VideoInfo::getUploadTime)
+                        ),
+                (uid) -> videoInfoRepository.getUserVideoCount(uid, null),
+                UserVideoLevel.LEVEL_ADMIN
+        );
+    }
+
+    /**
+     * 分页查询用户已上架视频（对外展示用）
+     * @param req
+     * @return
+     */
+    @Override
+    public PageDTO<QueryVideoInfoDTO> pageQueryPassedVideoInfoByUid(PageQueryVideoInfoReq req) {
+        List<VideoStatus> statusList = Collections.singletonList(VideoStatus.AUDIT_PASSED);
+        return doPageQueryVideoInfoByUid(req, (req1) ->
+                        videoInfoRepository.pageQueryVideoInfoByUid(
+                                req1.getUid(), req1.getPageNo(), req1.getPageSize(),
+                                statusList,
+                                true, false, Collections.singletonList(VideoInfo::getUploadTime)
+                        ),
+                (uid) -> videoInfoRepository.getUserVideoCount(uid, statusList),
+                UserVideoLevel.LEVEL_PUBLIC
+        );
+    }
+
+    /**
+     * 执行分页查询用户视频
+     * @param req 请求参数
+     * @param queryFunc 查询repo方法
+     * @param queryCountFunc 查询视频数量方法
+     * @param level 用户视频缓存级别
+     * @return
+     */
+    private PageDTO<QueryVideoInfoDTO> doPageQueryVideoInfoByUid(
+            PageQueryVideoInfoReq req,
+            Function<PageQueryVideoInfoReq, Page<VideoInfo>> queryFunc,
+            Function<Integer, Long> queryCountFunc,
+            UserVideoLevel level
+    ) {
         List<Integer> vidList = videoRedisHelper.getUserVideoIdList(
-                req.getUid(), req.getPageNo().intValue(), req.getPageSize().intValue());
+                req.getUid(), req.getPageNo().intValue(), req.getPageSize().intValue(), level);
         List<VideoInfo> videoInfoList = new ArrayList<>();
         long total;
-        if (ListUtil.isEmpty(vidList)) {
+        // 若数据库查询结果为空列表，会缓存空列表，所以这里只需要判断是不是空对象就行
+        if (vidList == null) {
             // 缓存未命中，查询数据库得到用户视频信息，缓存最新用户视频id列表，以及各个视频信息
             // 查询结果按投稿时间降序排序
-            Page<VideoInfo> videoInfoPage =
-                    videoInfoRepository.pageQueryVideoInfoByUid(
-                            req.getUid(), req.getPageNo(), req.getPageSize(),
-                            true, false, Collections.singletonList(VideoInfo::getUploadTime)
-                    );
+            Page<VideoInfo> videoInfoPage = queryFunc.apply(req);
             List<VideoInfo> records = videoInfoPage.getRecords();
             videoInfoList.addAll(records);
 
@@ -356,10 +454,10 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             List<Integer> vidListNew = records.stream().map(VideoInfo::getVid).collect(Collectors.toList());
             videoRedisHelper.saveUserVideoIdList(
                     req.getUid(), req.getPageNo().intValue(), req.getPageSize().intValue(),
-                    vidListNew
+                    vidListNew, level
             );
             // 缓存最新用户视频数量
-            videoRedisHelper.saveUserVideoCount(req.getUid(), videoInfoPage.getTotal());
+            videoRedisHelper.saveUserVideoCount(req.getUid(), videoInfoPage.getTotal(), level);
             total = videoInfoPage.getTotal();
             // 缓存查询到的视频信息
             records.forEach(videoInfo -> videoRedisHelper.saveVideoInfo(videoInfo.getVid(), videoInfo));
@@ -388,13 +486,13 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 });
             }
             // 获取用户视频数量缓存值
-            Long userVideoCount = videoRedisHelper.getUserVideoCount(req.getUid());
+            Long userVideoCount = videoRedisHelper.getUserVideoCount(req.getUid(), level);
             if (userVideoCount == null) {  // 这条分支不太可能会走，理想情况下，有缓存用户视频vid列表就一定会有缓存用户视频数量
                 // 查询数据库获取用户视频数量
-                Long queryRepoUserVideoCount = videoInfoRepository.getUserVideoCount(req.getUid());
+                Long queryRepoUserVideoCount = queryCountFunc.apply(req.getUid()); //videoInfoRepository.getUserVideoCount(req.getUid());
                 total = queryRepoUserVideoCount == null ? 0L : queryRepoUserVideoCount;
                 // 缓存最新的用户视频数量
-                videoRedisHelper.saveUserVideoCount(req.getUid(), queryRepoUserVideoCount);
+                videoRedisHelper.saveUserVideoCount(req.getUid(), queryRepoUserVideoCount, level);
             } else {
                 total = userVideoCount;
             }
@@ -409,28 +507,6 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         );
     }
 
-    /**
-     * @param req
-     * @return
-     */
-    @Override
-    public PageDTO<QueryVideoInfoDTO> pageQueryPassedVideoInfoByUid(PageQueryVideoInfoReq req) {
-
-        // 查询结果按投稿时间降序排序
-        Page<VideoInfo> videoInfoPage =
-                videoInfoRepository.pageQueryPassedVideoInfoByUid(
-                        req.getUid(), req.getPageNo(), req.getPageSize(),
-                        true, false, Collections.singletonList(VideoInfo::getUploadTime)
-                );
-
-        List<QueryVideoInfoDTO> dtoList = handleVideoInfo(videoInfoPage.getRecords());
-        return PageDTO.createPageDTO(
-                videoInfoPage.getCurrent(),
-                videoInfoPage.getSize(),
-                videoInfoPage.getTotal(),
-                dtoList
-        );
-    }
 
     /**
      * 分页条件查询所有已上架视频
@@ -583,22 +659,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 VideoStats stats = new VideoStats();
                 statsConsumer.accept(stats);
 
-                // 这里不做统计数据的缓存，该部分缓存由统计数据管理服务去做，不需要保证统计数据更新的实时一致性
-//                // 更新统计数据Redis缓存
-//                VideoStats cacheStats = videoRedisHelper.getVideoStats(vid);
-//                if (cacheStats == null) {
-//                    SimpleResponse<QueryStatsDTO<VideoStats>> resp =
-//                            statsFeignAPI.getVideoStats(Collections.singletonList(vid));
-//                    if (resp.isSuccess()) {
-//                        Map<Integer, VideoStats> statsMap = resp.getData().getStatsMap();
-//                        VideoStats oldStats = statsMap.get(vid);
-//                        VideoStats newStats = updateStatsValue(oldStats, stats);
-//                        videoRedisHelper.saveVideoStats(newStats);
-//                    }
-//                } else {
-//                    VideoStats newStats = updateStatsValue(cacheStats, stats);
-//                    videoRedisHelper.saveVideoStats(newStats);
-//                }
+                // 这里不做统计数据的缓存更新，该部分缓存由统计数据管理服务去做，不需要保证统计数据更新的实时一致性
 
                 // 推送统计数据更新消息
                 SendVideoStatsReq req =

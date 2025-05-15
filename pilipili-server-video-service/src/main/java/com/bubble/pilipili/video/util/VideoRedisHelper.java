@@ -6,6 +6,7 @@ package com.bubble.pilipili.video.util;
 
 import com.bubble.pilipili.common.component.RedisHelper;
 import com.bubble.pilipili.common.constant.RedisKey;
+import com.bubble.pilipili.common.constant.UserVideoLevel;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.entity.VideoInfo;
 import org.redisson.spring.cache.NullValue;
@@ -59,9 +60,10 @@ public class VideoRedisHelper extends RedisHelper {
      * @param pageNo
      * @param pageSize
      * @param vidList
+     * @param level
      */
-    public void saveUserVideoIdList(Integer uid, Integer pageNo, Integer pageSize, List<Integer> vidList) {
-        saveCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, pageSize, pageNo), vidList);
+    public void saveUserVideoIdList(Integer uid, Integer pageNo, Integer pageSize, List<Integer> vidList, UserVideoLevel level) {
+        saveCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, level.getKey(), pageSize, pageNo), vidList);
     }
 
     /**
@@ -69,11 +71,15 @@ public class VideoRedisHelper extends RedisHelper {
      * @param uid
      * @param pageNo
      * @param pageSize
+     * @param level
      * @return
      */
-    public List<Integer> getUserVideoIdList(Integer uid, Integer pageNo, Integer pageSize) {
-        Object cache = getCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, pageSize, pageNo));
-        if (cache == null || cache instanceof NullValue) {
+    public List<Integer> getUserVideoIdList(Integer uid, Integer pageNo, Integer pageSize, UserVideoLevel level) {
+        Object cache = getCache(concatKey(RedisKey.USER_VIDEO_ID_LIST.getKey(), uid, level.getKey(), pageSize, pageNo));
+        if (cache == null) {
+            return null;
+        }
+        if (cache instanceof NullValue) {
             return Collections.emptyList();
         }
         return (List<Integer>) cache;
@@ -83,16 +89,23 @@ public class VideoRedisHelper extends RedisHelper {
      * 缓存用户视频数量
      * @param uid
      * @param count
+     * @param level
      */
-    public void saveUserVideoCount(Integer uid, Long count) {
+    public void saveUserVideoCount(Integer uid, Long count, UserVideoLevel level) {
         saveCache(
-                concatKey(RedisKey.USER_VIDEO_COUNT.getKey(), uid),
+                concatKey(RedisKey.USER_VIDEO_COUNT.getKey(), uid, level.getKey()),
                 count
         );
     }
 
-    public Long getUserVideoCount(Integer uid) {
-        Object cache = getCache(concatKey(RedisKey.USER_VIDEO_COUNT.getKey(), uid));
+    /**
+     * 查询用户视频数量缓存
+     * @param uid
+     * @param level
+     * @return
+     */
+    public Long getUserVideoCount(Integer uid, UserVideoLevel level) {
+        Object cache = getCache(concatKey(RedisKey.USER_VIDEO_COUNT.getKey(), uid, level.getKey()));
         if (cache == null || cache instanceof NullValue) {
             return null;
         }

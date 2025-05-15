@@ -22,6 +22,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -139,7 +140,7 @@ public abstract class RedisHelper {
         if (cache == null) {
             R repoRecord = repoGetter.apply(param, param2);
             runRLockTask(
-                    getRLockName(repoRecord.getClass(), param.toString(), param2.toString()),
+                    getRLockName(cacheRootKey.getKey(), param.toString(), param2.toString()),
                     () -> saveCache(cacheKey, repoRecord),
                     cacheKey
             );
@@ -172,17 +173,48 @@ public abstract class RedisHelper {
 
     /**
      * 保存视频任务ID映射（1天后过期）
-     * @param vid
-     * @param taskId
+     * @param taskId 视频上传任务ID
+     * @param vid 视频信息主键ID
      */
-    public void saveVideoTask(Integer vid, String taskId) {
+    public void saveVideoTask(String taskId, Integer vid) {
         String key = getVideoTaskMapKey(taskId);
-        redisTemplate.opsForValue().set(key, vid, 1, TimeUnit.DAYS);
-        log.info("Save VideoTask map: {}:{}", key, vid);
+        if (vid == null) {
+            redisTemplate.opsForValue().set(key, new NullValue(), 1, TimeUnit.DAYS);
+            log.info("Save VideoTask map: {}:[NullValue]", key);
+        } else {
+            redisTemplate.opsForValue().set(key, vid, 1, TimeUnit.DAYS);
+            log.info("Save VideoTask map: {}:{}", key, vid);
+        }
     }
 
     public Integer getVideoTaskVid(String taskId) {
-        return (Integer) redisTemplate.opsForValue().get(getVideoTaskMapKey(taskId));
+        Object cache = redisTemplate.opsForValue().get(getVideoTaskMapKey(taskId));
+        if (cache == null || cache instanceof NullValue) {
+            return null;
+        }
+        return (Integer) cache;
+    }
+
+    /**
+     * 检查视频上传任务是否已完成<br>
+     * 若该taskId缓存值为{@link NullValue}，则表示OSS已完成视频上传，若为空则表示上传还未完成
+     * @param taskId OSS视频上传任务ID
+     * @return
+     */
+    public boolean isVideoTaskUploadSuccess(String taskId) {
+        Object cache = redisTemplate.opsForValue().get(getVideoTaskMapKey(taskId));
+        if (cache == null) {
+            return false;
+        }
+        return cache instanceof NullValue;
+    }
+
+    /**
+     * 删除视频上传任务缓存值
+     * @param taskId
+     */
+    public void removeVideoTask(String taskId) {
+        redisTemplate.delete(getVideoTaskMapKey(taskId));
     }
 
 
@@ -195,6 +227,24 @@ public abstract class RedisHelper {
     protected String concatKey(String root, Integer... ids) {
         StringBuilder sb = new StringBuilder();
         sb.append(root);
+        for (int id : ids) {
+            sb.append(RedisKey.KEY_DIVIDER.getKey()).append(id);
+        }
+        return sb.toString();
+    }
+    /**
+     * 拼接key
+     * @param root
+     * @param uid
+     * @param secRoot
+     * @param ids
+     * @return
+     */
+    protected String concatKey(String root, Integer uid, String secRoot, Integer... ids) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(root)
+                .append(RedisKey.KEY_DIVIDER.getKey()).append(uid)
+                .append(RedisKey.KEY_DIVIDER.getKey()).append(secRoot);
         for (int id : ids) {
             sb.append(RedisKey.KEY_DIVIDER.getKey()).append(id);
         }
@@ -259,12 +309,43 @@ public abstract class RedisHelper {
     }
 
     /**
+     * 带锁更新视频任务缓存
+     * @param taskId 视频任务ID，作为缓存键
+     * @param vid 视频信息主键ID，作为缓存值，支持缓存空值
+     * @param fallback 双重检查发现缓存已被更新，备用任务
+     */
+    public void saveVideoTaskIdWithRLockTask(String taskId, Integer vid, Consumer<Object> fallback) {
+        String lockName = getRLockName(RedisKey.VIDEO_TASK_MAP.getKey(), taskId);
+        String key = getVideoTaskMapKey(taskId);
+
+        Runnable task = () -> saveVideoTask(taskId, vid);
+//        Consumer<Object> innerFallback = (cache) -> {
+////            if (cache instanceof NullValue) {
+////                return;
+////            }
+////            Integer vidCache = (Integer) cache;
+//            fallback.accept(cache);
+//        };
+        runRLockTask(lockName, task, fallback, key);
+    }
+
+    /**
      * 执行分布式锁任务
      * @param lockName 分布式锁名称
      * @param task 任务
      * @param key 更新缓存key，用于双重检查
      */
     protected void runRLockTask(String lockName, Runnable task, String key) {
+        runRLockTask(lockName, task, null, key);
+    }
+    /**
+     * 执行分布式锁任务，带双重检查
+     * @param lockName 分布式锁名称
+     * @param task 任务
+     * @param fallback 缓存已被更新，备用任务
+     * @param key 更新缓存key，用于双重检查
+     */
+    protected void runRLockTask(String lockName, Runnable task, Consumer<Object> fallback, String key) {
         RLock lock = redissonClient.getLock(lockName);
         log.debug("RLock tryLock: {}", lockName);
         try {
@@ -275,10 +356,16 @@ public abstract class RedisHelper {
                     Object cache = getCache(key);
                     if (cache == null) {
                         task.run();
+                    } else if (fallback != null) {
+                        fallback.accept(cache);
                     }
+                } catch (Exception e) {
+                  log.error("RLock [{}] task or fallback run error", lockName, e);
                 } finally {
                     lock.unlock();
                 }
+            } else {
+                log.error("RLock tryLock failed: {}", lockName);
             }
         } catch (InterruptedException e) {
             log.warn("Redisson lock [{}] interrupted", lock.getName());

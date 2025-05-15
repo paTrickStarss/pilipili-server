@@ -13,6 +13,7 @@ import com.bubble.pilipili.mq.util.MQRedisHelper;
 import com.bubble.pilipili.mq.util.MessageHelper;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.spring.cache.NullValue;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -56,36 +57,30 @@ public class VideoInfoConsumer {
             Integer vid = mqRedisHelper.getVideoTaskVid(taskId);
             // 如果用户还没保存视频，这里获取不到taskId对应的vid，等待一段时间重试
             if (vid == null) {
+                // new: 用户还没保存，先存任务ID
+                log.debug("用户还没保存，先存任务ID: {}", taskId);
+                mqRedisHelper.saveVideoTaskIdWithRLockTask(
+                        taskId, null,
+                        (cache) -> {
+                            if (cache instanceof NullValue) {
+                                return;
+                            }
+                            Integer vidCache = (Integer) cache;
+                            updateVideoInfo(vidCache, body, msg);
+                        }
+                );
 //                channel.basicNack(deliveryTag, false, true);
                 // 由Spring AMQP在消费者实现的重试，只要抛出异常就可以触发，消息不会重新入队
 //                throw new MQConsumerException("找不到任务ID对应的vid，进行重试");
                 // 通过延迟队列实现的重试，会将消息重新入队，并配合延迟作为间隔，同时记录重试次数，在达到最大次数后停止重试
-                log.warn("找不到任务ID[{}]对应的vid，进行重试", taskId);
-                retryMessage(msg, body);
-                // 重新入队的是新的消息，所以要将旧消息确认
-                channel.basicAck(deliveryTag, false);
-                return;
+//                log.warn("找不到任务ID[{}]对应的vid，进行重试", taskId);
+//                retryMessage(msg, body);
+//                // 重新入队的是新的消息，所以要将旧消息确认
+//                channel.basicAck(deliveryTag, false);
+            } else {
+                updateVideoInfo(vid, body, msg);
             }
-            // 更新视频信息
-            UpdateVideoInfoReq req = new UpdateVideoInfoReq();
-            req.setVid(vid);
-            if (body.getDuration() != null) {
-                req.setDuration(Integer.valueOf(body.getDuration().toString()));
-            }
-            if (body.getContentUrl() != null) {
-                req.setContentUrl(body.getContentUrl());
-            }
-            if (body.getCoverUrl() != null) {
-                req.setCoverUrl(body.getCoverUrl());
-            }
-            SimpleResponse<String> response = videoFeignAPI.update(req);
-            if (!response.isSuccess()) {
-                log.warn("视频信息更新失败: {}", response.getMsg());
-//                throw new MQConsumerException("找不到任务ID对应的vid，进行重试");
-                // 重新入队，会立即重试，跟配置文件里的重试配置没有关系
-//                channel.basicNack(deliveryTag, false, true);
-//                    channel.basicReject(deliveryTag, false);
-            }
+
 
         } else {
             log.warn("不支持的消息类型: {}", msg);
@@ -94,7 +89,43 @@ public class VideoInfoConsumer {
         channel.basicAck(deliveryTag, false);
     }
 
+    /**
+     * 更新视频信息
+     * @param vid
+     * @param body
+     */
+    private void updateVideoInfo(Integer vid, VideoInfoMessage body, Message msg) {
+        // 更新视频信息
+        UpdateVideoInfoReq req = new UpdateVideoInfoReq();
+        req.setVid(vid);
+        if (body.getDuration() != null) {
+            req.setDuration(body.getDuration().intValue());
+        }
+        if (body.getContentUrl() != null) {
+            req.setContentUrl(body.getContentUrl());
+        }
+        if (body.getCoverUrl() != null) {
+            req.setCoverUrl(body.getCoverUrl());
+        }
+        if (body.getStatus() != null) {
+            req.setStatus(body.getStatus());
+        }
+        SimpleResponse<String> response = videoFeignAPI.update(req);
+        if (!response.isSuccess()) {
+            log.warn("视频信息更新失败: {}", response.getMsg());
+            retryMessage(msg, body);
+//                throw new MQConsumerException("找不到任务ID对应的vid，进行重试");
+            // 重新入队，会立即重试，跟配置文件里的重试配置没有关系
+//                channel.basicNack(deliveryTag, false, true);
+//                    channel.basicReject(deliveryTag, false);
+        }
+    }
 
+    /**
+     * 重试消息
+     * @param msg
+     * @param body
+     */
     private void retryMessage(Message msg, VideoInfoMessage body) {
         Integer delay = msg.getMessageProperties().getReceivedDelay();
         Integer retryCount = msg.getMessageProperties().getHeader(MessageHelper.HEADER_RETRY_COUNT);

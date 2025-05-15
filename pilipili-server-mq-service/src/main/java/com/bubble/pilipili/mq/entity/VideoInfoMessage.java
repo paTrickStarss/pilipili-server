@@ -37,5 +37,9 @@ public class VideoInfoMessage {
      * 视频内容路径
      */
     private String contentUrl;
+    /**
+     * 视频状态：0上传中 1审核中 2审核通过 3审核不通过 4下架
+     */
+    private Integer status;
 
 }

@@ -4,10 +4,12 @@
 
 package com.bubble.pilipili.video.controller;
 
+import com.bubble.pilipili.common.exception.ForbiddenException;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.util.RequestUtil;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryUserVideoDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
@@ -20,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
@@ -56,11 +59,32 @@ public class VideoController implements Controller {
      */
     @Operation(summary = "更新视频信息")
     @PutMapping("/update")
-    public SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req) {
+    public SimpleResponse<String> update(
+            @Valid @RequestBody UpdateVideoInfoReq req
+    ) {
+        if (req.getStatus() != null) {
+            throw new ForbiddenException("请通过管理员接口更新视频状态");
+        }
+        Boolean b = videoInfoService.updateVideoInfo(req);
+        return SimpleResponse.result(b);
+    }
+    /**
+     * 更新视频信息（管理员）
+     * @param req
+     * @return
+     */
+    @Operation(summary = "更新视频信息（管理员）")
+    @PutMapping("/updateAdmin")
+    public SimpleResponse<String> updateAdmin(
+            @Valid @RequestBody UpdateVideoInfoReq req,
+            HttpServletRequest request
+    ) {
+        RequestUtil.adminIdentify(request);
         Boolean b = videoInfoService.updateVideoInfo(req);
         return SimpleResponse.result(b);
     }
 
+    // todo: 更新用户相关状态的接口基本上都需要校验请求用户与目标用户是否一致，除了管理员用户以外
     /**
      * 一键三连视频
      * @param vid
@@ -229,7 +253,11 @@ public class VideoController implements Controller {
      */
     @Operation(summary = "删除视频信息（管理员）")
     @DeleteMapping("/{vid}")
-    public SimpleResponse<String> delete(@Valid @PathVariable Integer vid) {
+    public SimpleResponse<String> delete(
+            @Valid @PathVariable Integer vid,
+            HttpServletRequest request
+    ) {
+        RequestUtil.adminIdentify(request);
         Boolean b = videoInfoService.deleteVideoInfo(vid);
         return SimpleResponse.result(b);
     }
@@ -247,24 +275,41 @@ public class VideoController implements Controller {
     }
 
     /**
-     * 分页查询用户所有视频信息
+     * 分页查询用户所有视频信息（管理员）
      * @param req
      * @return
      */
-    @Operation(summary = "分页查询用户所有视频信息")
+    @Operation(summary = "分页查询用户所有视频信息（管理员）")
+    @GetMapping("/pageQueryAllByUid")
+    public PageResponse<QueryVideoInfoDTO> pageQueryAllByUid(
+            @Valid @ModelAttribute PageQueryVideoInfoReq req,
+            HttpServletRequest request
+    ) {
+        RequestUtil.adminIdentify(request);
+        PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryAllVideoInfoByUid(req);
+        return PageResponse.success(dto);
+    }
+    /**
+     * 分页查询用户视频信息（用户个人）
+     * @param req
+     * @return
+     */
+    @Operation(summary = "分页查询用户视频信息（用户个人）")
     @GetMapping("/pageQueryByUid")
     public PageResponse<QueryVideoInfoDTO> pageQueryByUid(
-            @Valid @ModelAttribute PageQueryVideoInfoReq req
+            @Valid @ModelAttribute PageQueryVideoInfoReq req,
+            HttpServletRequest request
     ) {
+        RequestUtil.userIdentify(request, req.getUid().toString());
         PageDTO<QueryVideoInfoDTO> dto = videoInfoService.pageQueryVideoInfoByUid(req);
         return PageResponse.success(dto);
     }
     /**
-     * 分页查询用户已上架视频信息
+     * 分页查询用户已上架视频信息（公共）
      * @param req
      * @return
      */
-    @Operation(summary = "分页查询用户已上架视频信息")
+    @Operation(summary = "分页查询用户已上架视频信息（公共）")
     @GetMapping("/pageQueryPassedByUid")
     public PageResponse<QueryVideoInfoDTO> pageQueryPassedByUid(
             @Valid @ModelAttribute PageQueryVideoInfoReq req

@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -40,8 +39,14 @@ public class FFmpegHelper {
     public static final String FFPROBE = "ffprobe";
     /**
      * 视频转码脚本路径
+     * 考虑到兼容性，目前只输出H.264编码格式的视频
+     * todo: 该脚本只支持输出H.264格式8bit位深的视频，例如Apple杜比视界视频(10bit_depth)会被输出为8bit位深的视频，要输出10bit位深视频请用HEVC编码格式的处理脚本
      */
-    public static final String VIDEO_TRANSCODING_HLS_BAT = "T:\\Work\\Java\\PiliPili_Project\\test\\video_transcoding_hls.bat";
+//    public static final String VIDEO_TRANSCODING_HLS_BAT = "T:\\Work\\Java\\PiliPili_Project\\test\\video_transcoding_hls.bat";
+    public static final String VIDEO_TRANSCODING_HLS_LANDSCAPE_H264 = "T:\\Work\\Java\\PiliPili_Project\\test\\video_transcoding_hls-filter-landscape-h264.ps1";
+    public static final String VIDEO_TRANSCODING_HLS_PORTRAIT_H264 = "T:\\Work\\Java\\PiliPili_Project\\test\\video_transcoding_hls-filter-portrait-h264.ps1";
+    public static final String VIDEO_TRANSCODING_HLS_LANDSCAPE_HEVC = "T:\\Work\\Java\\PiliPili_Project\\test\\video_transcoding_hls-filter-landscape-hevc.ps1";
+    public static final String VIDEO_TRANSCODING_HLS_PORTRAIT_HEVC = "T:\\Work\\Java\\PiliPili_Project\\test\\video_transcoding_hls-filter-portrait-hevc.ps1";
     public static final String HLS_MASTER_PL_NAME = "master.m3u8";
     /**
      * 高码率门槛：6000kbps
@@ -104,10 +109,12 @@ public class FFmpegHelper {
         // 针对MOV格式 获取其旋转角信息
         if (Objects.equals(info.getFormat().getTags().getMajor_brand(), MajorBrand.MOV.getName())) {
             isMov = true;
+            log.debug("#analyseVideoFile: Major brand is MOV");
             List<FFprobeStreamSideData> sideDataList = info.getStreams().get(0).getSide_data_list();
             if (ListUtil.isNotEmpty(sideDataList)) {
                 Integer rotationRaw = sideDataList.get(0).getRotation();
                 rotation = rotationRaw == null ? 0 : rotationRaw;
+                log.debug("#analyseVideoFile: Rotation is {}", rotation);
             }
         }
 
@@ -122,7 +129,14 @@ public class FFmpegHelper {
      * @return
      */
     @NotNull
-    private VideoFileAnalyseResult getAnalyseResult(List<FFprobeStream> streams, long sizeLong, long durationLong, long totalBitRateLong, boolean isMov, int rotation) {
+    private VideoFileAnalyseResult getAnalyseResult(
+            List<FFprobeStream> streams,
+            long sizeLong,
+            long durationLong,
+            long totalBitRateLong,
+            boolean isMov,
+            int rotation
+    ) {
         FFprobeStream videoStream = streams.get(0);
         // 视频流的比特率
         String videoBitRate = videoStream.getBit_rate();
@@ -223,37 +237,47 @@ public class FFmpegHelper {
      */
     public boolean videoTranscodingToHLS(String input, String outputDirectory, VideoFileAnalyseResult analyseResult) {
         FFmpegTranscodeQuantityLevel level = analyseResult.getLevel();
-        return videoTranscodingToHLS(input, outputDirectory, level);
+        VideoOrientation orientation = analyseResult.getOrientation();
+        return videoTranscodingToHLS(input, outputDirectory, level, orientation);
     }
 
-    /**
-     * 将视频转码为多档清晰度的HLS格式
-     * @param input 源视频路径
-     * @param outputDirectory 转码结果目录路径
-     * @return
-     */
-    public boolean videoTranscodingToHLS(String input, String outputDirectory) {
-        VideoFileAnalyseResult analyseResult = analyseVideoFile(input);
-        return videoTranscodingToHLS(input, outputDirectory, analyseResult);
-    }
+//    /**
+//     * 将视频转码为多档清晰度的HLS格式
+//     * @param input 源视频路径
+//     * @param outputDirectory 转码结果目录路径
+//     * @return
+//     */
+//    public boolean videoTranscodingToHLS(String input, String outputDirectory) {
+//        VideoFileAnalyseResult analyseResult = analyseVideoFile(input);
+//        return videoTranscodingToHLS(input, outputDirectory, analyseResult);
+//    }
 
     /**
      * 将视频转码为多档清晰度的HLS格式
      * @param input 源视频路径
      * @param outputDirectory 转码结果目录路径
      * @param level 视频质量等级，参考{@code FFmpegTranscodeQuantityLevel}
+     * @param orientation 视频画面方向：横屏或竖屏，参考{@code VideoOrientation}
      */
-    public boolean videoTranscodingToHLS(String input, String outputDirectory, FFmpegTranscodeQuantityLevel level) {
+    public boolean videoTranscodingToHLS(String input, String outputDirectory, FFmpegTranscodeQuantityLevel level, VideoOrientation orientation) {
         // 将视频转码为多档质量（由level决定）的hls格式视频，按高到低排序
         StringBuilder ab = new StringBuilder();
         ab
-//                .append(BASE_PATH)
-                .append(input).append(" ")
-//                .append(BASE_PATH)
-                .append(outputDirectory).append(" ")
-                .append(level.getLevel());
+                .append("-InputFile").append(input).append(" ")
+                .append("-OutputDir").append(outputDirectory).append(" ")
+                .append("-Level").append(level.getLevel());
 
-        CommandResult result = doCommand(VIDEO_TRANSCODING_HLS_BAT, ab.toString());
+        CommandResult result;
+        // todo: 确保目标视频方向正确
+        switch (orientation) {
+            case PORTRAIT:
+                result = doCommand(VIDEO_TRANSCODING_HLS_PORTRAIT_H264, ab.toString());
+                break;
+            case LANDSCAPE:
+            default:
+                result = doCommand(VIDEO_TRANSCODING_HLS_LANDSCAPE_H264, ab.toString());
+                break;
+        }
         if (result.getSuccess()) {
             log.info("videoTranscodingToHLS success, elapsedTime: {} ms", result.getElapsedTime());
         } else {

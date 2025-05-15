@@ -5,13 +5,14 @@
 package com.bubble.pilipili.oss.controller;
 
 import com.alibaba.fastjson2.JSON;
-import com.bubble.pilipili.common.constant.AuthConstant;
+import com.bubble.pilipili.common.constant.VideoStatus;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
-import com.bubble.pilipili.common.pojo.JwtPayload;
+import com.bubble.pilipili.common.util.RequestUtil;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.api.OssFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.OssUploadFileDTO;
+import com.bubble.pilipili.feign.pojo.req.SendVideoInfoReq;
 import com.bubble.pilipili.oss.constant.OssFileDirectory;
 import com.bubble.pilipili.oss.constant.UploadTaskStatus;
 import com.bubble.pilipili.oss.pojo.dto.FFMpegTranscodingDTO;
@@ -86,9 +87,7 @@ public class OssController implements OssFeignAPI, Controller {
         // 拷贝临时文件
         TempMultipartFile tempFile = TempMultipartFile.createTempFile(file);
 
-        String jwtPayload = request.getHeader(AuthConstant.JWT_PAYLOAD_HEADER);
-        JwtPayload payload = JSON.parseObject(jwtPayload, JwtPayload.class);
-        String username = payload.getUsername();
+        String username = RequestUtil.getUsername(request);
         log.debug("username: {}", username);
 
         // taskId可以通过ws消息发送给客户端，也可以通过请求响应返回
@@ -157,10 +156,11 @@ public class OssController implements OssFeignAPI, Controller {
 
                 // 执行视频信息更新（contentUrl）
                 // 没有必要更新，因为objectName可以先生成返回给前端去保存视频信息，等到视频文件上传OSS任务完成后自然就可以通过objectName访问了
-//                SendVideoInfoReq req = new SendVideoInfoReq();
-//                req.setTaskId(taskId);
-//                req.setContentUrl(dto.getObjectName());
-//                mqFeignAPI.sendVideoInfo(req);
+                // 更新视频状态
+                SendVideoInfoReq req = new SendVideoInfoReq();
+                req.setTaskId(taskId);
+                req.setStatus(VideoStatus.AUDITING.getValue());
+                mqFeignAPI.sendVideoInfo(req);
             }
         });
 

@@ -129,14 +129,21 @@ public interface VideoInfoService {
     QueryVideoInfoDTO getVideoInfoById(Integer vid);
 
     /**
-     * 分页查询用户所有视频
+     * 分页查询用户所有视频（用户个人空间用，上传中、审核中、审核通过状态的视频）
      * @param req
      * @return
      */
     PageDTO<QueryVideoInfoDTO> pageQueryVideoInfoByUid(PageQueryVideoInfoReq req);
 
     /**
-     * 分页查询用户已上架视频
+     * 分页查询用户所有视频（管理员用，所有状态的视频）
+     * @param req
+     * @return
+     */
+    PageDTO<QueryVideoInfoDTO> pageQueryAllVideoInfoByUid(PageQueryVideoInfoReq req);
+
+    /**
+     * 分页查询用户已上架视频（对外展示用）
      * @param req
      * @return
      */
