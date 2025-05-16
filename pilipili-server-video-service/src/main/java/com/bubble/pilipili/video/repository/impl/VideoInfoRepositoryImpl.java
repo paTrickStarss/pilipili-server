@@ -117,23 +117,38 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
      * @return
      */
     @Override
-    public Page<VideoInfo> pageQueryVideoInfoByUid(
+    public Page<VideoInfo> pageQueryVideoInfo(
             Integer uid, Long pageNo, Long pageSize,
             List<VideoStatus> statusList, boolean applyOrder, boolean isAsc,
             List<SFunction<VideoInfo, ?>> columnFuncList
     ) {
         Page<VideoInfo> page = new Page<>(pageNo, pageSize);
-        LambdaQueryWrapper<VideoInfo> qw = new LambdaQueryWrapper<>();
-        qw.eq(VideoInfo::getUid, uid);
-        // 视频状态过滤
-        if (ListUtil.isNotEmpty(statusList)) {
-            qw.in(VideoInfo::getStatus, getStatusValue(statusList));
-        }
+        LambdaQueryWrapper<VideoInfo> qw = getQueryWrapper(uid, statusList);
         // 排序
         if (ListUtil.isNotEmpty(columnFuncList)) {
             qw.orderBy(applyOrder, isAsc, columnFuncList);
         }
         return videoInfoMapper.selectPage(page, qw);
+    }
+
+    /**
+     * 分页查询所有视频（可排序）
+     *
+     * @param pageNo
+     * @param pageSize
+     * @param statusList
+     * @param applyOrder
+     * @param isAsc
+     * @param columnFuncList
+     * @return
+     */
+    @Override
+    public Page<VideoInfo> pageQueryVideoInfo(
+            Long pageNo, Long pageSize, List<VideoStatus> statusList,
+            boolean applyOrder, boolean isAsc,
+            List<SFunction<VideoInfo, ?>> columnFuncList
+    ) {
+        return pageQueryVideoInfo(null, pageNo, pageSize, statusList, applyOrder, isAsc, columnFuncList);
     }
 
 
@@ -145,13 +160,21 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
      * @return
      */
     @Override
-    public Long getUserVideoCount(Integer uid, List<VideoStatus> statusList) {
-        LambdaQueryWrapper<VideoInfo> qw = new LambdaQueryWrapper<>();
-        qw.eq(VideoInfo::getUid, uid);
-        if (ListUtil.isNotEmpty(statusList)) {
-            qw.in(VideoInfo::getStatus, getStatusValue(statusList));
-        }
+    public Long getVideoCount(Integer uid, List<VideoStatus> statusList) {
+        LambdaQueryWrapper<VideoInfo> qw = getQueryWrapper(uid, statusList);
         return videoInfoMapper.selectCount(qw);
+    }
+
+
+    /**
+     * 查询视频数量
+     *
+     * @param statusList
+     * @return
+     */
+    @Override
+    public Long getVideoCount(List<VideoStatus> statusList) {
+        return getVideoCount(null, statusList);
     }
 
     /**
@@ -178,7 +201,29 @@ public class VideoInfoRepositoryImpl implements VideoInfoRepository {
         return queryWrapper;
     }
 
+    /**
+     * 根据用户ID和视频状态生成QueryWrapper
+     * @param uid
+     * @param statusList
+     * @return
+     */
+    private LambdaQueryWrapper<VideoInfo> getQueryWrapper(Integer uid, List<VideoStatus> statusList) {
+        LambdaQueryWrapper<VideoInfo> qw = new LambdaQueryWrapper<>();
+        // uid传入-1表示查询全部用户
+        if (uid != null && !uid.equals(-1)) {
+            qw.eq(VideoInfo::getUid, uid);
+        }
+        if (ListUtil.isNotEmpty(statusList)) {
+            qw.in(VideoInfo::getStatus, getStatusValue(statusList));
+        }
+        return qw;
+    }
 
+    /**
+     * 转化视频状态值
+     * @param statusList
+     * @return
+     */
     private List<Integer> getStatusValue(List<VideoStatus> statusList) {
         return statusList
                 .stream()

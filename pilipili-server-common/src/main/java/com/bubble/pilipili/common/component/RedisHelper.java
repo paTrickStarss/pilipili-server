@@ -90,7 +90,7 @@ public abstract class RedisHelper {
         if (cache == null) {
             R repoRecord = repoGetter.apply(param);
             runRLockTask(
-                    getRLockName(repoRecord.getClass(), param.toString()),
+                    getRLockName(cacheRootKey.getKey(), param.toString()),
                     () -> saveCache(cacheKey, repoRecord),
                     cacheKey
             );

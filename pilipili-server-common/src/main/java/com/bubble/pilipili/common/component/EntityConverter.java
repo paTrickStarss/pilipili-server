@@ -91,6 +91,7 @@ public class EntityConverter {
         Map<String, Field> fromFieldMap = getFieldCacheMap(fromClz);
 
         fromList.forEach(from -> {
+            if (from == null) return;
             T result;
             try {
                 result = resultClz.getConstructor().newInstance();

@@ -34,7 +34,7 @@ public interface VideoInfoRepository {
     Page<VideoInfo> pageQueryVideoInfo(QueryVideoInfoParam param, Long pageNo, Long pageSize);
 
     /**
-     * 分页查询用户的所有视频（可排序）
+     * 分页查询用户所有视频（可排序）
      * @param uid
      * @param pageNo
      * @param pageSize
@@ -44,8 +44,22 @@ public interface VideoInfoRepository {
      * @param columnFuncList
      * @return
      */
-    Page<VideoInfo> pageQueryVideoInfoByUid(
+    Page<VideoInfo> pageQueryVideoInfo(
             Integer uid, Long pageNo, Long pageSize, List<VideoStatus> statusList,
+            boolean applyOrder, boolean isAsc, List<SFunction<VideoInfo, ?>> columnFuncList);
+
+    /**
+     * 分页查询所有视频（可排序）
+     * @param pageNo
+     * @param pageSize
+     * @param statusList
+     * @param applyOrder
+     * @param isAsc
+     * @param columnFuncList
+     * @return
+     */
+    Page<VideoInfo> pageQueryVideoInfo(
+            Long pageNo, Long pageSize, List<VideoStatus> statusList,
             boolean applyOrder, boolean isAsc, List<SFunction<VideoInfo, ?>> columnFuncList);
 
     /**
@@ -54,5 +68,12 @@ public interface VideoInfoRepository {
      * @param statusList
      * @return
      */
-    Long getUserVideoCount(Integer uid, List<VideoStatus> statusList);
+    Long getVideoCount(Integer uid, List<VideoStatus> statusList);
+
+    /**
+     * 查询视频数量
+     * @param statusList
+     * @return
+     */
+    Long getVideoCount(List<VideoStatus> statusList);
 }

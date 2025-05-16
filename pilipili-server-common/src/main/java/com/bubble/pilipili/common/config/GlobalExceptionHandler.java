@@ -6,6 +6,7 @@ package com.bubble.pilipili.common.config;
 
 import com.bubble.pilipili.common.exception.BadRequestException;
 import com.bubble.pilipili.common.exception.ForbiddenException;
+import com.bubble.pilipili.common.exception.NotFountException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorMap);
     }
 
+    /**
+     * 权限不足异常
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(NotFountException.class)
+    public ResponseEntity<SimpleResponse<String>> handleNotFountException(NotFountException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(SimpleResponse.failed(ex.getMessage()));
+    }
     /**
      * 权限不足异常
      * @param ex

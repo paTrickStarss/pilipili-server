@@ -9,6 +9,7 @@ import com.bubble.pilipili.common.component.EntityConverter;
 import com.bubble.pilipili.common.constant.RedisKey;
 import com.bubble.pilipili.common.constant.UserVideoLevel;
 import com.bubble.pilipili.common.constant.VideoStatus;
+import com.bubble.pilipili.common.exception.NotFountException;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
@@ -357,6 +358,9 @@ public class VideoInfoServiceImpl implements VideoInfoService {
                 videoInfoRepository::getVideoInfoById,
                 VideoInfo.class
         );
+        if (videoInfo == null) {
+            throw new NotFountException("视频不存在");
+        };
 
         List<QueryVideoInfoDTO> dtoList = handleVideoInfo(Collections.singletonList(videoInfo));
         return ListUtil.isEmpty(dtoList) ? null : dtoList.get(0);
@@ -370,18 +374,14 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public PageDTO<QueryVideoInfoDTO> pageQueryVideoInfoByUid(PageQueryVideoInfoReq req) {
-        List<VideoStatus> statusList = Arrays.asList(
-                VideoStatus.UPLOADING,
-                VideoStatus.AUDITING,
-                VideoStatus.AUDIT_PASSED
-        );
+        List<VideoStatus> statusList = VideoStatus.USER_VIDEO_STATUS_LIST;
         return doPageQueryVideoInfoByUid(req,
                 (req1) ->
-                    videoInfoRepository.pageQueryVideoInfoByUid(
+                    videoInfoRepository.pageQueryVideoInfo(
                         req1.getUid(), req1.getPageNo(), req1.getPageSize(), statusList,
                             true, false, Collections.singletonList(VideoInfo::getUploadTime)
                     ),
-                (uid) -> videoInfoRepository.getUserVideoCount(uid, statusList),
+                (uid) -> videoInfoRepository.getVideoCount(uid, statusList),
                 UserVideoLevel.LEVEL_USER
         );
     }
@@ -394,14 +394,28 @@ public class VideoInfoServiceImpl implements VideoInfoService {
      */
     @Override
     public PageDTO<QueryVideoInfoDTO> pageQueryAllVideoInfoByUid(PageQueryVideoInfoReq req) {
+        // 获取请求参数中的视频状态status
+        List<VideoStatus> statusList;
+        UserVideoLevel level;
+        Integer status = req.getStatus();
+        VideoStatus[] videoStatusArr = VideoStatus.values();
+        if (status != null && status >= 0 && status < videoStatusArr.length) {
+            VideoStatus value = videoStatusArr[status];
+            statusList = Collections.singletonList(value);
+            level = UserVideoLevel.values()[status];
+        } else {
+            statusList = null;
+            level = UserVideoLevel.LEVEL_ADMIN;
+        }
+
         return doPageQueryVideoInfoByUid(req, (req1) ->
-                        videoInfoRepository.pageQueryVideoInfoByUid(
+                        videoInfoRepository.pageQueryVideoInfo(
                                 req1.getUid(), req1.getPageNo(), req1.getPageSize(),
-                                null,
+                                statusList,
                                 true, false, Collections.singletonList(VideoInfo::getUploadTime)
                         ),
-                (uid) -> videoInfoRepository.getUserVideoCount(uid, null),
-                UserVideoLevel.LEVEL_ADMIN
+                (uid) -> videoInfoRepository.getVideoCount(uid, null),
+                level
         );
     }
 
@@ -414,12 +428,12 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     public PageDTO<QueryVideoInfoDTO> pageQueryPassedVideoInfoByUid(PageQueryVideoInfoReq req) {
         List<VideoStatus> statusList = Collections.singletonList(VideoStatus.AUDIT_PASSED);
         return doPageQueryVideoInfoByUid(req, (req1) ->
-                        videoInfoRepository.pageQueryVideoInfoByUid(
+                        videoInfoRepository.pageQueryVideoInfo(
                                 req1.getUid(), req1.getPageNo(), req1.getPageSize(),
                                 statusList,
                                 true, false, Collections.singletonList(VideoInfo::getUploadTime)
                         ),
-                (uid) -> videoInfoRepository.getUserVideoCount(uid, statusList),
+                (uid) -> videoInfoRepository.getVideoCount(uid, statusList),
                 UserVideoLevel.LEVEL_PUBLIC
         );
     }
