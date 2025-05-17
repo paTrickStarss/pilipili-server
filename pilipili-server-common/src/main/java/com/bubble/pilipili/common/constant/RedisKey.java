@@ -27,6 +27,7 @@ public enum RedisKey {
     DANMAKU_STATS("DANMAKU_STATS"),
     DYNAMIC_STATS("DANMAKU_STATS"),
     USER_STATS("USER_STATS"),
+    USER_INFO("USER_INFO"),
     KEY_DIVIDER(":"),
     ;
 

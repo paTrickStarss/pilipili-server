@@ -19,8 +19,10 @@ import com.bubble.pilipili.common.util.StringUtil;
 import com.bubble.pilipili.feign.api.MQFeignAPI;
 import com.bubble.pilipili.feign.api.OssFeignAPI;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
+import com.bubble.pilipili.feign.api.UserFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.OssTempSignDTO;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
+import com.bubble.pilipili.feign.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.feign.pojo.req.SendVideoStatsReq;
 import com.bubble.pilipili.common.pojo.VideoStats;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
@@ -44,6 +46,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -80,6 +83,8 @@ public class VideoInfoServiceImpl implements VideoInfoService {
 
     @Autowired
     private VideoRedisHelper videoRedisHelper;
+    @Autowired
+    private UserFeignAPI userFeignAPI;
 
     /**
      * 新增视频信息
@@ -138,6 +143,10 @@ public class VideoInfoServiceImpl implements VideoInfoService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public Boolean updateVideoInfo(UpdateVideoInfoReq req) {
+        // 若审核通过则更新发布时间publishTime
+        if (req.getStatus() != null && req.getStatus().equals(VideoStatus.AUDIT_PASSED.getValue())) {
+            req.setPublishTime(LocalDateTime.now());
+        }
         VideoInfo videoInfo = entityConverter.copyFieldValue(req, VideoInfo.class);
         if (videoInfo.getVid() == null) {
             throw ServiceOperationException.emptyField("vid");
@@ -146,6 +155,21 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         Boolean b = videoInfoRepository.updateVideoInfo(videoInfo);
         if (b) {
             videoRedisHelper.removeCache(RedisKey.VIDEO_INFO, videoInfo.getVid());
+            // 涉及视频状态更新的，要删除 该视频发布用户id以及-1（管理员）对应的 所有视频id及其数量缓存
+            if (req.getStatus() != null) {
+                VideoInfo entity = videoRedisHelper.queryViaCache(videoInfo.getVid(),
+                        RedisKey.VIDEO_INFO,
+                        videoInfoRepository::getVideoInfoById,
+                        VideoInfo.class
+                );
+                if (entity != null) {
+                    Integer uid = entity.getUid();
+                    videoRedisHelper.removeCacheByKeyPattern(RedisKey.USER_VIDEO_ID_LIST, uid);
+                    videoRedisHelper.removeCacheByKeyPattern(RedisKey.USER_VIDEO_COUNT, uid);
+                }
+                videoRedisHelper.removeCacheByKeyPattern(RedisKey.USER_VIDEO_ID_LIST, -1);
+                videoRedisHelper.removeCacheByKeyPattern(RedisKey.USER_VIDEO_COUNT, -1);
+            }
         }
         return b;
     }
@@ -360,7 +384,7 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         );
         if (videoInfo == null) {
             throw new NotFountException("视频不存在");
-        };
+        }
 
         List<QueryVideoInfoDTO> dtoList = handleVideoInfo(Collections.singletonList(videoInfo));
         return ListUtil.isEmpty(dtoList) ? null : dtoList.get(0);
@@ -614,6 +638,14 @@ public class VideoInfoServiceImpl implements VideoInfoService {
         SimpleResponse<OssTempSignDTO> signResp = ossFeignAPI.getTempSigns(objectNameList);
         Map<String, String> urlMap = signResp.getData().getUrlMap();
 
+        // 获取投稿用户信息
+        List<Integer> uidList = dtoList
+                .stream()
+                .map(QueryVideoInfoDTO::getUid)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Integer, QueryUserInfoDTO> userInfoMap = userFeignAPI.getUserInfo(uidList).getData();
+
         // 装填DTO
         dtoList.forEach(dto -> {
             // 装填统计数据
@@ -636,6 +668,12 @@ public class VideoInfoServiceImpl implements VideoInfoService {
             String coverUrl = urlMap.get(dto.getCoverUrl());
             if (StringUtil.isNotEmpty(coverUrl)) {
                 dto.setCoverUrl(coverUrl);
+            }
+
+            // 用户信息
+            QueryUserInfoDTO userInfo = userInfoMap.get(dto.getUid());
+            if (userInfo != null) {
+                dto.setNickname(userInfo.getNickname());
             }
 
             // tag转数组

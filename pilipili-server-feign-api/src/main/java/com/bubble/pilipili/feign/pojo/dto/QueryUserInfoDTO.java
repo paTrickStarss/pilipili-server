@@ -2,7 +2,7 @@
  * Copyright (c) 2024-2025. Bubble
  */
 
-package com.bubble.pilipili.user.pojo.dto;
+package com.bubble.pilipili.feign.pojo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

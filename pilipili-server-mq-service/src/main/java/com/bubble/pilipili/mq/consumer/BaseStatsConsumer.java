@@ -122,8 +122,8 @@ public abstract class BaseStatsConsumer<T extends StatsMessage, S extends StatsE
      */
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
     public void scheduleConsumer() {
-        log.debug("###[{}]scheduled: Current queue size: {}",
-                getClass().getName(), statsQueue.size());
+//        log.debug("###[{}]scheduled: Current queue size: {}",
+//                getClass().getName(), statsQueue.size());
         if (!statsQueue.isEmpty()) {
             launchBatchHandle();
         }

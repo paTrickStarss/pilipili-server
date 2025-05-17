@@ -7,6 +7,7 @@ package com.bubble.pilipili.common.component;
 import com.bubble.pilipili.common.constant.RedisKey;
 import com.bubble.pilipili.common.exception.UtilityException;
 import com.bubble.pilipili.common.pojo.*;
+import com.bubble.pilipili.common.util.ListUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -16,10 +17,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -64,6 +62,57 @@ public abstract class RedisHelper {
      */
     public static final long NULL_VALUE_EXPIRE_TIME = 60 * 10;
 
+
+    /**
+     * 执行经过缓存的批量查询，查询结果为(param -> value)的map
+     * todo: 该方法没走分布式锁，高并发场景下缓存更新可能会有问题
+     * @param paramList
+     * @param cacheRootKey
+     * @param repoGetter
+     * @param resultClz
+     * @return
+     * @param <T>
+     * @param <R>
+     */
+    public <T, R> Map<T, R> queryMapViaCache(
+            List<T> paramList,
+            RedisKey cacheRootKey,
+            Function<List<T>, Map<T, R>> repoGetter,
+            Class<R> resultClz
+    ) {
+        if (ListUtil.isEmpty(paramList)) {
+            return Collections.emptyMap();
+        }
+
+        Map<T, R> resultMap = new HashMap<>();
+        List<T> queryRepoParamList = new ArrayList<>();
+        // 检查缓存
+        for (T param : paramList) {
+            String cacheKey = getCacheKey(cacheRootKey, param);
+            Object cache = getCache(cacheKey);
+            if (cache == null) {
+                // 缓存未命中，加入查询数据库列表
+                queryRepoParamList.add(param);
+            }
+            if (resultClz.isInstance(cache)) {
+                // 缓存命中直接存至结果Map
+                resultMap.put(param, resultClz.cast(cache));
+            }
+        }
+
+        // 批量查询数据库
+        if (!queryRepoParamList.isEmpty()) {
+            Map<T, R> repoResult = repoGetter.apply(queryRepoParamList);
+            if (repoResult != null) {
+                // 更新缓存，保存结果
+                repoResult.forEach((key, value) -> {
+                    saveCache(getCacheKey(cacheRootKey, key), value);
+                    resultMap.put(key, value);
+                });
+            }
+        }
+        return resultMap;
+    }
 
     /**
      * 执行经过缓存的查询。先查询缓存，若缓存未命中则查询数据库

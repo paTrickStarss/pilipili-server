@@ -10,6 +10,7 @@ import com.bubble.pilipili.auth.pojo.dto.LoginDTO;
 import com.bubble.pilipili.auth.pojo.dto.OAuthTokenDTO;
 import com.bubble.pilipili.auth.pojo.req.LoginReq;
 import com.bubble.pilipili.auth.util.OAuthUtil;
+import com.bubble.pilipili.common.constant.UserRole;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.util.StringUtil;
@@ -24,6 +25,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.validation.Valid;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,7 +84,10 @@ public class SessionController implements Controller {
             String jti = jsonObject.get("jti").toString();
             sessionManager.saveToken(oAuthTokenDTO.getUsername(), jti, oAuthTokenDTO.getExpires_in());
 
-            return SimpleResponse.success(new LoginDTO(oAuthTokenDTO.getUsername(), oAuthTokenDTO.getAccess_token(), oAuthTokenDTO.getExpires_in()));
+            List<String> authorities = (List<String>) jsonObject.get("authorities");
+            boolean admin = authorities.contains(UserRole.ROLE_ADMIN.getValue());
+
+            return SimpleResponse.success(new LoginDTO(oAuthTokenDTO.getUsername(), oAuthTokenDTO.getAccess_token(), oAuthTokenDTO.getExpires_in(), admin));
         } catch (FeignException e) {
             log.warn("Token获取异常: {}", e.getMessage());
             if (e.getMessage().contains("invalid_grant")) {

@@ -6,13 +6,14 @@ package com.bubble.pilipili.user.service;
 
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
-import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
+import com.bubble.pilipili.feign.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryUserRelaDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
 import com.bubble.pilipili.user.pojo.req.SaveUserInfoReq;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -40,6 +41,12 @@ public interface UserInfoService {
      * @return
      */
     QueryUserInfoDTO getUserInfoByUid(Integer uid);
+    /**
+     * 批量查询用户信息
+     * @param uidList
+     * @return
+     */
+    Map<Integer, QueryUserInfoDTO> getUserInfoByUid(List<Integer> uidList);
 
     /**
      * 分页查询关注用户

@@ -6,12 +6,16 @@ package com.bubble.pilipili.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bubble.pilipili.common.component.EntityConverter;
+import com.bubble.pilipili.common.constant.RedisKey;
+import com.bubble.pilipili.common.exception.NotFountException;
 import com.bubble.pilipili.common.exception.ServiceOperationException;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
+import com.bubble.pilipili.common.util.ListUtil;
 import com.bubble.pilipili.feign.api.StatsFeignAPI;
 import com.bubble.pilipili.feign.pojo.dto.QueryStatsDTO;
 import com.bubble.pilipili.common.pojo.UserStats;
+import com.bubble.pilipili.feign.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.*;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
 import com.bubble.pilipili.user.pojo.entity.UserRela;
@@ -21,6 +25,7 @@ import com.bubble.pilipili.user.repository.UserInfoRepository;
 import com.bubble.pilipili.user.repository.UserRelaRepository;
 import com.bubble.pilipili.user.service.UserInfoService;
 import com.bubble.pilipili.user.util.UserInfoUtil;
+import com.bubble.pilipili.user.util.UserRedisHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,6 +58,8 @@ public class UserInfoServiceImpl implements UserInfoService {
     
     @Autowired
     private EntityConverter entityConverter;
+    @Autowired
+    private UserRedisHelper userRedisHelper;
 
     /**
      * 保存用户信息
@@ -73,6 +80,9 @@ public class UserInfoServiceImpl implements UserInfoService {
             userInfo.setPassword(encodedPassword);
 
             saveSuccess = userInfoRepository.saveUserInfo(userInfo);
+            if (saveSuccess) {
+                userRedisHelper.removeCache(RedisKey.USER_INFO, userInfo.getUid());
+            }
 
         } catch (Exception e) {
             log.error("saveUserInfo error, {}", e.getMessage(), e);
@@ -96,6 +106,9 @@ public class UserInfoServiceImpl implements UserInfoService {
     public SaveUserInfoDTO updateUserInfo(SaveUserInfoReq saveUserInfoReq) {
         UserInfo userInfo = entityConverter.copyFieldValue(saveUserInfoReq, UserInfo.class);
         Boolean success = userInfoRepository.updateUserInfo(userInfo);
+        if (success) {
+            userRedisHelper.removeCache(RedisKey.USER_INFO, saveUserInfoReq.getUid());
+        }
         return new SaveUserInfoDTO(success? Boolean.TRUE:Boolean.FALSE, null);
     }
 
@@ -107,18 +120,67 @@ public class UserInfoServiceImpl implements UserInfoService {
      */
     @Override
     public QueryUserInfoDTO getUserInfoByUid(Integer uid) {
-        UserInfo userInfo = userInfoRepository.findUserInfoByUid(uid);
+        UserInfo userInfo = userRedisHelper.queryViaCache(
+                uid, RedisKey.USER_INFO,
+                userInfoRepository::findUserInfoByUid,
+                UserInfo.class
+        );
+        if (userInfo == null) {
+            throw new NotFountException("用户不存在");
+        }
         QueryUserInfoDTO dto = entityConverter.copyFieldValue(userInfo, QueryUserInfoDTO.class);
         dto.setLevel(UserInfoUtil.getLevel(dto.getExp()));
 
         // 获取关注粉丝数据
-        QueryUserStatsDTO stats = getUserStats(Collections.singletonList(uid)).get(uid);
-        dto.setFollowerCount(stats.getFollowerCount());
-        dto.setFansCount(stats.getFansCount());
-        dto.setDynamicCount(stats.getDynamicCount());
+        UserStats stats = getUserStats(Collections.singletonList(uid)).get(uid);
+        if (stats != null) {
+            dto.setFollowerCount(stats.getFollowerCount());
+            dto.setFansCount(stats.getFansCount());
+            dto.setDynamicCount(stats.getDynamicCount());
+        }
 
         return dto;
     }
+
+    /**
+     * 批量查询用户信息
+     *
+     * @param uidList
+     * @return
+     */
+    @Override
+    public Map<Integer, QueryUserInfoDTO> getUserInfoByUid(List<Integer> uidList) {
+        if (ListUtil.isEmpty(uidList)) {
+            return Collections.emptyMap();
+        }
+        // 也可以改为循环调用queryViaCache
+        Map<Integer, UserInfo> userInfoMap = userRedisHelper.queryMapViaCache(
+                uidList, RedisKey.USER_INFO,
+                userInfoRepository::findUserInfoByUid,
+                UserInfo.class
+        );
+        if (userInfoMap == null || userInfoMap.isEmpty()) {
+            throw new NotFountException("用户不存在");
+        }
+
+        Map<Integer, UserStats> userStatsMap = getUserStats(uidList);
+        Map<Integer, QueryUserInfoDTO> resultMap = new HashMap<>();
+        userInfoMap.forEach((uid, info) -> {
+            QueryUserInfoDTO dto = entityConverter.copyFieldValue(info, QueryUserInfoDTO.class);
+            dto.setLevel(UserInfoUtil.getLevel(dto.getExp()));
+            UserStats stats = userStatsMap.get(uid);
+            if (stats != null) {
+                dto.setFollowerCount(stats.getFollowerCount());
+                dto.setFansCount(stats.getFansCount());
+                dto.setDynamicCount(stats.getDynamicCount());
+            }
+            resultMap.put(uid, dto);
+        });
+
+        return resultMap;
+    }
+
+
 
     /**
      * 分页查询关注用户
@@ -235,36 +297,12 @@ public class UserInfoServiceImpl implements UserInfoService {
      * @param uidList
      * @return
      */
-    private Map<Integer, QueryUserStatsDTO> getUserStats(List<Integer> uidList) {
-//        // 查询关注数
-//        Map<Long, Long> followerCountMap = userRelaRepository.countUserRela(uidList, false);
-//
-//        // 查询粉丝数
-//        Map<Long, Long> fansCountMap = userRelaRepository.countUserRela(uidList, true);
-
+    private Map<Integer, UserStats> getUserStats(List<Integer> uidList) {
         SimpleResponse<QueryStatsDTO<UserStats>> response = statsFeignAPI.getUserStats(uidList);
         if (!response.isSuccess()) {
             throw new ServiceOperationException("查询用户统计数据失败");
         }
-        Map<Integer, UserStats> statsMap = response.getData().getStatsMap();
-
-        Map<Integer, QueryUserStatsDTO> resultMap = new HashMap<>();
-        uidList.stream()
-                .map(Long::new)
-                .forEach(uid -> {
-                    QueryUserStatsDTO dto = new QueryUserStatsDTO();
-                    int uidInt = Math.toIntExact(uid);
-                    dto.setUid(uidInt);
-
-                    UserStats stats = statsMap.get(uidInt);
-                    if (stats != null) {
-                        dto.setFollowerCount(stats.getFollowerCount());
-                        dto.setFansCount(stats.getFansCount());
-                        dto.setDynamicCount(stats.getDynamicCount());
-                    }
-                    resultMap.put(uidInt, dto);
-                });
-        return resultMap;
+        return response.getData().getStatsMap();
     }
 
     /**
@@ -289,22 +327,24 @@ public class UserInfoServiceImpl implements UserInfoService {
                 .collect(Collectors.toList());
 
         // 查询用户信息
-        List<UserInfo> userInfoList = userInfoRepository.findUserInfoByUid(uidList);
+        Map<Integer, UserInfo> userInfoMap = userInfoRepository.findUserInfoByUid(uidList);
 
         // 查询关注粉丝数据
-        Map<Integer, QueryUserStatsDTO> userStatsMap = getUserStats(uidList);
+        Map<Integer, UserStats> userStatsMap = getUserStats(uidList);
 
         // 装填dto
-        List<QueryFollowUserInfoDTO> dtoList = userInfoList.stream()
+        List<QueryFollowUserInfoDTO> dtoList = userInfoMap.values().stream()
                 .map(userinfo -> {
                     QueryFollowUserInfoDTO dto =
                             entityConverter.copyFieldValue(
                                     userinfo, QueryFollowUserInfoDTO.class);
-                    QueryUserStatsDTO stats = userStatsMap.get(userinfo.getUid());
-                    dto.setFollowerCount(stats.getFollowerCount());
-                    dto.setFansCount(stats.getFansCount());
-                    dto.setDynamicCount(stats.getDynamicCount());
+                    UserStats stats = userStatsMap.get(userinfo.getUid());
                     dto.setLevel(UserInfoUtil.getLevel(userinfo.getExp()));
+                    if (stats != null) {
+                        dto.setFollowerCount(stats.getFollowerCount());
+                        dto.setFansCount(stats.getFansCount());
+                        dto.setDynamicCount(stats.getDynamicCount());
+                    }
 
                     // 查询特别关注状态
                     Integer fromUid = follow? originUid: userinfo.getUid();

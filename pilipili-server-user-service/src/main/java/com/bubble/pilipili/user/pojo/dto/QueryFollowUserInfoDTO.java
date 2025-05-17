@@ -4,6 +4,7 @@
 
 package com.bubble.pilipili.user.pojo.dto;
 
+import com.bubble.pilipili.feign.pojo.dto.QueryUserInfoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

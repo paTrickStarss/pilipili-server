@@ -4,12 +4,13 @@
 
 package com.bubble.pilipili.video.controller;
 
-import com.bubble.pilipili.common.exception.ForbiddenException;
+import com.bubble.pilipili.common.constant.VideoStatus;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.util.RequestUtil;
+import com.bubble.pilipili.feign.api.VideoFeignAPI;
 import com.bubble.pilipili.video.pojo.dto.QueryCategoryDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryUserVideoDTO;
 import com.bubble.pilipili.video.pojo.dto.QueryVideoInfoDTO;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 视频管理控制器
@@ -35,7 +37,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/video")
 @Tag(name = "VideoController", description = "视频管理相关接口")
-public class VideoController implements Controller {
+public class VideoController implements Controller, VideoFeignAPI {
 
     @Autowired
     private VideoInfoService videoInfoService;
@@ -63,17 +65,33 @@ public class VideoController implements Controller {
             @Valid @RequestBody UpdateVideoInfoReq req
     ) {
         if (req.getStatus() != null) {
-            throw new ForbiddenException("请通过管理员接口更新视频状态");
+            // 视频状态仅限管理员修改
+            req.setStatus(null);
+//            RequestUtil.adminIdentify(request);
         }
         Boolean b = videoInfoService.updateVideoInfo(req);
         return SimpleResponse.result(b);
     }
+
     /**
-     * 更新视频信息（管理员）
+     * 更新视频信息（服务间调用）
      * @param req
      * @return
      */
-    @Operation(summary = "更新视频信息（管理员）")
+    @Operation(summary = "更新视频信息（服务间调用）")
+    @PutMapping("/updateFromMQ")
+    public SimpleResponse<String> updateFromMQ(
+            @Valid @RequestBody UpdateVideoInfoReq req
+    ) {
+        Boolean b = videoInfoService.updateVideoInfo(req);
+        return SimpleResponse.result(b);
+    }
+    /**
+     * 更新视频信息
+     * @param req
+     * @return
+     */
+    @Operation(summary = "更新视频信息")
     @PutMapping("/updateAdmin")
     public SimpleResponse<String> updateAdmin(
             @Valid @RequestBody UpdateVideoInfoReq req,
@@ -269,8 +287,17 @@ public class VideoController implements Controller {
      */
     @Operation(summary = "查询视频信息")
     @GetMapping("/{vid}")
-    public SimpleResponse<QueryVideoInfoDTO> getVideoInfo(@Valid @PathVariable Integer vid) {
+    public SimpleResponse<QueryVideoInfoDTO> getVideoInfo(
+            @Valid @PathVariable Integer vid,
+            HttpServletRequest request
+    ) {
         QueryVideoInfoDTO dto = videoInfoService.getVideoInfoById(vid);
+        if (dto != null) {
+            // 视频没有过审，仅限 管理员 查看
+            if (!Objects.equals(dto.getStatus(), VideoStatus.AUDIT_PASSED.getValue())) {
+                RequestUtil.adminIdentify(request);
+            }
+        }
         return SimpleResponse.success(dto);
     }
 

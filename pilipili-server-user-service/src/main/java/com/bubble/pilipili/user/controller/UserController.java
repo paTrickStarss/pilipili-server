@@ -4,14 +4,14 @@
 
 package com.bubble.pilipili.user.controller;
 
-import com.bubble.pilipili.common.constant.AuthConstant;
 import com.bubble.pilipili.common.http.Controller;
 import com.bubble.pilipili.common.http.PageResponse;
 import com.bubble.pilipili.common.http.SimpleResponse;
 import com.bubble.pilipili.common.pojo.PageDTO;
 import com.bubble.pilipili.common.component.CryptoHelper;
+import com.bubble.pilipili.feign.api.UserFeignAPI;
 import com.bubble.pilipili.user.pojo.dto.QueryFollowUserInfoDTO;
-import com.bubble.pilipili.user.pojo.dto.QueryUserInfoDTO;
+import com.bubble.pilipili.feign.pojo.dto.QueryUserInfoDTO;
 import com.bubble.pilipili.user.pojo.dto.QueryUserRelaDTO;
 import com.bubble.pilipili.user.pojo.dto.SaveUserInfoDTO;
 import com.bubble.pilipili.user.pojo.req.PageQueryUserInfoReq;
@@ -26,10 +26,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -41,19 +41,12 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/user")
 @Tag(name = "UserController", description = "用户管理相关接口")
-public class UserController implements Controller {
+public class UserController implements Controller, UserFeignAPI {
 
     @Autowired
     private UserInfoService userInfoService;
     @Autowired
     private CryptoHelper cryptoHelper;
-
-//    @GetMapping("/test")
-//    public SimpleResponse<String> test(HttpServletRequest request) {
-//        String jwtPayload = request.getHeader(AuthConstant.JWT_PAYLOAD_HEADER);
-//        log.debug("jwtPayload:{}", jwtPayload);
-//        return SimpleResponse.success("test");
-//    }
 
     /**
      * 注册用户
@@ -163,6 +156,17 @@ public class UserController implements Controller {
     @GetMapping("/{uid}")
     public SimpleResponse<QueryUserInfoDTO> getUser(@Valid @PathVariable Integer uid) {
         QueryUserInfoDTO userInfoDTO = userInfoService.getUserInfoByUid(uid);
+        return SimpleResponse.success(userInfoDTO);
+    }
+    /**
+     * 批量查询用户信息
+     * @param uidList
+     * @return
+     */
+    @Operation(summary = "批量查询用户信息")
+    @GetMapping("/getUserInfo")
+    public SimpleResponse<Map<Integer, QueryUserInfoDTO>> getUserInfo(@Valid @RequestParam List<Integer> uidList) {
+        Map<Integer, QueryUserInfoDTO> userInfoDTO = userInfoService.getUserInfoByUid(uidList);
         return SimpleResponse.success(userInfoDTO);
     }
 

@@ -30,6 +30,10 @@ public class QueryVideoInfoDTO implements Serializable {
      */
     private Integer uid;
     /**
+     * 投稿用户名
+     */
+    private String nickname;
+    /**
      * 视频标题
      */
     private String title;

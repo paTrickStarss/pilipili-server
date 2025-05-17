@@ -21,4 +21,5 @@ public class LoginDTO {
     private String username;
     private String accessToken;
     private Long expires;
+    private Boolean admin;
 }

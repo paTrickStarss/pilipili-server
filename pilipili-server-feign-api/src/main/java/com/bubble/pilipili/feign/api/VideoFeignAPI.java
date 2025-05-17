@@ -27,6 +27,8 @@ public interface VideoFeignAPI {
      * @return
      */
     @Operation(summary = "更新视频信息")
-    @PutMapping("/api/video/update")
-    SimpleResponse<String> update(@Valid @RequestBody UpdateVideoInfoReq req);
+    @PutMapping("/api/video/updateFromMQ")
+    SimpleResponse<String> updateFromMQ(
+            @Valid @RequestBody UpdateVideoInfoReq req
+    );
 }

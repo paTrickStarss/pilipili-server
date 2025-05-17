@@ -7,6 +7,7 @@ package com.bubble.pilipili.user.repository;
 import com.bubble.pilipili.user.pojo.entity.UserInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -20,7 +21,8 @@ public interface UserInfoRepository {
     Boolean updateUserInfo(UserInfo userInfo);
 
     UserInfo findUserInfoByUid(Integer uid);
-    List<UserInfo> findUserInfoByUid(List<Integer> uidList);
+//    List<UserInfo> findUserInfoByUid(List<Integer> uidList);
+    Map<Integer, UserInfo> findUserInfoByUid(List<Integer> uidList);
 
     List<UserInfo> listUserInfo();
 }

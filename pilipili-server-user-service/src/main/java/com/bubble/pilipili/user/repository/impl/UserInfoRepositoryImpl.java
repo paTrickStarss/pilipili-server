@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author liweixin@hcrc1.wecom.work
@@ -39,7 +42,6 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
 
     @Override
     public UserInfo findUserInfoByUid(Integer uid) {
-//        return userInfoMapper.selectOne(new QueryWrapper<UserInfo>().eq("uid", uid));
         return userInfoMapper.selectById(uid);
     }
 
@@ -49,15 +51,18 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
      * @return
      */
     @Override
-    public List<UserInfo> findUserInfoByUid(List<Integer> uidList) {
+    public Map<Integer, UserInfo> findUserInfoByUid(List<Integer> uidList) {
         if (ListUtil.isEmpty(uidList)) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
-        return userInfoMapper.selectList(
+        List<UserInfo> userInfoList = userInfoMapper.selectList(
                 new LambdaQueryWrapper<UserInfo>()
                         .in(UserInfo::getUid, uidList)
         );
+        return userInfoList
+                .stream()
+                .collect(Collectors.toMap(UserInfo::getUid, Function.identity()));
     }
 
     @Override

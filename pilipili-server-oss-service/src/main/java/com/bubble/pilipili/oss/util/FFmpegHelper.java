@@ -263,19 +263,19 @@ public class FFmpegHelper {
         // 将视频转码为多档质量（由level决定）的hls格式视频，按高到低排序
         StringBuilder ab = new StringBuilder();
         ab
-                .append("-InputFile").append(input).append(" ")
-                .append("-OutputDir").append(outputDirectory).append(" ")
-                .append("-Level").append(level.getLevel());
+                .append("-InputFile ").append(input).append(" ")
+                .append("-OutputDir ").append(outputDirectory).append(" ")
+                .append("-Level ").append(level.getLevel());
 
         CommandResult result;
         // todo: 确保目标视频方向正确
         switch (orientation) {
             case PORTRAIT:
-                result = doCommand(VIDEO_TRANSCODING_HLS_PORTRAIT_H264, ab.toString());
+                result = doPSCommand(VIDEO_TRANSCODING_HLS_PORTRAIT_H264, ab.toString());
                 break;
             case LANDSCAPE:
             default:
-                result = doCommand(VIDEO_TRANSCODING_HLS_LANDSCAPE_H264, ab.toString());
+                result = doPSCommand(VIDEO_TRANSCODING_HLS_LANDSCAPE_H264, ab.toString());
                 break;
         }
         if (result.getSuccess()) {
@@ -288,6 +288,43 @@ public class FFmpegHelper {
     }
 
 
+    /**
+     * 执行命令
+     * @param target
+     * @param args
+     * @return exitCode 0表示成功 非0则执行异常
+     */
+    private CommandResult doPSCommand(String target, String args) {
+        String command = "powershell.exe -ExecutionPolicy Unrestricted -File " + target + " " + args;
+        StringBuilder output = new StringBuilder();
+        ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+        processBuilder.redirectErrorStream(true);
+
+        try {
+            log.info("Executing command: {}", command);
+            long l1 = System.currentTimeMillis();
+            Process process = processBuilder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+//                System.out.println(line);
+                output.append(line).append("\n");
+            }
+            int exitCode = process.waitFor();
+            long elapsedTime = System.currentTimeMillis() - l1;
+            if (exitCode != 0) {
+                output.append("Error Exit code: ").append(exitCode).append("\n");
+                return CommandResult.failure(output.toString(), elapsedTime);
+            }
+            return CommandResult.success(output.toString(), elapsedTime);
+
+        } catch (IOException | InterruptedException e) {
+            output.append("Command process error: ").append(e.getMessage()).append("\n");
+            log.error("Command process error: {}", output);
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * 执行命令
      * @param target

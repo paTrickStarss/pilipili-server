@@ -110,14 +110,21 @@ public class VideoInfoConsumer {
         if (body.getStatus() != null) {
             req.setStatus(body.getStatus());
         }
-        SimpleResponse<String> response = videoFeignAPI.update(req);
-        if (!response.isSuccess()) {
-            log.warn("视频信息更新失败: {}", response.getMsg());
-            retryMessage(msg, body);
+        try {
+            SimpleResponse<String> response = videoFeignAPI.updateFromMQ(req);
+            if (!response.isSuccess()) {
+                log.warn("视频信息更新失败: {}", response.getMsg());
+                retryMessage(msg, body);
 //                throw new MQConsumerException("找不到任务ID对应的vid，进行重试");
-            // 重新入队，会立即重试，跟配置文件里的重试配置没有关系
+                // 重新入队，会立即重试，跟配置文件里的重试配置没有关系
 //                channel.basicNack(deliveryTag, false, true);
 //                    channel.basicReject(deliveryTag, false);
+            } else {
+                log.debug("视频信息更新成功: {}", req);
+            }
+        } catch (Exception e) {
+            log.warn("视频信息更新失败: {}", e.getMessage());
+            retryMessage(msg, body);
         }
     }
 
